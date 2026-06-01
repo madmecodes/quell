@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShopWave</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font: 15px/1.5 ui-sans-serif, system-ui, sans-serif;
+           background: #0b0d12; color: #e6e8ee; }
+    header { padding: 20px 28px; border-bottom: 1px solid #1d212b; display: flex;
+             align-items: center; justify-content: space-between; }
+    h1 { margin: 0; font-size: 20px; letter-spacing: -0.02em; }
+    .tag { color: #8b93a7; font-size: 13px; }
+    main { padding: 28px; display: grid; grid-template-columns: 1fr 340px; gap: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .card { background: #11141c; border: 1px solid #1d212b; border-radius: 12px; padding: 18px; }
+    .card h3 { margin: 0 0 6px; font-size: 15px; }
+    .price { color: #9aa3b8; font-size: 13px; }
+    .panel { background: #11141c; border: 1px solid #1d212b; border-radius: 12px; padding: 18px; }
+    .panel h2 { margin: 0 0 12px; font-size: 15px; }
+    button { width: 100%; padding: 10px 14px; border-radius: 9px; border: 1px solid #2a2f3d;
+             background: #1a1e28; color: #e6e8ee; cursor: pointer; font-size: 14px; }
+    button.danger { background: #2a1416; border-color: #5b2026; color: #ff9ba3; }
+    button.ok { background: #122118; border-color: #245236; color: #8be0a6; }
+    .row { display: flex; gap: 8px; margin-top: 10px; }
+    .state { margin-top: 14px; font-size: 13px; color: #8b93a7; }
+    .state b { color: #e6e8ee; }
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+    .dot.red { background: #ef4444; } .dot.green { background: #22c55e; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ShopWave <span class="tag">Crash Arena gear</span></h1>
+    <span class="tag" id="status"><span class="dot green"></span>all systems normal</span>
+  </header>
+  <main>
+    <section>
+      <div class="grid" id="catalog"></div>
+    </section>
+    <aside class="panel">
+      <h2>Chaos Panel</h2>
+      <p class="tag">Inject a real production fault. Sentinel will detect, trace, and prevent it.</p>
+      <button class="danger" onclick="setChaos(true)">Inject: slow payment (Android / IN)</button>
+      <div class="row">
+        <button class="ok" onclick="setChaos(false)">Clear fault</button>
+        <button onclick="burst()">Send traffic burst</button>
+      </div>
+      <div class="state" id="chaosState"></div>
+    </aside>
+  </main>
+  <script>
+    const ITEMS = [
+      { name: "Turbo Kit", price: "INR 2,800" },
+      { name: "Arena Pass", price: "INR 1,500" },
+      { name: "Crash Coin x100", price: "INR 990" },
+      { name: "Nitro Decal", price: "INR 450" },
+      { name: "Champion Skin", price: "INR 3,600" },
+      { name: "Spare Parts Bundle", price: "INR 1,200" },
+    ];
+    document.getElementById("catalog").innerHTML = ITEMS.map(i =>
+      `<div class="card"><h3>${i.name}</h3><div class="price">${i.price}</div></div>`).join("");
+
+    async function setChaos(active) {
+      const r = await fetch("/api/chaos", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(active
+          ? { active: true, fault: "payment_latency", service: "payment-svc", span: "razorpay.charge",
+              segment: "Android / IN", deploy: "#847", addedLatencyMs: 400 }
+          : { active: false }) });
+      render(await r.json());
+    }
+    async function burst() { await fetch("/api/chaos"); fetch("http://localhost:8080/api/catalog"); }
+    function render(s) {
+      const el = document.getElementById("chaosState");
+      const st = document.getElementById("status");
+      if (s.active) {
+        el.innerHTML = `<b>FAULT ACTIVE</b><br>${s.fault} on <b>${s.service}</b> (${s.span})<br>segment <b>${s.segment}</b>, deploy ${s.deploy}, +${s.addedLatencyMs}ms`;
+        st.innerHTML = '<span class="dot red"></span>degraded';
+      } else {
+        el.innerHTML = "No fault injected.";
+        st.innerHTML = '<span class="dot green"></span>all systems normal';
+      }
+    }
+    fetch("/api/chaos").then(r => r.json()).then(render);
+  </script>
+</body>
+</html>

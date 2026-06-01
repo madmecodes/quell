@@ -1,0 +1,19 @@
+{
+  "name": "shopwave",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "ShopWave demo e-commerce store that emits OpenTelemetry to Dynatrace",
+  "scripts": {
+    "start": "node server.js",
+    "traffic": "node traffic.js"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.57.0",
+    "@opentelemetry/resources": "^1.30.0",
+    "@opentelemetry/sdk-trace-node": "^1.30.0",
+    "@opentelemetry/semantic-conventions": "^1.28.0",
+    "express": "^4.21.0"
+  }
+}

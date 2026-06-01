@@ -1,0 +1,8 @@
+# Core pipeline runs on the Python standard library only (mock mode).
+# The lines below are needed only for the live path (real Gemini + Dynatrace MCP).
+
+# google-adk            # Agent Builder / ADK runtime (live reasoning path)
+# google-genai          # Gemini API client
+# mcp                   # Model Context Protocol client for the Dynatrace MCP server
+# opentelemetry-sdk     # instrument Sentinel's own agents -> Dynatrace
+# opentelemetry-exporter-otlp

@@ -1,0 +1,134 @@
+# Sentinel
+
+A multi-agent system that catches degraded real-user experience in a live app,
+traces it to a root cause across the full stack, quantifies the business impact,
+and prevents it -- with a human in control. It then grades its own agents from
+their telemetry and improves them run over run.
+
+Built for the Google Cloud Rapid Agent Hackathon, Dynatrace track. Powered by
+Gemini on Google Cloud Agent Builder, with the Dynatrace MCP server as the
+agents' senses and hands.
+
+## Why Dynatrace is the core, not decoration
+
+Sentinel acts on truth that exists only in live production telemetry: real users,
+real sessions, real revenue, real traces. A failing checkout for Android users in
+one region after this morning's deploy cannot be found by a unit test, a code
+read, or a simulation -- only by Dynatrace. Remove Dynatrace and the agents are
+blind. That is the bar the idea is built to clear.
+
+## The agents
+
+| Agent | Job | Dynatrace tools | Access |
+|-------|-----|-----------------|--------|
+| Watcher | detect degraded real-user experience by segment | execute_dql (RUM), generate_dql_from_natural_language, list_problems | read |
+| Tracer | pinpoint the failing service / span / deploy | execute_dql (spans), find_entity_by_name, list_exceptions, generate_dql_from_natural_language | read |
+| Judge | quantify users, carts, revenue at risk; forecast breach | execute_dql (business events), list_davis_analyzers, execute_davis_analyzer | read |
+| Actuator | execute the approved, reversible fix and notify | create_workflow_for_notification, send_event, send_slack_message | write |
+| Scribe | write the prevented-incident report and seal the audit log | create_dynatrace_notebook, send_slack_message | write |
+| Evaluator | grade every agent from its own traces; propose improvements | execute_dql (Sentinel's own spans) | read |
+
+Tool scoping is the safety boundary: only Actuator and Scribe can write, and the
+human approval gate sits immediately before the Actuator.
+
+## How it works
+
+```
+Watcher -> Tracer -> Judge -> [GATE 1: human approves action] -> Actuator -> Scribe
+                                                                              |
+                                      Evaluator (async, reads own traces) ----+
+                                                                              |
+                                      [GATE 2: human approves learning] -> memory + definition edits
+```
+
+- Orchestration, not choreography: one central pipeline passes a single immutable
+  Case File down the line. Every agent appends one finding; the Case File is the
+  audit trail.
+- Two human checkpoints: approve the action before anything touches production,
+  and correct the evaluation before anything is written to memory.
+- Self-improvement, two ways. Memory (Reflexion): a human-approved lesson is
+  written to the agent's episodic store and read on the next run. Definition: the
+  Evaluator recommends a concrete edit to the agent's instructions for the human
+  to apply. The Evaluator runs on a different model than the agents it grades, to
+  avoid self-preference bias.
+
+## Genuine tool-calling agents
+
+Watcher, Tracer, and Judge are real tool-using agents, not hardcoded sequences.
+Each is handed a catalog of Dynatrace tools as callables; Gemini decides which to
+call, in what order, and when it has enough to conclude (verified: it chooses a
+different number of tool calls run to run). Two guardrails keep autonomy reliable:
+
+- The conclusion is grounded in the verified tool results, not the model's free
+  text, so a hallucinated span or deploy name never reaches downstream agents.
+- If the model skips the tool that yields the structured handoff, `finalize`
+  backfills it deterministically, so the pipeline never breaks.
+
+When live LLM is off, the same agents run a deterministic path so the demo always
+works. The deployable `sentinel_adk/` app expresses the same agents on Google ADK
+with the official Dynatrace MCP server as the tool source.
+
+## Run the demo (no credentials needed)
+
+The pipeline runs end-to-end in mock mode against a simulated ShopWave store, so
+the architecture is verifiable without a Dynatrace tenant or a Gemini key.
+
+```
+cd agents
+python3 run_demo.py
+```
+
+It injects a fault via the Chaos Panel, runs both gates, prevents the incident,
+then shows Tracer learning: same fault, fewer steps, higher score on the second
+run.
+
+## Full system
+
+```bash
+./run_all.sh        # ShopWave store :8080 (Chaos Panel) + Sentinel console :8090
+```
+
+Open the ShopWave store, inject a fault from the Chaos Panel, then run a detection
+on the Sentinel console and approve the two gates. See `DEPLOY.md` for the live
+paths (real Gemini reasoning, real Dynatrace reads, ingest token) and Agent Engine
+deployment.
+
+## Going live
+
+Every backend is wired and verified; live mode is a flag flip:
+
+- `SENTINEL_USE_LIVE_LLM=true` -> agents reason with Gemini on Vertex AI.
+- `SENTINEL_USE_LIVE_DT=true` -> agents read real Grail data via `live_client`
+  (token + async DQL), instead of the mock. Same method surface, so agents are
+  unchanged.
+- `sentinel_adk/` is the same architecture as a Google ADK app that uses the
+  official Dynatrace MCP server for tools; deploy it to Vertex AI Agent Engine.
+
+Sentinel instruments its own agents with OpenTelemetry (`otel_trace.py`); those
+spans land in the same Dynatrace tenant, which is how the Evaluator grades agents
+from their real traces.
+
+## Layout
+
+```
+agents/
+  sentinel/
+    case_file.py        immutable, append-only Case File (the audit trail)
+    memory.py           episodic lesson store (Reflexion-style learning)
+    orchestrator.py     central pipeline + the two human gates
+    config.py           model + live-mode config (.env auto-loaded)
+    llm.py              Gemini reasoning layer (Vertex), deterministic fallback
+    otel_trace.py       Sentinel's own agent spans -> Dynatrace (self-observability)
+    dynatrace/
+      mock_mcp.py       simulated ShopWave world + Chaos Panel (default)
+      live_client.py    real Dynatrace: OAuth token + async Grail DQL + writes
+      factory.py        pick mock vs live at runtime
+      tools.py          per-agent tool scoping (the safety boundary)
+    agents/             watcher, tracer, judge, actuator, scribe, evaluator
+  run_demo.py           end-to-end mock run with the learning loop
+  sentinel_adk/         ADK app: Gemini + official Dynatrace MCP server (deployable)
+shopwave/               demo store: OTel traces + bizevents, traffic gen, Chaos Panel
+dashboard/              operator console: the two gates, live rescue, scorecard
+run_all.sh              launch ShopWave + dashboard
+DEPLOY.md               live wiring + Agent Engine deployment
+```

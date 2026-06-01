@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sentinel</title>
+<style>
+  :root { color-scheme: dark; --bg:#0a0b0f; --panel:#12141c; --line:#1e2230;
+          --muted:#8b93a7; --txt:#e8eaf0; --red:#e4434f; --green:#2bd07a; --amber:#f0b84a; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt);
+         font:15px/1.55 ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  header { display:flex; align-items:center; justify-content:space-between;
+           padding:18px 28px; border-bottom:1px solid var(--line); }
+  .brand { display:flex; align-items:center; gap:12px; }
+  .brand b { font-size:19px; letter-spacing:-0.02em; }
+  .brand span { color:var(--muted); font-size:13px; }
+  .shield { width:26px; height:26px; border-radius:7px; background:linear-gradient(135deg,var(--red),#7a1d24);
+            display:grid; place-items:center; font-weight:700; font-size:14px; }
+  main { max-width:1080px; margin:0 auto; padding:28px; }
+  .start { display:flex; gap:12px; align-items:center; margin-bottom:24px; }
+  button { padding:11px 18px; border-radius:10px; border:1px solid var(--line);
+           background:#171a24; color:var(--txt); cursor:pointer; font-size:14px; font-weight:500; }
+  button:hover { border-color:#2c3142; }
+  button.primary { background:var(--red); border-color:var(--red); color:#fff; }
+  button.ok { background:#103222; border-color:#1f6b43; color:var(--green); }
+  button.ghost { background:transparent; }
+  .pipeline { display:flex; flex-direction:column; gap:12px; }
+  .agent { display:flex; gap:14px; padding:16px 18px; background:var(--panel);
+           border:1px solid var(--line); border-radius:12px; opacity:0; transform:translateY(6px);
+           animation:rise .35s forwards; }
+  @keyframes rise { to { opacity:1; transform:none; } }
+  .icon { width:34px; height:34px; border-radius:9px; background:#1b1f2b; display:grid;
+          place-items:center; font-size:15px; flex:none; }
+  .agent .name { font-weight:600; font-size:13px; letter-spacing:.02em; text-transform:uppercase; color:var(--muted); }
+  .agent .sum { margin-top:2px; }
+  .gate { border:1px solid #5a2a2f; background:linear-gradient(180deg,#1c1216,#140f12); }
+  .gate.learn { border-color:#3a3050; background:linear-gradient(180deg,#16131f,#100f16); }
+  .gate h3 { margin:0 0 4px; font-size:15px; }
+  .gate .row { display:flex; gap:10px; margin-top:14px; }
+  .outcome { margin-top:8px; padding:18px; border-radius:12px; border:1px solid #1f6b43;
+             background:#0e2418; font-size:17px; font-weight:600; color:var(--green); }
+  table { width:100%; border-collapse:collapse; margin-top:8px; font-size:14px; }
+  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:500; font-size:12px; text-transform:uppercase; }
+  .score-good { color:var(--green); } .score-bad { color:var(--amber); }
+  .pill { font-size:12px; color:var(--amber); }
+  .chk { display:flex; align-items:center; gap:8px; }
+  .applied { margin-top:14px; font-size:13px; color:var(--muted); }
+  .applied b { color:var(--txt); }
+  .muted { color:var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="shield">S</div>
+    <div><b>Sentinel</b> &nbsp;<span>user-experience guardian</span></div>
+  </div>
+  <span class="muted" id="env">watching ShopWave</span>
+</header>
+<main>
+  <div class="start">
+    <button class="primary" onclick="start()">Detect &amp; prevent incident</button>
+    <span class="muted" id="hint">A fault is live on ShopWave. Run Sentinel to catch it.</span>
+  </div>
+  <div class="pipeline" id="pipeline"></div>
+</main>
+
+<script>
+const META = {
+  watcher:  { icon:"R", label:"Watcher" },
+  tracer:   { icon:"T", label:"Tracer" },
+  judge:    { icon:"J", label:"Judge" },
+  actuator: { icon:"A", label:"Actuator" },
+  scribe:   { icon:"S", label:"Scribe" },
+  evaluator:{ icon:"E", label:"Evaluator" },
+};
+let timer = null, seen = new Set();
+
+async function start() {
+  document.getElementById("pipeline").innerHTML = "";
+  seen = new Set();
+  await fetch("/api/start", { method:"POST" });
+  document.getElementById("hint").textContent = "running...";
+  if (timer) clearInterval(timer);
+  timer = setInterval(poll, 600);
+}
+
+function el(html) { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; }
+
+function renderEntry(e) {
+  const key = "entry-" + e.step;
+  if (seen.has(key)) return;
+  seen.add(key);
+  const m = META[e.agent] || { icon:"?", label:e.agent };
+  document.getElementById("pipeline").appendChild(el(
+    `<div class="agent"><div class="icon">${m.icon}</div>
+     <div><div class="name">${m.label}</div><div class="sum">${e.summary}</div></div></div>`));
+}
+
+function renderGate1(s) {
+  if (seen.has("gate1")) return; seen.add("gate1");
+  const impact = (s.entries.find(e => e.kind === "impact") || {}).summary || "";
+  document.getElementById("pipeline").appendChild(el(
+    `<div class="agent gate" id="g1"><div class="icon">!</div><div style="flex:1">
+       <h3>Approve preventive action</h3>
+       <div class="sum">${impact}</div>
+       <div class="muted" style="margin-top:6px">Proposed: roll back deploy #847 on payment-svc (reversible, blast radius 1 service).</div>
+       <div class="row">
+         <button class="ok" onclick="approveAction(true)">Approve rollback</button>
+         <button class="ghost" onclick="approveAction(false)">Reject</button>
+       </div></div></div>`));
+}
+
+function renderGate2(s) {
+  if (seen.has("gate2")) return; seen.add("gate2");
+  const rows = s.scorecard.map(g => {
+    const cls = g.score >= 1 ? "score-good" : "score-bad";
+    const flag = (g.lesson || g.definition_edit)
+      ? `<label class="chk"><input type="checkbox" class="learn-chk" value="${g.agent}" checked> apply</label>`
+      : `<span class="muted">-</span>`;
+    const why = g.lesson ? `<div class="pill">lesson: ${g.lesson}</div>` : "";
+    return `<tr><td>${(META[g.agent]||{}).label||g.agent}</td>
+            <td class="${cls}">${g.score}</td><td>${g.notes}${why}</td><td>${flag}</td></tr>`;
+  }).join("");
+  document.getElementById("pipeline").appendChild(el(
+    `<div class="agent gate learn" id="g2"><div class="icon">E</div><div style="flex:1">
+       <h3>Evaluation &mdash; approve what each agent learns</h3>
+       <div class="muted">Graded from each agent's own Dynatrace traces.</div>
+       <table><tr><th>Agent</th><th>Score</th><th>Notes</th><th>Learn</th></tr>${rows}</table>
+       <div class="row"><button class="ok" onclick="approveLearning()">Apply approved learning</button></div>
+     </div></div>`));
+}
+
+function renderOutcome(s) {
+  if (seen.has("outcome")) return; seen.add("outcome");
+  const rep = s.entries.find(e => e.kind === "report");
+  if (rep) document.getElementById("pipeline").appendChild(el(`<div class="outcome">${rep.summary}</div>`));
+  if (s.applied_lessons && s.applied_lessons.length) {
+    document.getElementById("pipeline").appendChild(el(
+      `<div class="applied"><b>Learning applied:</b><br>` +
+      s.applied_lessons.map(l => "&bull; " + l).join("<br>") +
+      (s.applied_defs.length ? "<br><b>Definition edits recommended:</b><br>" +
+        s.applied_defs.map(d => "&bull; " + d).join("<br>") : "") + `</div>`));
+  }
+  document.getElementById("hint").textContent = "done. Run again to see agents improve.";
+  if (timer) clearInterval(timer);
+}
+
+async function poll() {
+  const s = await (await fetch("/api/state")).json();
+  if (!s || !s.id) return;
+  (s.entries || []).filter(e => e.kind !== "evaluation").forEach(renderEntry);
+  if (s.pending === "action") renderGate1(s);
+  if (s.pending === "learning") renderGate2(s);
+  if (s.done) renderOutcome(s);
+}
+
+async function approveAction(ok) {
+  const g = document.getElementById("g1"); if (g) g.querySelector(".row").innerHTML =
+    ok ? '<span class="score-good">approved</span>' : '<span class="muted">rejected</span>';
+  await fetch("/api/approve-action", { method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ ok }) });
+}
+async function approveLearning() {
+  const agents = [...document.querySelectorAll(".learn-chk:checked")].map(c => c.value);
+  const g = document.getElementById("g2"); if (g) g.querySelector(".row").innerHTML =
+    '<span class="score-good">learning applied</span>';
+  await fetch("/api/approve-learning", { method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ agents }) });
+}
+</script>
+</body>
+</html>
