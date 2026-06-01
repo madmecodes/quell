@@ -4,7 +4,8 @@
 
 const { NodeTracerProvider } = require("@opentelemetry/sdk-trace-node");
 const { BatchSpanProcessor } = require("@opentelemetry/sdk-trace-base");
-const { OTLPTraceExporter } = require("@opentelemetry/exporter-trace-otlp-http");
+// Dynatrace's OTLP endpoint requires protobuf (not JSON), so use the proto exporter.
+const { OTLPTraceExporter } = require("@opentelemetry/exporter-trace-otlp-proto");
 const { Resource } = require("@opentelemetry/resources");
 const { SemanticResourceAttributes } = require("@opentelemetry/semantic-conventions");
 const { trace } = require("@opentelemetry/api");
