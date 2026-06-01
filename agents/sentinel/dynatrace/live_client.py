@@ -55,6 +55,11 @@ class DynatraceClient:
     # ---- auth ---------------------------------------------------------------
 
     def _bearer(self, scopes: str) -> str:
+        # A platform token (created under an admin user) carries bucket access that
+        # an OAuth client lacks, so prefer it for Grail reads when present.
+        platform = os.environ.get("DT_PLATFORM_TOKEN")
+        if platform:
+            return platform
         now = time.time()
         if self._token and now < self._token_exp - 30:
             return self._token
