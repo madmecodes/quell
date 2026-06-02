@@ -1,5 +1,10 @@
 # Sentinel
 
+**Live**
+- Sentinel console (hosted project): https://sentinel-dashboard-908906947513.us-central1.run.app
+- ShopWave demo store: https://shopwave-908906947513.us-central1.run.app
+- Source: https://github.com/madmecodes/sentinel
+
 A multi-agent system that catches degraded real-user experience in a live app,
 traces it to a root cause across the full stack, quantifies the business impact,
 and prevents it -- with a human in control. It then grades its own agents from
