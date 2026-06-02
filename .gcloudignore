@@ -1,0 +1,9 @@
+# Never upload secrets or local cruft to Cloud Build.
+.env
+.git/
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+agents/sentinel/memory_store/*.json

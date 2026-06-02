@@ -152,8 +152,9 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    port = 8090
-    print(f"[sentinel] dashboard on http://localhost:{port}")
+    import os
+    port = int(os.environ.get("PORT", "8090"))
+    print(f"[sentinel] dashboard on http://0.0.0.0:{port}")
     ThreadingHTTPServer(("0.0.0.0", port), Handler).serve_forever()
 
 
