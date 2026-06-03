@@ -119,19 +119,14 @@ scribe = LlmAgent(
     tools=[_dt],
 )
 
-# The orchestrated pipeline. The human approval gate before the actuator is enforced
-# by the deploying surface (the dashboard, or an Agent Engine approval step).
+# The orchestrated investigation pipeline on the ADK (Agent Builder) runtime:
+# Watcher -> Tracer -> Judge reason over real Dynatrace data through the MCP server,
+# up to the human approval gate (the gate + Actuator/Scribe run on the dashboard).
+# actuator and scribe are defined above for the full deployment variant; ADK
+# enforces single-parent, so the runnable root is the read-only investigation.
 root_agent = SequentialAgent(
     name="quell",
-    description="Detects, traces, quantifies, and prevents user-experience incidents.",
-    sub_agents=[watcher, tracer, judge, actuator, scribe],
-)
-
-# Read-only investigation pipeline (no write tools) for the live ADK demo: the
-# three agents that reason over real Dynatrace data through the MCP server, before
-# the human approval gate.
-investigation_agent = SequentialAgent(
-    name="quell_investigation",
-    description="Detects, traces, and quantifies a user-experience incident (read-only).",
+    description="Detects, traces, and quantifies a user-experience incident from live "
+                "Dynatrace data, before the human approval gate.",
     sub_agents=[watcher, tracer, judge],
 )

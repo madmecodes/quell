@@ -35,11 +35,11 @@ os.environ.setdefault("GOOGLE_CLOUD_LOCATION", os.environ.get("QUELL_GCP_LOCATIO
 from google.adk.runners import InMemoryRunner  # noqa: E402
 from google.genai import types  # noqa: E402
 
-from quell_adk.agent import investigation_agent  # noqa: E402
+from quell_adk.agent import root_agent  # noqa: E402
 
 
 async def main():
-    runner = InMemoryRunner(agent=investigation_agent, app_name="quell")
+    runner = InMemoryRunner(agent=root_agent, app_name="quell")
     session = await runner.session_service.create_session(app_name="quell", user_id="oncall")
     prompt = ("A user segment's checkout is degrading on ShopWave. Investigate the live "
               "Dynatrace data: which segment, the failing service/span/deploy, and the "
