@@ -36,7 +36,7 @@ class Actuator(Agent):
         revenue = impact.data.get("revenue_at_risk_inr", 0) if impact else 0
         mcp.send_slack_message(                                    # write 3
             channel="#ops",
-            text=(f"Sentinel: rolled back {deploy} on {service}. "
+            text=(f"AppMedic: rolled back {deploy} on {service}. "
                   f"Prevented ~INR {revenue/100000:.1f}L impact. Approved by on-call."),
         )
 

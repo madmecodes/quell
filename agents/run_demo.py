@@ -1,4 +1,4 @@
-"""End-to-end Sentinel demo in mock mode (no credentials needed).
+"""End-to-end AppMedic demo in mock mode (no credentials needed).
 
 Injects a fault via the Chaos Panel, runs the 6-agent pipeline through both human
 gates, and shows the rescue plus the self-improvement loop across two runs.
@@ -8,11 +8,11 @@ gates, and shows the rescue plus the self-improvement loop across two runs.
 
 from __future__ import annotations
 
-from sentinel.agents.evaluator import Scorecard
-from sentinel.case_file import CaseFile
-from sentinel.dynatrace.mock_mcp import ChaosState, MockMCP
-from sentinel.memory import LessonStore
-from sentinel.orchestrator import Orchestrator
+from appmedic.agents.evaluator import Scorecard
+from appmedic.case_file import CaseFile
+from appmedic.dynatrace.mock_mcp import ChaosState, MockMCP
+from appmedic.memory import LessonStore
+from appmedic.orchestrator import Orchestrator
 
 LINE = "-" * 70
 

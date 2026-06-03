@@ -1,19 +1,19 @@
-# Sentinel - 3 minute demo script
+# AppMedic - 3 minute demo script
 
 Goal: show a multi-agent system that catches a real user-experience incident,
 prevents it under human control, and improves itself - all observed in Dynatrace.
 
 ## Setup (before recording)
 ```bash
-./run_all.sh                      # ShopWave :8080, Sentinel console :8090
+./run_all.sh                      # ShopWave :8080, AppMedic console :8090
 cd shopwave && node traffic.js    # steady real traffic (optional, for live mode)
 ```
-Have two tabs open: ShopWave (8080) and the Sentinel console (8090).
+Have two tabs open: ShopWave (8080) and the AppMedic console (8090).
 
 ## Beat 1 - the problem (0:00-0:30)
 "Teams find out their app is broken from angry users or the cloud bill. Monitoring
 tells you a server is at 200ms; it can't tell you 2,400 real users just abandoned
-checkout because of it. Sentinel can - and it fixes it before they leave."
+checkout because of it. AppMedic can - and it fixes it before they leave."
 
 Show ShopWave: a live store, traffic flowing, Dynatrace receiving telemetry.
 
@@ -22,8 +22,8 @@ On ShopWave, click the Chaos Panel: "Inject: slow payment (Android / IN)".
 "A bad deploy just slowed the payment service - but only for Android users in
 India. No alert has fired yet."
 
-## Beat 3 - Sentinel detects, traces, quantifies (0:50-1:40)
-On the Sentinel console, click "Detect & prevent incident". Narrate the agents:
+## Beat 3 - AppMedic detects, traces, quantifies (0:50-1:40)
+On the AppMedic console, click "Detect & prevent incident". Narrate the agents:
 - Watcher: degraded checkout experience, Android / IN, apdex 0.58.
 - Tracer: root cause - payment-svc razorpay.charge span +400ms, deploy #847.
 - Judge: 1,800 users, 2,400 carts, INR 6.8L at risk, SLA breach in ~1h.
@@ -31,7 +31,7 @@ On the Sentinel console, click "Detect & prevent incident". Narrate the agents:
 all three signals."
 
 ## Beat 4 - human approves, fix applied (1:40-2:10)
-Gate 1 appears. "Sentinel never touches production on its own."
+Gate 1 appears. "AppMedic never touches production on its own."
 Click "Approve rollback". Actuator rolls back #847, notifies ops; Scribe reports:
 "Rescued. 2,400 carts, INR 6.8L protected." Show the metric recover on ShopWave.
 
@@ -45,4 +45,4 @@ approve the learning."
 
 ## Beat 6 - close (2:45-3:00)
 "Gemini on Agent Builder, the Dynatrace MCP as its senses and hands, observing
-even itself. Sentinel: the on-call shift where nothing breaks."
+even itself. AppMedic: the on-call shift where nothing breaks."

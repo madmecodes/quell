@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Sentinel</title>
+<title>AppMedic</title>
 <style>
   :root { --bg:#f3ead9; --panel:#fbf6ec; --panel2:#f6eddc; --line:#e3d5bd;
           --muted:#8a7a64; --txt:#3b2f23; --accent:#a8552f; --accent-dk:#7d3d20;
@@ -80,7 +80,7 @@
 <header>
   <div class="brand">
     <div class="shield">S</div>
-    <div><b>Sentinel</b> &nbsp;<span>user-experience guardian</span></div>
+    <div><b>AppMedic</b> &nbsp;<span>user-experience guardian</span></div>
   </div>
   <div class="top-actions">
     <span class="muted" id="env">watching ShopWave</span>
@@ -90,7 +90,7 @@
 <main>
   <div class="start">
     <button class="primary" onclick="start()">Detect &amp; prevent incident</button>
-    <span class="muted" id="hint">A fault is live on ShopWave. Run Sentinel to catch it. &nbsp;<a href="#" onclick="openInfo();return false" style="color:var(--accent)">How it works</a></span>
+    <span class="muted" id="hint">A fault is live on ShopWave. Run AppMedic to catch it. &nbsp;<a href="#" onclick="openInfo();return false" style="color:var(--accent)">How it works</a></span>
   </div>
   <div class="pipeline" id="pipeline"></div>
 </main>
@@ -98,11 +98,11 @@
 <div class="overlay" id="overlay" onclick="if(event.target===this)closeInfo()">
   <div class="modal">
     <button class="ghost closebtn" onclick="closeInfo()">close</button>
-    <h2>How Sentinel works</h2>
+    <h2>How AppMedic works</h2>
     <div class="sub">A team of AI agents that catches a bad user experience, traces the cause, and prevents it &mdash; with you in control.</div>
 
     <h4>What you are looking at</h4>
-    <div>Sentinel watches <b>ShopWave</b>, a live store. When a fault hurts real users, six specialized agents run as a pipeline. You approve the fix and the learning. Everything is powered by <b>Gemini</b> on Google Cloud Agent Builder, using the <b>Dynatrace</b> MCP as the agents' senses and hands.</div>
+    <div>AppMedic watches <b>ShopWave</b>, a live store. When a fault hurts real users, six specialized agents run as a pipeline. You approve the fix and the learning. Everything is powered by <b>Gemini</b> on Google Cloud Agent Builder, using the <b>Dynatrace</b> MCP as the agents' senses and hands.</div>
 
     <h4>The six agents</h4>
     <div class="agentlist">

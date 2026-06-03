@@ -1,5 +1,5 @@
 // Shared chaos state. The Chaos Panel toggles a fault that ShopWave's services
-// react to (added latency, errors), which is what Sentinel later detects.
+// react to (added latency, errors), which is what AppMedic later detects.
 
 const state = {
   active: false,

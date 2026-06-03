@@ -159,7 +159,7 @@ class DynatraceClient:
         return {"metric": metric, "breach_eta": "~1h", "trend": "degrading"}
 
     def get_agent_traces(self, incident_id: str) -> dict:
-        # Sentinel's own OTel spans, queried back out of Grail by incident id.
+        # AppMedic's own OTel spans, queried back out of Grail by incident id.
         recs = self.execute_dql(
             f"fetch spans, from: now()-30m | filter incident_id == \"{incident_id}\" "
             "| summarize tool_calls = count(), latency_ms = sum(duration)/1000000, by:{agent}")

@@ -64,7 +64,7 @@
     </section>
     <aside class="panel">
       <h2>Chaos Panel</h2>
-      <p class="tag">Inject a real production fault. Sentinel will detect, trace, and prevent it.</p>
+      <p class="tag">Inject a real production fault. AppMedic will detect, trace, and prevent it.</p>
       <button class="danger" onclick="setChaos(true)">Inject: slow payment (Android / IN)</button>
       <div class="row">
         <button class="ok" onclick="setChaos(false)">Clear fault</button>
@@ -78,14 +78,14 @@
     <div class="modal">
       <button class="closebtn" onclick="closeInfo()">close</button>
       <h2>What is ShopWave?</h2>
-      <div class="sub">A live demo store &mdash; the application that Sentinel watches.</div>
+      <div class="sub">A live demo store &mdash; the application that AppMedic watches.</div>
       <h4>The point</h4>
       <p>ShopWave is a normal e-commerce store with real users browsing and checking out. It emits live telemetry (traces, business events) just like a real app.</p>
       <h4>The Chaos Panel</h4>
       <p>Click <b>Inject: slow payment</b> to simulate a bad deploy that slows the payment service &mdash; but only for Android shoppers in India. Their checkout starts failing, and they begin abandoning carts.</p>
       <h4>What happens next</h4>
-      <p>Over on the <b>Sentinel console</b>, the AI agents notice the degraded experience, trace it to the exact service and deploy, quantify the revenue at risk, and &mdash; with your approval &mdash; roll it back. Click <b>Clear fault</b> and Sentinel reports all healthy again.</p>
-      <p class="tag">In short: this is the patient. Sentinel is the doctor.</p>
+      <p>Over on the <b>AppMedic console</b>, the AI agents notice the degraded experience, trace it to the exact service and deploy, quantify the revenue at risk, and &mdash; with your approval &mdash; roll it back. Click <b>Clear fault</b> and AppMedic reports all healthy again.</p>
+      <p class="tag">In short: this is the patient. AppMedic is the doctor.</p>
     </div>
   </div>
 

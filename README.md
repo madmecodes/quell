@@ -1,9 +1,9 @@
-# Sentinel
+# AppMedic
 
 **Live**
-- Sentinel console (hosted project): https://sentinel-dashboard-908906947513.us-central1.run.app
+- AppMedic console (hosted project): https://appmedic-dashboard-908906947513.us-central1.run.app
 - ShopWave demo store: https://shopwave-908906947513.us-central1.run.app
-- Source: https://github.com/madmecodes/sentinel
+- Source: https://github.com/madmecodes/appmedic
 
 A multi-agent system that catches degraded real-user experience in a live app,
 traces it to a root cause across the full stack, quantifies the business impact,
@@ -16,7 +16,7 @@ agents' senses and hands.
 
 ## Why Dynatrace is the core, not decoration
 
-Sentinel acts on truth that exists only in live production telemetry: real users,
+AppMedic acts on truth that exists only in live production telemetry: real users,
 real sessions, real revenue, real traces. A failing checkout for Android users in
 one region after this morning's deploy cannot be found by a unit test, a code
 read, or a simulation -- only by Dynatrace. Remove Dynatrace and the agents are
@@ -31,7 +31,7 @@ blind. That is the bar the idea is built to clear.
 | Judge | quantify users, carts, revenue at risk; forecast breach | execute_dql (business events), list_davis_analyzers, execute_davis_analyzer | read |
 | Actuator | execute the approved, reversible fix and notify | create_workflow_for_notification, send_event, send_slack_message | write |
 | Scribe | write the prevented-incident report and seal the audit log | create_dynatrace_notebook, send_slack_message | write |
-| Evaluator | grade every agent from its own traces; propose improvements | execute_dql (Sentinel's own spans) | read |
+| Evaluator | grade every agent from its own traces; propose improvements | execute_dql (AppMedic's own spans) | read |
 
 Tool scoping is the safety boundary: only Actuator and Scribe can write, and the
 human approval gate sits immediately before the Actuator.
@@ -70,7 +70,7 @@ different number of tool calls run to run). Two guardrails keep autonomy reliabl
   backfills it deterministically, so the pipeline never breaks.
 
 When live LLM is off, the same agents run a deterministic path so the demo always
-works. The deployable `sentinel_adk/` app expresses the same agents on Google ADK
+works. The deployable `appmedic_adk/` app expresses the same agents on Google ADK
 with the official Dynatrace MCP server as the tool source.
 
 ## Run the demo (no credentials needed)
@@ -90,11 +90,11 @@ run.
 ## Full system
 
 ```bash
-./run_all.sh        # ShopWave store :8080 (Chaos Panel) + Sentinel console :8090
+./run_all.sh        # ShopWave store :8080 (Chaos Panel) + AppMedic console :8090
 ```
 
 Open the ShopWave store, inject a fault from the Chaos Panel, then run a detection
-on the Sentinel console and approve the two gates. See `DEPLOY.md` for the live
+on the AppMedic console and approve the two gates. See `DEPLOY.md` for the live
 paths (real Gemini reasoning, real Dynatrace reads, ingest token) and Agent Engine
 deployment.
 
@@ -102,14 +102,14 @@ deployment.
 
 Every backend is wired and verified; live mode is a flag flip:
 
-- `SENTINEL_USE_LIVE_LLM=true` -> agents reason with Gemini on Vertex AI.
-- `SENTINEL_USE_LIVE_DT=true` -> agents read real Grail data via `live_client`
+- `APPMEDIC_USE_LIVE_LLM=true` -> agents reason with Gemini on Vertex AI.
+- `APPMEDIC_USE_LIVE_DT=true` -> agents read real Grail data via `live_client`
   (token + async DQL), instead of the mock. Same method surface, so agents are
   unchanged.
-- `sentinel_adk/` is the same architecture as a Google ADK app that uses the
+- `appmedic_adk/` is the same architecture as a Google ADK app that uses the
   official Dynatrace MCP server for tools; deploy it to Vertex AI Agent Engine.
 
-Sentinel instruments its own agents with OpenTelemetry (`otel_trace.py`); those
+AppMedic instruments its own agents with OpenTelemetry (`otel_trace.py`); those
 spans land in the same Dynatrace tenant, which is how the Evaluator grades agents
 from their real traces.
 
@@ -117,13 +117,13 @@ from their real traces.
 
 ```
 agents/
-  sentinel/
+  appmedic/
     case_file.py        immutable, append-only Case File (the audit trail)
     memory.py           episodic lesson store (Reflexion-style learning)
     orchestrator.py     central pipeline + the two human gates
     config.py           model + live-mode config (.env auto-loaded)
     llm.py              Gemini reasoning layer (Vertex), deterministic fallback
-    otel_trace.py       Sentinel's own agent spans -> Dynatrace (self-observability)
+    otel_trace.py       AppMedic's own agent spans -> Dynatrace (self-observability)
     dynatrace/
       mock_mcp.py       simulated ShopWave world + Chaos Panel (default)
       live_client.py    real Dynatrace: OAuth token + async Grail DQL + writes
@@ -131,7 +131,7 @@ agents/
       tools.py          per-agent tool scoping (the safety boundary)
     agents/             watcher, tracer, judge, actuator, scribe, evaluator
   run_demo.py           end-to-end mock run with the learning loop
-  sentinel_adk/         ADK app: Gemini + official Dynatrace MCP server (deployable)
+  appmedic_adk/         ADK app: Gemini + official Dynatrace MCP server (deployable)
 shopwave/               demo store: OTel traces + bizevents, traffic gen, Chaos Panel
 dashboard/              operator console: the two gates, live rescue, scorecard
 run_all.sh              launch ShopWave + dashboard

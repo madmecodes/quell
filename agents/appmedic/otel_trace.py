@@ -1,4 +1,4 @@
-"""Sentinel observing itself.
+"""AppMedic observing itself.
 
 Emits one OpenTelemetry span per agent run, tagged with the incident id and agent
 name, exported to the same Dynatrace tenant the agents monitor. This is what makes
@@ -38,13 +38,13 @@ def _init():
         from opentelemetry.sdk.trace.export import BatchSpanProcessor
         from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 
-        provider = TracerProvider(resource=Resource.create({"service.name": "sentinel"}))
+        provider = TracerProvider(resource=Resource.create({"service.name": "appmedic"}))
         provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(
             endpoint=f"{env}/api/v2/otlp/v1/traces",
             headers={"Authorization": f"Api-Token {token}"},
         )))
         trace.set_tracer_provider(provider)
-        _tracer = trace.get_tracer("sentinel")
+        _tracer = trace.get_tracer("appmedic")
     except Exception:
         _tracer = None
     return _tracer

@@ -33,7 +33,7 @@ AGENT_TOOLS: dict[str, list[str]] = {
         "send_slack_message",                # WRITE
     ],
     "evaluator": [
-        "execute_dql",                       # read Sentinel's OWN agent traces
+        "execute_dql",                       # read AppMedic's OWN agent traces
     ],
 }
 
