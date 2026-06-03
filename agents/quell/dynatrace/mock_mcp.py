@@ -126,7 +126,10 @@ class MockMCP:
         return {"ok": True, **rec}
 
     def send_slack_message(self, channel: str, text: str) -> dict[str, Any]:
-        rec = {"tool": "send_slack_message", "channel": channel, "text": text}
+        from .. import slack
+        res = slack.post(text)
+        rec = {"tool": "send_slack_message", "channel": channel, "text": text,
+               "posted": res.get("ok", False)}
         self.actions_taken.append(rec)
         return {"ok": True, **rec}
 
