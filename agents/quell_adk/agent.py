@@ -30,8 +30,10 @@ EVALUATOR_MODEL = os.environ.get("QUELL_EVALUATOR_MODEL", "gemini-2.5-flash")
 def _load_env() -> dict[str, str]:
     """Pass the Dynatrace credentials to the MCP server subprocess.
 
-    The MCP server reads OAUTH_CLIENT_ID / OAUTH_CLIENT_SECRET (no DT_ prefix)
-    and DT_ENVIRONMENT. We source from the project .env if present.
+    Prefer the platform token (DT_PLATFORM_TOKEN) - it carries the admin user's
+    Grail bucket access, so the MCP server reads real data. The platform token also
+    needs the scope `platform-management:environments:read` for the server's startup
+    check. Sources from the project .env if present.
     """
     env = dict(os.environ)
     dotenv = Path(__file__).resolve().parents[2] / ".env"
@@ -42,9 +44,11 @@ def _load_env() -> dict[str, str]:
                 continue
             k, v = line.split("=", 1)
             env.setdefault(k, v)
-    # map our names to what the MCP server expects
-    env.setdefault("OAUTH_CLIENT_ID", env.get("DT_OAUTH_CLIENT_ID", ""))
-    env.setdefault("OAUTH_CLIENT_SECRET", env.get("DT_OAUTH_CLIENT_SECRET", ""))
+    # The MCP server reads DT_ENVIRONMENT + DT_PLATFORM_TOKEN. If only an OAuth
+    # client is available, fall back to OAUTH_CLIENT_ID/SECRET.
+    if not env.get("DT_PLATFORM_TOKEN"):
+        env.setdefault("OAUTH_CLIENT_ID", env.get("DT_OAUTH_CLIENT_ID", ""))
+        env.setdefault("OAUTH_CLIENT_SECRET", env.get("DT_OAUTH_CLIENT_SECRET", ""))
     return env
 
 
@@ -121,4 +125,13 @@ root_agent = SequentialAgent(
     name="quell",
     description="Detects, traces, quantifies, and prevents user-experience incidents.",
     sub_agents=[watcher, tracer, judge, actuator, scribe],
+)
+
+# Read-only investigation pipeline (no write tools) for the live ADK demo: the
+# three agents that reason over real Dynatrace data through the MCP server, before
+# the human approval gate.
+investigation_agent = SequentialAgent(
+    name="quell_investigation",
+    description="Detects, traces, and quantifies a user-experience incident (read-only).",
+    sub_agents=[watcher, tracer, judge],
 )
