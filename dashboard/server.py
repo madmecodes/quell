@@ -55,6 +55,7 @@ class RunSession:
         chaos = self._read_shopwave_chaos()
         # Mock by default; set SENTINEL_USE_LIVE_DT=true to read real Grail data.
         self._orch = Orchestrator(make_dynatrace(chaos), store)
+        threading.Thread(target=self._run, daemon=True).start()
 
     @staticmethod
     def _read_shopwave_chaos() -> ChaosState:
@@ -76,12 +77,16 @@ class RunSession:
                               added_latency_ms=int(d.get("addedLatencyMs", 0)))
         except Exception:
             return default
-        threading.Thread(target=self._run, daemon=True).start()
 
     def _run(self):
-        result = self._orch.handle(self.id, self._gate_action, self._gate_learning)
-        self.applied_lessons = result.applied_lessons
-        self.applied_defs = result.applied_definition_edits
+        try:
+            result = self._orch.handle(self.id, self._gate_action, self._gate_learning)
+            self.applied_lessons = result.applied_lessons
+            self.applied_defs = result.applied_definition_edits
+        except Exception:
+            import traceback
+            self.error = traceback.format_exc()
+            traceback.print_exc()
         self.done = True
         self.pending = None
 
