@@ -1,4 +1,4 @@
-"""End-to-end AppMedic demo in mock mode (no credentials needed).
+"""End-to-end Quell demo in mock mode (no credentials needed).
 
 Injects a fault via the Chaos Panel, runs the 6-agent pipeline through both human
 gates, and shows the rescue plus the self-improvement loop across two runs.
@@ -8,11 +8,11 @@ gates, and shows the rescue plus the self-improvement loop across two runs.
 
 from __future__ import annotations
 
-from appmedic.agents.evaluator import Scorecard
-from appmedic.case_file import CaseFile
-from appmedic.dynatrace.mock_mcp import ChaosState, MockMCP
-from appmedic.memory import LessonStore
-from appmedic.orchestrator import Orchestrator
+from quell.agents.evaluator import Scorecard
+from quell.case_file import CaseFile
+from quell.dynatrace.mock_mcp import ChaosState, MockMCP
+from quell.memory import LessonStore
+from quell.orchestrator import Orchestrator
 
 LINE = "-" * 70
 

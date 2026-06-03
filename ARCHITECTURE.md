@@ -1,6 +1,6 @@
-# AppMedic — Architecture
+# Quell — Architecture
 
-AppMedic is a multi-agent system that catches a degraded user experience in a live
+Quell is a multi-agent system that catches a degraded user experience in a live
 app, traces the cause, quantifies the business impact, and prevents it — with a
 human in the loop — then improves its own agents. These diagrams render on GitHub.
 
@@ -8,7 +8,7 @@ human in the loop — then improves its own agents. These diagrams render on Git
 
 ## 1. The big picture — two halves
 
-The **patient** (ShopWave, a live store) emits telemetry. The **doctor** (AppMedic,
+The **patient** (ShopWave, a live store) emits telemetry. The **doctor** (Quell,
 six AI agents) reads that telemetry through Dynatrace, reasons with Gemini, and acts.
 
 ```mermaid
@@ -25,7 +25,7 @@ flowchart LR
     BIZ["Business events"]
   end
 
-  subgraph D["THE DOCTOR — AppMedic"]
+  subgraph D["THE DOCTOR — Quell"]
     ORCH["Orchestrator"]
     AGENTS["6 agents: Watcher, Tracer, Judge,\nActuator, Scribe, Evaluator"]
     UI["Operator console (2 human gates)"]
@@ -52,7 +52,7 @@ sequenceDiagram
   actor You
   participant Shop as ShopWave
   participant DT as Dynatrace
-  participant AM as AppMedic agents
+  participant AM as Quell agents
   participant Gem as Gemini
 
   You->>Shop: Inject fault (slow payment, Android/IN)
@@ -156,10 +156,10 @@ The agents call a typed tool surface. A factory returns either the mock backend
 
 ```mermaid
 flowchart TD
-  AG["Agents (unchanged)"] --> FAC{"factory\nAPPMEDIC_USE_LIVE_DT?"}
+  AG["Agents (unchanged)"] --> FAC{"factory\nQUELL_USE_LIVE_DT?"}
   FAC -->|false default| MOCK["MockMCP\nsimulated ShopWave world"]
   FAC -->|true| LIVE["DynatraceClient\nOAuth token + Grail DQL + writes"]
-  AG --> LLMSW{"APPMEDIC_USE_LIVE_LLM?"}
+  AG --> LLMSW{"QUELL_USE_LIVE_LLM?"}
   LLMSW -->|false| DET["deterministic reasoning"]
   LLMSW -->|true| GEM["Gemini tool-calling"]
 ```
@@ -170,9 +170,9 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-  GH["GitHub\nmadmecodes/appmedic"]
+  GH["GitHub\nmadmecodes/quell"]
   subgraph GCP["Google Cloud (project sentinel-hack-2026)"]
-    CR1["Cloud Run: appmedic-dashboard\n(operator console + agents)"]
+    CR1["Cloud Run: quell-dashboard\n(operator console + agents)"]
     CR2["Cloud Run: shopwave\n(demo store)"]
     VAI["Vertex AI: Gemini 2.5-pro / flash"]
     AE["Agent Engine (ADK app, optional)"]

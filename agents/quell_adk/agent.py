@@ -1,14 +1,14 @@
-"""AppMedic as a Google ADK (Agent Builder) application.
+"""Quell as a Google ADK (Agent Builder) application.
 
 This is the hackathon-compliant artifact: agents built on Gemini via the Agent
 Development Kit, using the official Dynatrace MCP server for their tools, composed
 into a deterministic orchestrated pipeline. Deployable to Vertex AI Agent Engine.
 
-The dashboard/demo uses the lightweight orchestrator in `appmedic/`; this module
+The dashboard/demo uses the lightweight orchestrator in `quell/`; this module
 is the same architecture expressed in ADK primitives for deployment.
 
-Run locally:   adk run appmedic_adk
-Deploy:        adk deploy agent_engine appmedic_adk --project appmedic-hack-2026 ...
+Run locally:   adk run quell_adk
+Deploy:        adk deploy agent_engine quell_adk --project quell-hack-2026 ...
 
 Requires the OAuth client to include the scope `app-engine:apps:run` (the MCP
 server requests it on connect) in addition to the storage:*:read scopes.
@@ -23,8 +23,8 @@ from google.adk.agents import LlmAgent, SequentialAgent
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioConnectionParams
 from mcp import StdioServerParameters
 
-WORKER_MODEL = os.environ.get("APPMEDIC_WORKER_MODEL", "gemini-2.5-pro")
-EVALUATOR_MODEL = os.environ.get("APPMEDIC_EVALUATOR_MODEL", "gemini-2.5-flash")
+WORKER_MODEL = os.environ.get("QUELL_WORKER_MODEL", "gemini-2.5-pro")
+EVALUATOR_MODEL = os.environ.get("QUELL_EVALUATOR_MODEL", "gemini-2.5-flash")
 
 
 def _load_env() -> dict[str, str]:
@@ -118,7 +118,7 @@ scribe = LlmAgent(
 # The orchestrated pipeline. The human approval gate before the actuator is enforced
 # by the deploying surface (the dashboard, or an Agent Engine approval step).
 root_agent = SequentialAgent(
-    name="appmedic",
+    name="quell",
     description="Detects, traces, quantifies, and prevents user-experience incidents.",
     sub_agents=[watcher, tracer, judge, actuator, scribe],
 )

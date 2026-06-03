@@ -34,7 +34,7 @@ class Scribe(Agent):
             f"- Outcome: {carts} carts rescued, ${revenue:,.0f} protected.",
         ])
         notebook = mcp.create_dynatrace_notebook(                 # write 1
-            title=f"AppMedic rescue {case_file.incident_id}", markdown=markdown,
+            title=f"Quell rescue {case_file.incident_id}", markdown=markdown,
         )
 
         summary = f"Rescued. {carts} carts, ${revenue:,.0f} protected. Report: {notebook['notebook_id']}."

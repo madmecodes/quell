@@ -7,7 +7,7 @@ method has two backends:
   - adk:   real Gemini-on-Agent-Builder call (wired when GEMINI_API_KEY is set).
 
 The base records each agent's own run telemetry to the MCP so the Evaluator can
-later grade it from real traces (AppMedic observing itself).
+later grade it from real traces (Quell observing itself).
 """
 
 from __future__ import annotations

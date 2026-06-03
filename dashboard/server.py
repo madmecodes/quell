@@ -1,4 +1,4 @@
-"""AppMedic operator dashboard.
+"""Quell operator dashboard.
 
 A dependency-free (stdlib) web server that drives the orchestrator and surfaces
 the two human gates. The pipeline runs in a background thread; the gate callbacks
@@ -20,12 +20,12 @@ from pathlib import Path
 # make the agents package importable
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "agents"))
 
-from appmedic.agents.evaluator import Scorecard  # noqa: E402
-from appmedic.case_file import CaseFile  # noqa: E402
-from appmedic.dynatrace.mock_mcp import ChaosState  # noqa: E402
-from appmedic.dynatrace.factory import make_dynatrace  # noqa: E402
-from appmedic.memory import LessonStore  # noqa: E402
-from appmedic.orchestrator import Orchestrator  # noqa: E402
+from quell.agents.evaluator import Scorecard  # noqa: E402
+from quell.case_file import CaseFile  # noqa: E402
+from quell.dynatrace.mock_mcp import ChaosState  # noqa: E402
+from quell.dynatrace.factory import make_dynatrace  # noqa: E402
+from quell.memory import LessonStore  # noqa: E402
+from quell.orchestrator import Orchestrator  # noqa: E402
 
 STATIC = Path(__file__).parent / "static"
 
@@ -51,9 +51,9 @@ class RunSession:
         self._learning_approved: set[str] = set()
 
         # Read the live fault state from ShopWave so the demo is genuinely
-        # connected: injecting a fault on the store drives what AppMedic detects.
+        # connected: injecting a fault on the store drives what Quell detects.
         chaos = self._read_shopwave_chaos()
-        # Mock by default; set APPMEDIC_USE_LIVE_DT=true to read real Grail data.
+        # Mock by default; set QUELL_USE_LIVE_DT=true to read real Grail data.
         self._orch = Orchestrator(make_dynatrace(chaos), store)
         threading.Thread(target=self._run, daemon=True).start()
 
@@ -183,7 +183,7 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     import os
     port = int(os.environ.get("PORT", "8090"))
-    print(f"[appmedic] dashboard on http://0.0.0.0:{port}")
+    print(f"[quell] dashboard on http://0.0.0.0:{port}")
     ThreadingHTTPServer(("0.0.0.0", port), Handler).serve_forever()
 
 

@@ -6,4 +6,4 @@ __pycache__/
 *.pyc
 .venv/
 venv/
-agents/appmedic/memory_store/*.json
+agents/quell/memory_store/*.json

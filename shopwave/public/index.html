@@ -102,7 +102,7 @@
     <aside>
       <div class="panel">
         <p class="ptitle">Operations · Chaos Panel</p>
-        <p class="pdesc">Inject a real production fault. AppMedic will detect, trace, and prevent it.</p>
+        <p class="pdesc">Inject a real production fault. Quell will detect, trace, and prevent it.</p>
         <button class="btn danger" onclick="setChaos(true)">Inject: slow payment (Android / IN)</button>
         <button class="btn ghost" onclick="setChaos(false)">Clear fault</button>
         <div class="fault" id="chaosState"></div>
@@ -111,21 +111,21 @@
     </aside>
   </div>
 
-  <footer>ShopWave is a demo store monitored by AppMedic · the patient, to AppMedic's doctor.</footer>
+  <footer>ShopWave is a demo store monitored by Quell.</footer>
 </div>
 
 <div class="overlay" id="overlay" onclick="if(event.target===this)closeInfo()">
   <div class="modal">
     <button class="close" onclick="closeInfo()">close</button>
     <h2>What is ShopWave?</h2>
-    <div class="msub">A live demo store — the application that AppMedic watches.</div>
+    <div class="msub">A live demo store — the application that Quell watches.</div>
     <h4>The point</h4>
     <p>ShopWave is a normal e-commerce store with real users browsing and checking out. It emits live telemetry (traces, business events) just like a real app.</p>
     <h4>The Chaos Panel</h4>
     <p>Click <b>Inject: slow payment</b> to simulate a bad deploy that slows the payment service — but only for Android shoppers in India. Their checkout starts failing and they begin abandoning carts.</p>
     <h4>What happens next</h4>
-    <p>On the <b>AppMedic console</b>, the AI agents notice the degraded experience, trace it to the exact service and deploy, quantify the revenue at risk, and — with your approval — roll it back. Click <b>Clear fault</b> and AppMedic reports all healthy again.</p>
-    <p style="color:var(--muted)">In short: this is the patient. AppMedic is the doctor.</p>
+    <p>On the <b>Quell console</b>, the AI agents notice the degraded experience, trace it to the exact service and deploy, quantify the revenue at risk, and — with your approval — roll it back. Click <b>Clear fault</b> and Quell reports all healthy again.</p>
+    <p style="color:var(--muted)">In short: ShopWave is the live app; Quell watches it and quells incidents before they spread.</p>
   </div>
 </div>
 

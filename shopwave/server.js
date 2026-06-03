@@ -1,6 +1,6 @@
 // ShopWave: a small e-commerce store that emits real OpenTelemetry spans and
 // business events to Dynatrace. The Chaos Panel injects faults on demand, which
-// AppMedic then detects, traces, and prevents.
+// Quell then detects, traces, and prevents.
 
 const { initTelemetry, shutdownTelemetry } = require("./otel");
 const tracer = initTelemetry();

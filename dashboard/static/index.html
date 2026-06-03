@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AppMedic — user-experience guardian</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23b0512c'/%3E%3Ctext x='16' y='24' font-size='24' text-anchor='middle' fill='%23f7eede' font-family='Georgia,serif' font-weight='700'%3E%2B%3C/text%3E%3C/svg%3E" />
+<title>Quell — autonomous incident response</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23b0512c'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23f7eede' font-family='Georgia,serif' font-weight='700'%3EQ%3C/text%3E%3C/svg%3E" />
 <style>
   :root{
     --paper:#ece2cf; --paper2:#f5eede; --card:#f7f1e3; --ink:#2c2317; --ink2:#5b4d38;
@@ -33,7 +33,7 @@
   .brand{display:flex; align-items:center; gap:14px}
   .mark{width:42px; height:42px; border-radius:11px; background:linear-gradient(150deg,var(--terra),var(--terra-dk));
         display:grid; place-items:center; box-shadow:0 6px 16px rgba(138,61,31,.28); position:relative}
-  .mark::after{content:"+"; color:#f7eede; font-family:var(--serif); font-size:26px; font-weight:700; line-height:1}
+  .mark::after{content:"Q"; color:#f7eede; font-family:var(--serif); font-size:24px; font-weight:700; line-height:1}
   .brand h1{font-family:var(--serif); font-size:25px; margin:0; letter-spacing:.2px}
   .brand .tagline{font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--muted); margin-top:2px}
   .mhead-right{display:flex; align-items:center; gap:16px}
@@ -149,7 +149,7 @@
   <header class="masthead">
     <div class="brand">
       <div class="mark"></div>
-      <div><h1>AppMedic</h1><div class="tagline">user-experience guardian</div></div>
+      <div><h1>Quell</h1><div class="tagline">autonomous incident response</div></div>
     </div>
     <div class="mhead-right">
       <span class="statuspill"><span class="beat"></span> monitoring · ShopWave</span>
@@ -159,8 +159,8 @@
 
   <section class="hero">
     <div class="kicker">Autonomous incident response</div>
-    <h2>Catch the incident <em>before</em> users feel it.</h2>
-    <p>Six AI agents watch a live app, trace a degrading experience to its root cause, weigh the revenue at risk, and prevent it — with you signing off before any change.</p>
+    <h2>Quell the incident <em>before</em> it spreads.</h2>
+    <p>Six AI agents watch a live app, trace a degrading experience to its root cause, weigh the revenue at risk, and stop it escalating — with you signing off before any change.</p>
     <div class="cta-row">
       <button class="btn primary" onclick="start()">Detect &amp; prevent incident</button>
       <button class="linklike" onclick="openInfo()">How it works</button>
@@ -185,12 +185,12 @@
     </main>
     <aside>
       <div class="panel">
-        <p class="ptitle">The patient</p>
+        <p class="ptitle">Monitored app</p>
         <div class="patient">
           <a href="https://shopwave-908906947513.us-central1.run.app" target="_blank">ShopWave store ↗</a>
           <span class="pdot"><i></i> live</span>
         </div>
-        <p style="font-size:12.5px;color:var(--muted);margin:10px 0 0">A live store emitting real telemetry. Inject a fault there; AppMedic catches it here.</p>
+        <p style="font-size:12.5px;color:var(--muted);margin:10px 0 0">A live store emitting real telemetry. Inject a fault there; Quell catches it here.</p>
       </div>
       <div class="panel">
         <p class="ptitle">The stack</p>
@@ -208,15 +208,15 @@
   </div>
 
   <footer>
-    <span>AppMedic — Google Cloud Rapid Agent Hackathon · Dynatrace track</span>
-    <span>ShopWave is the patient · AppMedic is the doctor</span>
+    <span>Quell — Google Cloud Rapid Agent Hackathon · Dynatrace track</span>
+    <span>Quell watches ShopWave and quells incidents</span>
   </footer>
 </div>
 
 <div class="overlay" id="overlay" onclick="if(event.target===this)closeInfo()">
   <div class="modal">
     <button class="close" onclick="closeInfo()">close</button>
-    <h2>How AppMedic works</h2>
+    <h2>How Quell works</h2>
     <div class="msub">A team of AI agents that catches a bad user experience, traces the cause, and prevents it — with you in control.</div>
     <h4>The six agents</h4>
     <div class="agentlist">

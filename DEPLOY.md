@@ -8,7 +8,7 @@ Vertex AI Agent Engine.
 
 | Piece | State |
 |-------|-------|
-| GCP project `appmedic-hack-2026`, Vertex AI, ADC | done, verified |
+| GCP project `quell-hack-2026`, Vertex AI, ADC | done, verified |
 | Gemini (`gemini-2.5-pro` / `gemini-2.5-flash`, global endpoint) | verified |
 | Dynatrace OAuth client + Grail DQL reads (`live_client`) | verified |
 | Dynatrace env `xqs90163` | `https://xqs90163.apps.dynatrace.com` |
@@ -24,7 +24,7 @@ echo 'DT_INGEST_TOKEN=dt0c01.XXXX' >> .env
 ```
 
 ### 2. One scope on the OAuth client (only for the official MCP server)
-Account Management > Identity & access management > OAuth clients > appmedic-mcp >
+Account Management > Identity & access management > OAuth clients > quell-mcp >
 add scope `app-engine:apps:run`. Our own `live_client` does not need this.
 
 ## Run locally
@@ -35,21 +35,21 @@ add scope `app-engine:apps:run`. Our own `live_client` does not need this.
 cd agents && python3 run_demo.py   # CLI end-to-end with the learning loop
 
 # live Gemini reasoning
-APPMEDIC_USE_LIVE_LLM=true python3 agents/run_demo.py
+QUELL_USE_LIVE_LLM=true python3 agents/run_demo.py
 
 # live Dynatrace reads (after ingest token + traffic so Grail has data)
 cd shopwave && node traffic.js &           # generate real telemetry
-APPMEDIC_USE_LIVE_DT=true APPMEDIC_USE_LIVE_LLM=true python3 ../agents/run_demo.py
+QUELL_USE_LIVE_DT=true QUELL_USE_LIVE_LLM=true python3 ../agents/run_demo.py
 ```
 
 ## Deploy the ADK app to Vertex AI Agent Engine
 
 ```bash
 cd agents
-pip install -r appmedic_adk/requirements.txt
-adk run appmedic_adk          # run the agent graph locally against the MCP server
-adk deploy agent_engine appmedic_adk \
-  --project appmedic-hack-2026 --region us-central1 \
+pip install -r quell_adk/requirements.txt
+adk run quell_adk          # run the agent graph locally against the MCP server
+adk deploy agent_engine quell_adk \
+  --project quell-hack-2026 --region us-central1 \
   --staging_bucket gs://<your-bucket>
 ```
 
@@ -60,5 +60,5 @@ project" URL; the dashboard is the operator UI.
 ## Swapping to Gemini 3
 Request access in Vertex AI Model Garden, then set in `.env`:
 ```
-APPMEDIC_WORKER_MODEL=gemini-3-pro-preview
+QUELL_WORKER_MODEL=gemini-3-pro-preview
 ```

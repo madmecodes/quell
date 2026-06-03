@@ -4,5 +4,5 @@
 # google-adk            # Agent Builder / ADK runtime (live reasoning path)
 # google-genai          # Gemini API client
 # mcp                   # Model Context Protocol client for the Dynatrace MCP server
-# opentelemetry-sdk     # instrument AppMedic's own agents -> Dynatrace
+# opentelemetry-sdk     # instrument Quell's own agents -> Dynatrace
 # opentelemetry-exporter-otlp

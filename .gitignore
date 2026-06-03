@@ -8,4 +8,4 @@ node_modules/
 dist/
 build/
 *.log
-agents/appmedic/memory_store/*.json
+agents/quell/memory_store/*.json

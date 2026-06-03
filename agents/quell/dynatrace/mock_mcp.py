@@ -41,7 +41,7 @@ class ChaosState:
 class MockMCP:
     chaos: ChaosState = field(default_factory=ChaosState)
     actions_taken: list[dict[str, Any]] = field(default_factory=list)
-    # in-memory record of the AppMedic agents' own run, for the Evaluator to query
+    # in-memory record of the Quell agents' own run, for the Evaluator to query
     agent_traces: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     # ---- read tools ---------------------------------------------------------
@@ -106,9 +106,9 @@ class MockMCP:
         return {"metric": metric, "breach_eta": "~1h", "trend": "degrading"}
 
     def get_agent_traces(self, incident_id: str) -> dict[str, Any]:
-        """AppMedic observing itself: the agents' own run telemetry.
+        """Quell observing itself: the agents' own run telemetry.
 
-        In production this is execute_dql over AppMedic's own OTel spans in
+        In production this is execute_dql over Quell's own OTel spans in
         Dynatrace. The Evaluator queries this to grade the agents on real data.
         """
         return self.agent_traces
