@@ -3,231 +3,336 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AppMedic</title>
+<title>AppMedic — user-experience guardian</title>
 <style>
-  :root { --bg:#f3ead9; --panel:#fbf6ec; --panel2:#f6eddc; --line:#e3d5bd;
-          --muted:#8a7a64; --txt:#3b2f23; --accent:#a8552f; --accent-dk:#7d3d20;
-          --green:#5b7d4b; --amber:#b3812a; }
-  * { box-sizing: border-box; }
-  body { margin:0; background:var(--bg); color:var(--txt);
-         font:15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
-  header { display:flex; align-items:center; justify-content:space-between;
-           padding:18px 28px; border-bottom:1px solid var(--line); background:var(--panel); }
-  .brand { display:flex; align-items:center; gap:12px; }
-  .brand b { font-size:19px; letter-spacing:-0.02em; }
-  .brand span { color:var(--muted); font-size:13px; }
-  .shield { width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg,var(--accent),var(--accent-dk));
-            display:grid; place-items:center; font-weight:700; font-size:14px; color:#fff; }
-  .top-actions { display:flex; align-items:center; gap:14px; }
-  .info-btn { width:30px; height:30px; border-radius:50%; border:1px solid var(--line);
-              background:var(--panel2); color:var(--accent); font-weight:700; cursor:pointer;
-              font-size:15px; display:grid; place-items:center; }
-  .info-btn:hover { background:#efe2cb; }
-  main { max-width:1080px; margin:0 auto; padding:28px; }
-  .start { display:flex; gap:12px; align-items:center; margin-bottom:24px; }
-  button { padding:11px 18px; border-radius:10px; border:1px solid var(--line);
-           background:var(--panel); color:var(--txt); cursor:pointer; font-size:14px; font-weight:500; }
-  button:hover { border-color:#cdb892; }
-  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
-  button.primary:hover { background:var(--accent-dk); }
-  button.ok { background:#e8efe0; border-color:#9fc089; color:#46663a; }
-  button.ghost { background:transparent; }
-  .pipeline { display:flex; flex-direction:column; gap:12px; }
-  .agent { display:flex; gap:14px; padding:16px 18px; background:var(--panel);
-           border:1px solid var(--line); border-radius:12px; opacity:0; transform:translateY(6px);
-           animation:rise .35s forwards; box-shadow:0 1px 2px rgba(90,60,30,.04); }
-  @keyframes rise { to { opacity:1; transform:none; } }
-  .icon { width:34px; height:34px; border-radius:9px; background:var(--panel2); border:1px solid var(--line);
-          display:grid; place-items:center; font-size:14px; font-weight:700; color:var(--accent); flex:none; }
-  .agent .name { font-weight:600; font-size:13px; letter-spacing:.02em; text-transform:uppercase; color:var(--muted); }
-  .agent .sum { margin-top:2px; }
-  .gate { border:1px solid #d8a98a; background:linear-gradient(180deg,#fbeee2,#f7e7d6); }
-  .gate.learn { border-color:#cdb892; background:linear-gradient(180deg,#f8f1e2,#f4ecd9); }
-  .gate h3 { margin:0 0 4px; font-size:15px; }
-  .gate .row { display:flex; gap:10px; margin-top:14px; }
-  .outcome { margin-top:8px; padding:18px; border-radius:12px; border:1px solid #9fc089;
-             background:#e8efe0; font-size:17px; font-weight:600; color:#3f5e33; }
-  table { width:100%; border-collapse:collapse; margin-top:8px; font-size:14px; }
-  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
-  th { color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase; }
-  .score-good { color:var(--green); font-weight:600; } .score-bad { color:var(--amber); font-weight:600; }
-  .pill { font-size:12px; color:var(--amber); }
-  .chk { display:flex; align-items:center; gap:8px; }
-  .applied { margin-top:14px; font-size:13px; color:var(--muted); }
-  .applied b { color:var(--txt); }
-  .muted { color:var(--muted); }
-  /* info modal */
-  .overlay { position:fixed; inset:0; background:rgba(59,47,35,.45); display:none;
-             align-items:center; justify-content:center; padding:24px; z-index:50; }
-  .overlay.open { display:flex; }
-  .modal { background:var(--panel); border:1px solid var(--line); border-radius:16px;
-           max-width:680px; width:100%; max-height:85vh; overflow:auto; padding:26px 28px;
-           box-shadow:0 12px 40px rgba(90,60,30,.18); }
-  .modal h2 { margin:0 0 4px; font-size:20px; }
-  .modal .sub { color:var(--muted); margin-bottom:18px; }
-  .modal h4 { margin:18px 0 8px; font-size:14px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); }
-  .steps { display:flex; flex-direction:column; gap:10px; }
-  .step { display:flex; gap:12px; }
-  .step .n { width:26px; height:26px; border-radius:50%; background:var(--accent); color:#fff;
-             display:grid; place-items:center; font-size:13px; font-weight:700; flex:none; }
-  .agentlist { display:grid; grid-template-columns:1fr 1fr; gap:8px 18px; margin-top:4px; }
-  .agentlist div { font-size:13.5px; }
-  .agentlist b { color:var(--accent-dk); }
-  .closebtn { float:right; }
+  :root{
+    --paper:#ece2cf; --paper2:#f5eede; --card:#f7f1e3; --ink:#2c2317; --ink2:#5b4d38;
+    --muted:#8c7c61; --rule:#d6c4a3; --rule2:#e4d6ba;
+    --terra:#b0512c; --terra-dk:#8a3d1f; --sage:#5d7150; --gold:#a07d2c; --amber:#b3812a;
+    --serif:"Hoefler Text","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,"Cascadia Code",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.55;
+    background-image:radial-gradient(120% 80% at 50% -10%, #f3ecda 0%, var(--paper) 60%);
+    min-height:100vh;
+  }
+  /* paper grain */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.5;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  }
+  .wrap{position:relative; z-index:1; max-width:1120px; margin:0 auto; padding:0 26px 60px}
+
+  /* masthead */
+  .masthead{display:flex; align-items:center; justify-content:space-between; padding:22px 4px 18px; border-bottom:1px solid var(--rule)}
+  .brand{display:flex; align-items:center; gap:14px}
+  .mark{width:42px; height:42px; border-radius:11px; background:linear-gradient(150deg,var(--terra),var(--terra-dk));
+        display:grid; place-items:center; box-shadow:0 6px 16px rgba(138,61,31,.28); position:relative}
+  .mark::after{content:"+"; color:#f7eede; font-family:var(--serif); font-size:26px; font-weight:700; line-height:1}
+  .brand h1{font-family:var(--serif); font-size:25px; margin:0; letter-spacing:.2px}
+  .brand .tagline{font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--muted); margin-top:2px}
+  .mhead-right{display:flex; align-items:center; gap:16px}
+  .statuspill{display:flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink2)}
+  .beat{width:9px; height:9px; border-radius:50%; background:var(--sage); box-shadow:0 0 0 0 rgba(93,113,80,.5); animation:beat 2s infinite}
+  @keyframes beat{0%{box-shadow:0 0 0 0 rgba(93,113,80,.45)}70%{box-shadow:0 0 0 8px rgba(93,113,80,0)}100%{box-shadow:0 0 0 0 rgba(93,113,80,0)}}
+  .infob{width:32px; height:32px; border-radius:50%; border:1px solid var(--rule); background:var(--paper2);
+         color:var(--terra); font-family:var(--serif); font-style:italic; font-size:17px; cursor:pointer; display:grid; place-items:center}
+  .infob:hover{background:#efe4cd}
+
+  /* hero */
+  .hero{padding:48px 0 30px; max-width:760px}
+  .kicker{font-size:11px; letter-spacing:.32em; text-transform:uppercase; color:var(--terra); font-weight:600}
+  .hero h2{font-family:var(--serif); font-size:46px; line-height:1.04; margin:14px 0 12px; letter-spacing:-.4px}
+  .hero h2 em{font-style:italic; color:var(--terra-dk)}
+  .hero p{font-size:16.5px; color:var(--ink2); margin:0 0 26px; max-width:600px}
+  .cta-row{display:flex; align-items:center; gap:18px; flex-wrap:wrap}
+  .btn{font-family:var(--sans); font-size:14.5px; font-weight:600; padding:13px 22px; border-radius:12px; cursor:pointer; border:1px solid var(--rule); background:var(--paper2); color:var(--ink); transition:.15s}
+  .btn:hover{border-color:#c3ab80; transform:translateY(-1px)}
+  .btn.primary{background:var(--terra); border-color:var(--terra); color:#f8efe2; box-shadow:0 8px 22px rgba(138,61,31,.25)}
+  .btn.primary:hover{background:var(--terra-dk)}
+  .btn.go{background:#163020; border-color:#2c5a3b; color:#bfe6cb}
+  .linklike{background:none; border:none; color:var(--terra-dk); font-weight:600; cursor:pointer; text-decoration:underline; text-underline-offset:3px; font-size:14px; padding:0}
+  .hint{color:var(--muted); font-size:13.5px}
+
+  /* heartbeat divider */
+  .ekg{height:34px; margin:6px 0 6px; overflow:hidden}
+  .ekg svg{width:100%; height:100%}
+  .ekg path{fill:none; stroke:var(--rule); stroke-width:1.5}
+  .ekg .live{stroke:var(--terra); stroke-dasharray:1400; stroke-dashoffset:1400; animation:trace 3.2s ease-in-out infinite}
+  @keyframes trace{0%{stroke-dashoffset:1400}55%{stroke-dashoffset:0}100%{stroke-dashoffset:-1400}}
+
+  /* layout */
+  .grid{display:grid; grid-template-columns:1fr 300px; gap:30px; align-items:start}
+  @media(max-width:880px){.grid{grid-template-columns:1fr}}
+
+  /* timeline */
+  .chart-title{font-family:var(--serif); font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin:0 0 16px; padding-bottom:8px; border-bottom:1px solid var(--rule2)}
+  .timeline{position:relative; padding-left:36px}
+  .timeline::before{content:""; position:absolute; left:13px; top:6px; bottom:6px; width:2px;
+    background:linear-gradient(var(--rule), var(--rule2))}
+  .station{position:relative; margin-bottom:14px; opacity:0; transform:translateY(8px); animation:rise .4s forwards}
+  @keyframes rise{to{opacity:1; transform:none}}
+  .node{position:absolute; left:-30px; top:2px; width:26px; height:26px; border-radius:50%; background:var(--paper2);
+    border:2px solid var(--terra); color:var(--terra-dk); font-family:var(--serif); font-size:12px; font-weight:700;
+    display:grid; place-items:center; z-index:2}
+  .station.done .node{background:var(--terra); color:#f7eede; border-color:var(--terra)}
+  .card{background:var(--card); border:1px solid var(--rule2); border-radius:13px; padding:14px 17px; box-shadow:0 2px 10px rgba(90,60,30,.05)}
+  .card .role{font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); font-weight:600}
+  .card .agent{font-family:var(--serif); font-size:16px; margin:1px 0 5px}
+  .card .finding{color:var(--ink2); font-size:14.5px}
+  .card .finding .mono{font-family:var(--mono); font-size:12.5px; color:var(--terra-dk); background:#efe3ca; padding:1px 5px; border-radius:4px}
+
+  /* gates */
+  .gate{border:1px solid var(--terra); background:linear-gradient(180deg,#f8ead9,#f4e2cd); box-shadow:0 6px 22px rgba(138,61,31,.12)}
+  .gate.learn{border-color:#c9b07e; background:linear-gradient(180deg,#f7efda,#f3ead0)}
+  .gate .glabel{font-size:10.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--terra-dk); font-weight:700}
+  .gate h3{font-family:var(--serif); font-size:19px; margin:3px 0 6px}
+  .gate .row{display:flex; gap:11px; margin-top:14px; flex-wrap:wrap}
+  .ledger{width:100%; border-collapse:collapse; margin-top:10px; font-size:13.5px}
+  .ledger th{text-align:left; font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:600; padding:6px 8px; border-bottom:1px solid var(--rule)}
+  .ledger td{padding:8px; border-bottom:1px solid var(--rule2); vertical-align:top}
+  .s-good{color:var(--sage); font-weight:700; font-family:var(--mono)}
+  .s-bad{color:var(--amber); font-weight:700; font-family:var(--mono)}
+  .lesson{font-size:12px; color:var(--amber); margin-top:3px; font-style:italic}
+  .chk{display:flex; gap:7px; align-items:center; font-size:13px}
+
+  /* outcome */
+  .outcome{margin-top:8px; border:1.5px solid var(--sage); border-radius:15px; background:#e9efe0; padding:22px 24px; position:relative; overflow:hidden}
+  .outcome::before{content:"Rx"; position:absolute; right:18px; top:8px; font-family:var(--serif); font-style:italic; font-size:54px; color:rgba(93,113,80,.18)}
+  .outcome .lab{font-size:10.5px; letter-spacing:.24em; text-transform:uppercase; color:var(--sage); font-weight:700}
+  .outcome .big{font-family:var(--serif); font-size:25px; color:#33502f; margin-top:4px; line-height:1.2}
+  .applied{margin-top:14px; font-size:13px; color:var(--ink2)}
+  .applied b{color:var(--ink)}
+  .applied .li{padding:5px 0 5px 16px; position:relative}
+  .applied .li::before{content:"•"; position:absolute; left:2px; color:var(--terra)}
+
+  /* aside */
+  aside .panel{background:var(--card); border:1px solid var(--rule2); border-radius:14px; padding:16px 18px; margin-bottom:16px}
+  aside .ptitle{font-family:var(--serif); font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin:0 0 10px}
+  .patient{display:flex; align-items:center; justify-content:space-between}
+  .patient a{color:var(--terra-dk); font-weight:600; text-decoration:none}
+  .patient a:hover{text-decoration:underline}
+  .pdot{display:inline-flex; align-items:center; gap:7px; font-size:12px; color:var(--ink2)}
+  .pdot i{width:8px;height:8px;border-radius:50%;background:var(--sage);display:inline-block}
+  .stack{display:flex; flex-direction:column; gap:9px}
+  .badge{display:flex; align-items:center; gap:10px; font-size:13px; color:var(--ink2)}
+  .badge b{color:var(--ink); font-weight:600}
+  .badge .g{width:7px;height:7px;border-radius:2px;background:var(--terra)}
+  .twoapprovals{font-size:13px; color:var(--ink2)}
+  .twoapprovals b{color:var(--ink)}
+
+  footer{margin-top:40px; padding-top:18px; border-top:1px solid var(--rule); font-size:12px; color:var(--muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px}
+
+  /* modal */
+  .overlay{position:fixed; inset:0; background:rgba(44,35,23,.5); display:none; align-items:center; justify-content:center; padding:24px; z-index:50; backdrop-filter:blur(2px)}
+  .overlay.open{display:flex}
+  .modal{background:var(--paper2); border:1px solid var(--rule); border-radius:18px; max-width:700px; width:100%; max-height:86vh; overflow:auto; padding:30px 34px; box-shadow:0 24px 60px rgba(44,35,23,.3)}
+  .modal h2{font-family:var(--serif); font-size:26px; margin:0 0 4px}
+  .modal .msub{color:var(--muted); margin-bottom:20px; font-size:15px}
+  .modal h4{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--terra); margin:20px 0 8px}
+  .agentlist{display:grid; grid-template-columns:1fr 1fr; gap:9px 20px}
+  .agentlist div{font-size:13.5px; color:var(--ink2)}
+  .agentlist b{color:var(--terra-dk); font-family:var(--serif)}
+  .steps{display:flex; flex-direction:column; gap:9px}
+  .stp{display:flex; gap:12px; font-size:14px; color:var(--ink2)}
+  .stp .n{width:26px;height:26px;border-radius:50%;background:var(--terra);color:#f7eede;display:grid;place-items:center;font-family:var(--serif);font-size:13px;font-weight:700;flex:none}
+  .modal .close{float:right; background:none; border:1px solid var(--rule); border-radius:9px; padding:5px 12px; cursor:pointer; color:var(--ink2)}
 </style>
 </head>
 <body>
-<header>
-  <div class="brand">
-    <div class="shield">S</div>
-    <div><b>AppMedic</b> &nbsp;<span>user-experience guardian</span></div>
+<div class="wrap">
+  <header class="masthead">
+    <div class="brand">
+      <div class="mark"></div>
+      <div><h1>AppMedic</h1><div class="tagline">user-experience guardian</div></div>
+    </div>
+    <div class="mhead-right">
+      <span class="statuspill"><span class="beat"></span> monitoring · ShopWave</span>
+      <button class="infob" onclick="openInfo()" title="How it works">i</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="kicker">Autonomous incident response</div>
+    <h2>Catch the incident <em>before</em> users feel it.</h2>
+    <p>Six AI agents watch a live app, trace a degrading experience to its root cause, weigh the revenue at risk, and prevent it — with you signing off before any change.</p>
+    <div class="cta-row">
+      <button class="btn primary" onclick="start()">Detect &amp; prevent incident</button>
+      <button class="linklike" onclick="openInfo()">How it works</button>
+      <span class="hint" id="hint">A fault is live on ShopWave.</span>
+    </div>
+  </section>
+
+  <div class="ekg">
+    <svg viewBox="0 0 1200 34" preserveAspectRatio="none">
+      <path d="M0 17 H440 l14 -13 l16 26 l14 -22 l12 18 l10 -9 H700 l16 -15 l14 30 l12 -15 H1200" />
+      <path class="live" d="M0 17 H440 l14 -13 l16 26 l14 -22 l12 18 l10 -9 H700 l16 -15 l14 30 l12 -15 H1200" />
+    </svg>
   </div>
-  <div class="top-actions">
-    <span class="muted" id="env">watching ShopWave</span>
-    <button class="info-btn" onclick="openInfo()" title="How it works">i</button>
+
+  <div class="grid">
+    <main>
+      <p class="chart-title">Case timeline</p>
+      <div class="timeline" id="pipeline">
+        <div class="station" style="opacity:.6"><div class="node" style="border-color:var(--rule);color:var(--muted)">—</div>
+          <div class="card"><div class="finding" style="color:var(--muted)">Idle. Press <b>Detect &amp; prevent incident</b> to dispatch the agents.</div></div></div>
+      </div>
+    </main>
+    <aside>
+      <div class="panel">
+        <p class="ptitle">The patient</p>
+        <div class="patient">
+          <a href="https://shopwave-908906947513.us-central1.run.app" target="_blank">ShopWave store ↗</a>
+          <span class="pdot"><i></i> live</span>
+        </div>
+        <p style="font-size:12.5px;color:var(--muted);margin:10px 0 0">A live store emitting real telemetry. Inject a fault there; AppMedic catches it here.</p>
+      </div>
+      <div class="panel">
+        <p class="ptitle">The stack</p>
+        <div class="stack">
+          <div class="badge"><span class="g"></span><span><b>Gemini</b> · reasoning &amp; tool-calling</span></div>
+          <div class="badge"><span class="g"></span><span><b>Dynatrace</b> MCP · senses &amp; actions</span></div>
+          <div class="badge"><span class="g"></span><span><b>Google Cloud Run</b> · hosting</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <p class="ptitle">Human in the loop</p>
+        <div class="twoapprovals">You sign off <b>twice</b>: before the fix touches production, and before an agent changes itself.</div>
+      </div>
+    </aside>
   </div>
-</header>
-<main>
-  <div class="start">
-    <button class="primary" onclick="start()">Detect &amp; prevent incident</button>
-    <span class="muted" id="hint">A fault is live on ShopWave. Run AppMedic to catch it. &nbsp;<a href="#" onclick="openInfo();return false" style="color:var(--accent)">How it works</a></span>
-  </div>
-  <div class="pipeline" id="pipeline"></div>
-</main>
+
+  <footer>
+    <span>AppMedic — Google Cloud Rapid Agent Hackathon · Dynatrace track</span>
+    <span>ShopWave is the patient · AppMedic is the doctor</span>
+  </footer>
+</div>
 
 <div class="overlay" id="overlay" onclick="if(event.target===this)closeInfo()">
   <div class="modal">
-    <button class="ghost closebtn" onclick="closeInfo()">close</button>
+    <button class="close" onclick="closeInfo()">close</button>
     <h2>How AppMedic works</h2>
-    <div class="sub">A team of AI agents that catches a bad user experience, traces the cause, and prevents it &mdash; with you in control.</div>
-
-    <h4>What you are looking at</h4>
-    <div>AppMedic watches <b>ShopWave</b>, a live store. When a fault hurts real users, six specialized agents run as a pipeline. You approve the fix and the learning. Everything is powered by <b>Gemini</b> on Google Cloud Agent Builder, using the <b>Dynatrace</b> MCP as the agents' senses and hands.</div>
-
+    <div class="msub">A team of AI agents that catches a bad user experience, traces the cause, and prevents it — with you in control.</div>
     <h4>The six agents</h4>
     <div class="agentlist">
-      <div><b>Watcher</b> &mdash; spots the degraded user segment from real-user data</div>
-      <div><b>Tracer</b> &mdash; finds the exact service, span and deploy at fault</div>
-      <div><b>Judge</b> &mdash; quantifies users, carts and revenue at risk</div>
-      <div><b>Actuator</b> &mdash; executes the approved rollback and alerts ops</div>
-      <div><b>Scribe</b> &mdash; writes the prevented-incident report</div>
-      <div><b>Evaluator</b> &mdash; grades the agents from their own traces</div>
+      <div><b>Watcher</b> — spots the degraded user segment from real-user data</div>
+      <div><b>Tracer</b> — finds the exact service, span and deploy at fault</div>
+      <div><b>Judge</b> — quantifies users, carts and revenue at risk</div>
+      <div><b>Actuator</b> — executes the approved rollback and alerts ops</div>
+      <div><b>Scribe</b> — writes the prevented-incident report</div>
+      <div><b>Evaluator</b> — grades the agents from their own traces</div>
     </div>
-
-    <h4>What happens, step by step</h4>
+    <h4>Step by step</h4>
     <div class="steps">
-      <div class="step"><div class="n">1</div><div>You inject a fault on ShopWave (slow payments for one segment).</div></div>
-      <div class="step"><div class="n">2</div><div>Watcher &rarr; Tracer &rarr; Judge investigate and report what's wrong, why, and the business impact.</div></div>
-      <div class="step"><div class="n">3</div><div><b>Gate 1 &mdash; you approve the action.</b> Nothing touches production without you.</div></div>
-      <div class="step"><div class="n">4</div><div>Actuator rolls back the bad deploy; Scribe logs the rescue.</div></div>
-      <div class="step"><div class="n">5</div><div>Evaluator grades each agent and proposes improvements.</div></div>
-      <div class="step"><div class="n">6</div><div><b>Gate 2 &mdash; you approve the learning.</b> The lesson is saved to the agent's memory, so next run it's faster and smarter.</div></div>
+      <div class="stp"><div class="n">1</div><div>You inject a fault on ShopWave (slow payments for one segment).</div></div>
+      <div class="stp"><div class="n">2</div><div>Watcher → Tracer → Judge investigate: what's wrong, why, and the business impact.</div></div>
+      <div class="stp"><div class="n">3</div><div><b>Gate 1 — you approve the action.</b> Nothing touches production without you.</div></div>
+      <div class="stp"><div class="n">4</div><div>Actuator rolls back the bad deploy; Scribe logs the rescue.</div></div>
+      <div class="stp"><div class="n">5</div><div>Evaluator grades each agent from its own Dynatrace traces.</div></div>
+      <div class="stp"><div class="n">6</div><div><b>Gate 2 — you approve the learning.</b> The lesson is saved to memory, so next run is faster and smarter.</div></div>
     </div>
-
-    <h4>Why two approvals</h4>
-    <div>Human in the loop, twice: once before any change to production, once before the system changes itself. Autonomy with oversight.</div>
+    <h4>Powered by</h4>
+    <div class="msub" style="margin:0">Gemini on Google Cloud Agent Builder, with the Dynatrace MCP server as the agents' senses and hands. Built for the Google Cloud Rapid Agent Hackathon.</div>
   </div>
 </div>
 
 <script>
-const META = {
-  watcher:  { icon:"W", label:"Watcher" },
-  tracer:   { icon:"T", label:"Tracer" },
-  judge:    { icon:"J", label:"Judge" },
-  actuator: { icon:"A", label:"Actuator" },
-  scribe:   { icon:"S", label:"Scribe" },
-  evaluator:{ icon:"E", label:"Evaluator" },
+const META={
+  watcher:{n:"I",label:"Watcher",role:"Detection"},
+  tracer:{n:"II",label:"Tracer",role:"Root cause"},
+  judge:{n:"III",label:"Judge",role:"Business impact"},
+  actuator:{n:"IV",label:"Actuator",role:"Remediation"},
+  scribe:{n:"V",label:"Scribe",role:"Report"},
+  evaluator:{n:"VI",label:"Evaluator",role:"Self-evaluation"},
 };
-let timer = null, seen = new Set();
-function openInfo(){ document.getElementById("overlay").classList.add("open"); }
-function closeInfo(){ document.getElementById("overlay").classList.remove("open"); }
+let timer=null, seen=new Set();
+function openInfo(){document.getElementById("overlay").classList.add("open")}
+function closeInfo(){document.getElementById("overlay").classList.remove("open")}
+function el(h){const d=document.createElement("div");d.innerHTML=h.trim();return d.firstChild}
+function P(){return document.getElementById("pipeline")}
 
-async function start() {
-  document.getElementById("pipeline").innerHTML = "";
-  seen = new Set();
-  await fetch("/api/start", { method:"POST" });
-  document.getElementById("hint").textContent = "running...";
-  if (timer) clearInterval(timer);
-  timer = setInterval(poll, 600);
+async function start(){
+  P().innerHTML=""; seen=new Set();
+  await fetch("/api/start",{method:"POST"});
+  document.getElementById("hint").textContent="dispatching agents…";
+  if(timer)clearInterval(timer);
+  timer=setInterval(poll,600);
 }
-function el(html) { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; }
-
-function renderEntry(e) {
-  const key = "entry-" + e.step;
-  if (seen.has(key)) return;
-  seen.add(key);
-  const m = META[e.agent] || { icon:"?", label:e.agent };
-  document.getElementById("pipeline").appendChild(el(
-    `<div class="agent"><div class="icon">${m.icon}</div>
-     <div><div class="name">${m.label}</div><div class="sum">${e.summary}</div></div></div>`));
+// bold key facts (service/span/deploy/numbers) in findings
+function fmt(s){
+  return s
+   .replace(/(payment-svc|catalog-svc|cart-svc)/g,'<span class="mono">$1</span>')
+   .replace(/(razorpay\.charge|#\d+)/g,'<span class="mono">$1</span>')
+   .replace(/(INR [0-9.]+L|\d{3,} (?:users|carts))/g,'<b>$1</b>');
 }
-function renderGate1(s) {
-  if (seen.has("gate1")) return; seen.add("gate1");
-  const impact = (s.entries.find(e => e.kind === "impact") || {}).summary || "";
-  document.getElementById("pipeline").appendChild(el(
-    `<div class="agent gate" id="g1"><div class="icon">!</div><div style="flex:1">
-       <h3>Approve preventive action</h3>
-       <div class="sum">${impact}</div>
-       <div class="muted" style="margin-top:6px">Proposed: roll back deploy #847 on payment-svc (reversible, blast radius 1 service).</div>
-       <div class="row">
-         <button class="ok" onclick="approveAction(true)">Approve rollback</button>
-         <button class="ghost" onclick="approveAction(false)">Reject</button>
-       </div></div></div>`));
+function renderEntry(e){
+  const k="e"+e.step; if(seen.has(k))return; seen.add(k);
+  const m=META[e.agent]||{n:"?",label:e.agent,role:""};
+  P().appendChild(el(`<div class="station done"><div class="node">${m.n}</div>
+    <div class="card"><div class="role">${m.role}</div><div class="agent">${m.label}</div>
+    <div class="finding">${fmt(e.summary)}</div></div></div>`));
 }
-function renderGate2(s) {
-  if (seen.has("gate2")) return; seen.add("gate2");
-  const rows = s.scorecard.map(g => {
-    const cls = g.score >= 1 ? "score-good" : "score-bad";
-    const flag = (g.lesson || g.definition_edit)
-      ? `<label class="chk"><input type="checkbox" class="learn-chk" value="${g.agent}" checked> apply</label>`
-      : `<span class="muted">-</span>`;
-    const why = g.lesson ? `<div class="pill">lesson: ${g.lesson}</div>` : "";
-    return `<tr><td>${(META[g.agent]||{}).label||g.agent}</td>
-            <td class="${cls}">${g.score}</td><td>${g.notes}${why}</td><td>${flag}</td></tr>`;
+function renderGate1(s){
+  if(seen.has("g1"))return; seen.add("g1");
+  const impact=(s.entries.find(e=>e.kind==="impact")||{}).summary||"";
+  P().appendChild(el(`<div class="station"><div class="node" style="background:var(--terra);color:#f7eede">!</div>
+    <div class="card gate" id="g1"><div class="glabel">Gate 1 · approval required</div>
+    <h3>Approve preventive action</h3>
+    <div class="finding">${fmt(impact)}</div>
+    <div class="finding" style="margin-top:7px;color:var(--muted)">Proposed: roll back <span class="mono">#847</span> on <span class="mono">payment-svc</span> — reversible, blast radius 1 service.</div>
+    <div class="row"><button class="btn go" onclick="approveAction(true)">Approve rollback</button>
+    <button class="btn" onclick="approveAction(false)">Reject</button></div></div></div>`));
+}
+function renderGate2(s){
+  if(seen.has("g2"))return; seen.add("g2");
+  const rows=s.scorecard.map(g=>{
+    const cls=g.score>=1?"s-good":"s-bad";
+    const chk=(g.lesson||g.definition_edit)?`<label class="chk"><input type="checkbox" class="learn-chk" value="${g.agent}" checked> apply</label>`:`<span style="color:var(--muted)">—</span>`;
+    const why=g.lesson?`<div class="lesson">lesson: ${g.lesson}</div>`:"";
+    return `<tr><td>${(META[g.agent]||{}).label||g.agent}</td><td class="${cls}">${g.score}</td><td>${g.notes}${why}</td><td>${chk}</td></tr>`;
   }).join("");
-  document.getElementById("pipeline").appendChild(el(
-    `<div class="agent gate learn" id="g2"><div class="icon">E</div><div style="flex:1">
-       <h3>Evaluation &mdash; approve what each agent learns</h3>
-       <div class="muted">Graded from each agent's own Dynatrace traces.</div>
-       <table><tr><th>Agent</th><th>Score</th><th>Notes</th><th>Learn</th></tr>${rows}</table>
-       <div class="row"><button class="ok" onclick="approveLearning()">Apply approved learning</button></div>
-     </div></div>`));
+  P().appendChild(el(`<div class="station"><div class="node">VI</div>
+    <div class="card gate learn" id="g2"><div class="glabel">Gate 2 · approve learning</div>
+    <h3>Evaluation</h3>
+    <div class="finding" style="color:var(--muted)">Each agent graded from its own Dynatrace traces.</div>
+    <table class="ledger"><tr><th>Agent</th><th>Score</th><th>Notes</th><th>Learn</th></tr>${rows}</table>
+    <div class="row"><button class="btn go" onclick="approveLearning()">Apply approved learning</button></div></div></div>`));
 }
-function renderOutcome(s) {
-  if (seen.has("outcome")) return; seen.add("outcome");
-  const rep = s.entries.find(e => e.kind === "report");
-  if (rep) document.getElementById("pipeline").appendChild(el(`<div class="outcome">${rep.summary}</div>`));
-  else document.getElementById("pipeline").appendChild(el(`<div class="outcome" style="background:#e8efe0">No fault detected &mdash; all user segments healthy.</div>`));
-  if (s.applied_lessons && s.applied_lessons.length) {
-    document.getElementById("pipeline").appendChild(el(
-      `<div class="applied"><b>Learning applied:</b><br>` +
-      s.applied_lessons.map(l => "&bull; " + l).join("<br>") +
-      (s.applied_defs.length ? "<br><b>Definition edits recommended:</b><br>" +
-        s.applied_defs.map(d => "&bull; " + d).join("<br>") : "") + `</div>`));
+function renderOutcome(s){
+  if(seen.has("out"))return; seen.add("out");
+  const rep=s.entries.find(e=>e.kind==="report");
+  P().appendChild(el(`<div class="station done"><div class="node" style="background:var(--sage);border-color:var(--sage);color:#eef3e6">✓</div>
+    <div class="outcome"><div class="lab">Incident prevented</div>
+    <div class="big">${rep?rep.summary:"All user segments healthy — no fault detected."}</div></div></div>`));
+  if(s.applied_lessons&&s.applied_lessons.length){
+    let h='<div class="applied"><b>Learning applied</b>'+s.applied_lessons.map(l=>`<div class="li">${l}</div>`).join("");
+    if(s.applied_defs.length)h+='<b>Definition edits recommended</b>'+s.applied_defs.map(d=>`<div class="li">${d}</div>`).join("");
+    h+="</div>";
+    P().appendChild(el(`<div class="station"><div class="node" style="border-color:var(--rule);color:var(--muted)">↻</div><div class="card">${h}</div></div>`));
   }
-  document.getElementById("hint").textContent = "done. Run again to see agents improve.";
-  if (timer) clearInterval(timer);
+  document.getElementById("hint").textContent="done — run again to watch the agents improve.";
+  if(timer)clearInterval(timer);
 }
-async function poll() {
-  const s = await (await fetch("/api/state")).json();
-  if (!s || !s.id) return;
-  (s.entries || []).filter(e => e.kind !== "evaluation").forEach(renderEntry);
-  if (s.pending === "action") renderGate1(s);
-  if (s.pending === "learning") renderGate2(s);
-  if (s.done) renderOutcome(s);
+async function poll(){
+  const s=await(await fetch("/api/state")).json();
+  if(!s||!s.id)return;
+  (s.entries||[]).filter(e=>e.kind!=="evaluation").forEach(renderEntry);
+  if(s.pending==="action")renderGate1(s);
+  if(s.pending==="learning")renderGate2(s);
+  if(s.done)renderOutcome(s);
 }
-async function approveAction(ok) {
-  const g = document.getElementById("g1"); if (g) g.querySelector(".row").innerHTML =
-    ok ? '<span class="score-good">approved</span>' : '<span class="muted">rejected</span>';
-  await fetch("/api/approve-action", { method:"POST", headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({ ok }) });
+async function approveAction(ok){
+  const g=document.getElementById("g1"); if(g)g.querySelector(".row").innerHTML=ok?'<span class="s-good">approved</span>':'<span style="color:var(--muted)">rejected</span>';
+  await fetch("/api/approve-action",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ok})});
 }
-async function approveLearning() {
-  const agents = [...document.querySelectorAll(".learn-chk:checked")].map(c => c.value);
-  const g = document.getElementById("g2"); if (g) g.querySelector(".row").innerHTML =
-    '<span class="score-good">learning applied</span>';
-  await fetch("/api/approve-learning", { method:"POST", headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({ agents }) });
+async function approveLearning(){
+  const agents=[...document.querySelectorAll(".learn-chk:checked")].map(c=>c.value);
+  const g=document.getElementById("g2"); if(g)g.querySelector(".row").innerHTML='<span class="s-good">learning applied</span>';
+  await fetch("/api/approve-learning",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({agents})});
 }
 </script>
 </body>

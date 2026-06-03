@@ -1,128 +1,167 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ShopWave</title>
-  <style>
-    :root { --bg:#f3ead9; --panel:#fbf6ec; --panel2:#f6eddc; --line:#e3d5bd;
-            --muted:#8a7a64; --txt:#3b2f23; --accent:#a8552f; --accent-dk:#7d3d20; --green:#5b7d4b; }
-    * { box-sizing: border-box; }
-    body { margin:0; font:15px/1.5 ui-sans-serif, system-ui, "Segoe UI", sans-serif;
-           background:var(--bg); color:var(--txt); }
-    header { padding:18px 28px; border-bottom:1px solid var(--line); display:flex;
-             align-items:center; justify-content:space-between; background:var(--panel); }
-    h1 { margin:0; font-size:20px; letter-spacing:-0.02em; }
-    .tag { color:var(--muted); font-size:13px; }
-    .top-actions { display:flex; align-items:center; gap:14px; }
-    .info-btn { width:30px; height:30px; border-radius:50%; border:1px solid var(--line);
-                background:var(--panel2); color:var(--accent); font-weight:700; cursor:pointer;
-                font-size:15px; display:grid; place-items:center; }
-    .info-btn:hover { background:#efe2cb; }
-    main { padding:28px; display:grid; grid-template-columns:1fr 360px; gap:24px; max-width:1100px; margin:0 auto; }
-    .grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; }
-    .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px;
-            box-shadow:0 1px 2px rgba(90,60,30,.04); }
-    .card h3 { margin:0 0 6px; font-size:15px; }
-    .price { color:var(--accent-dk); font-size:13px; font-weight:600; }
-    .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px; }
-    .panel h2 { margin:0 0 12px; font-size:15px; }
-    button { width:100%; padding:11px 14px; border-radius:9px; border:1px solid var(--line);
-             background:var(--panel2); color:var(--txt); cursor:pointer; font-size:14px; font-weight:500; }
-    button:hover { border-color:#cdb892; }
-    button.danger { background:var(--accent); border-color:var(--accent); color:#fff; }
-    button.danger:hover { background:var(--accent-dk); }
-    button.ok { background:#e8efe0; border-color:#9fc089; color:#46663a; }
-    .row { display:flex; gap:8px; margin-top:10px; }
-    .state { margin-top:14px; font-size:13px; color:var(--muted); }
-    .state b { color:var(--txt); }
-    .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
-    .dot.red { background:var(--accent); } .dot.green { background:var(--green); }
-    .overlay { position:fixed; inset:0; background:rgba(59,47,35,.45); display:none;
-               align-items:center; justify-content:center; padding:24px; z-index:50; }
-    .overlay.open { display:flex; }
-    .modal { background:var(--panel); border:1px solid var(--line); border-radius:16px;
-             max-width:600px; width:100%; padding:26px 28px; box-shadow:0 12px 40px rgba(90,60,30,.18); }
-    .modal h2 { margin:0 0 4px; font-size:20px; }
-    .modal .sub { color:var(--muted); margin-bottom:16px; }
-    .modal h4 { margin:16px 0 6px; font-size:14px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); }
-    .modal p { margin:6px 0; }
-    .closebtn { float:right; width:auto; padding:6px 12px; background:transparent; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ShopWave — Crash Arena gear</title>
+<style>
+  :root{
+    --paper:#ece2cf; --paper2:#f5eede; --card:#f7f1e3; --ink:#2c2317; --ink2:#5b4d38;
+    --muted:#8c7c61; --rule:#d6c4a3; --rule2:#e4d6ba;
+    --terra:#b0512c; --terra-dk:#8a3d1f; --sage:#5d7150;
+    --serif:"Hoefler Text","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,"Cascadia Code",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.55;
+    background-image:radial-gradient(120% 80% at 50% -10%, #f3ecda 0%, var(--paper) 60%); min-height:100vh}
+  body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.5;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E")}
+  .wrap{position:relative; z-index:1; max-width:1120px; margin:0 auto; padding:0 26px 60px}
+
+  .masthead{display:flex; align-items:center; justify-content:space-between; padding:22px 4px 18px; border-bottom:1px solid var(--rule)}
+  .brand{display:flex; align-items:baseline; gap:12px}
+  .brand h1{font-family:var(--serif); font-size:26px; margin:0; letter-spacing:.3px}
+  .brand .sub{font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--muted)}
+  .mhead-right{display:flex; align-items:center; gap:16px}
+  .statuspill{display:flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink2)}
+  .dot{width:9px; height:9px; border-radius:50%; background:var(--sage)}
+  .dot.red{background:var(--terra); box-shadow:0 0 0 0 rgba(176,81,44,.5); animation:pulse 1.6s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(176,81,44,.5)}70%{box-shadow:0 0 0 8px rgba(176,81,44,0)}100%{box-shadow:0 0 0 0 rgba(176,81,44,0)}}
+  .infob{width:32px; height:32px; border-radius:50%; border:1px solid var(--rule); background:var(--paper2); color:var(--terra); font-family:var(--serif); font-style:italic; font-size:17px; cursor:pointer; display:grid; place-items:center}
+  .infob:hover{background:#efe4cd}
+
+  .hero{padding:34px 0 22px}
+  .hero .kicker{font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--terra); font-weight:600}
+  .hero h2{font-family:var(--serif); font-size:34px; margin:10px 0 6px; letter-spacing:-.3px}
+  .hero p{color:var(--ink2); margin:0; max-width:560px}
+
+  .grid{display:grid; grid-template-columns:1fr 340px; gap:30px; align-items:start}
+  @media(max-width:880px){.grid{grid-template-columns:1fr}}
+
+  .shelf-title{font-family:var(--serif); font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin:0 0 16px; padding-bottom:8px; border-bottom:1px solid var(--rule2)}
+  .catalog{display:grid; grid-template-columns:repeat(2,1fr); gap:16px}
+  @media(max-width:560px){.catalog{grid-template-columns:1fr}}
+  .product{background:var(--card); border:1px solid var(--rule2); border-radius:14px; padding:16px; display:flex; gap:14px; align-items:center; transition:.15s}
+  .product:hover{transform:translateY(-2px); box-shadow:0 8px 22px rgba(90,60,30,.09); border-color:#cdb98e}
+  .swatch{width:54px; height:54px; border-radius:11px; flex:none; display:grid; place-items:center; font-family:var(--serif); font-size:22px; color:#f7eede; font-weight:700}
+  .product h3{font-family:var(--serif); font-size:16.5px; margin:0 0 2px}
+  .product .price{font-family:var(--mono); font-size:13px; color:var(--terra-dk)}
+  .product .meta{font-size:11.5px; color:var(--muted); letter-spacing:.04em}
+
+  aside .panel{background:var(--card); border:1px solid var(--rule2); border-radius:15px; padding:18px 20px; box-shadow:0 2px 10px rgba(90,60,30,.05)}
+  .panel .ptitle{font-family:var(--serif); font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin:0 0 4px}
+  .panel .pdesc{font-size:13px; color:var(--ink2); margin:0 0 14px}
+  .btn{width:100%; font-family:var(--sans); font-size:14.5px; font-weight:600; padding:13px 16px; border-radius:12px; cursor:pointer; border:1px solid var(--rule); background:var(--paper2); color:var(--ink); transition:.15s}
+  .btn:hover{border-color:#c3ab80}
+  .btn.danger{background:var(--terra); border-color:var(--terra); color:#f8efe2; box-shadow:0 8px 20px rgba(138,61,31,.22)}
+  .btn.danger:hover{background:var(--terra-dk)}
+  .btn.ghost{background:transparent; margin-top:9px}
+  .fault{margin-top:16px; font-family:var(--mono); font-size:12px; color:var(--ink2); border-top:1px dashed var(--rule); padding-top:14px; line-height:1.7}
+  .fault .tag{display:inline-block; font-family:var(--sans); font-size:10px; letter-spacing:.18em; text-transform:uppercase; font-weight:700; padding:2px 8px; border-radius:20px; margin-bottom:6px}
+  .fault .tag.bad{background:#f3dccf; color:var(--terra-dk)} .fault .tag.ok{background:#e4ecdb; color:#3f5e33}
+  .fault b{color:var(--terra-dk)}
+  .linklike{display:inline-block; margin-top:14px; color:var(--terra-dk); font-weight:600; text-decoration:underline; text-underline-offset:3px; font-size:13px; cursor:pointer}
+
+  footer{margin-top:42px; padding-top:18px; border-top:1px solid var(--rule); font-size:12px; color:var(--muted)}
+
+  .overlay{position:fixed; inset:0; background:rgba(44,35,23,.5); display:none; align-items:center; justify-content:center; padding:24px; z-index:50; backdrop-filter:blur(2px)}
+  .overlay.open{display:flex}
+  .modal{background:var(--paper2); border:1px solid var(--rule); border-radius:18px; max-width:600px; width:100%; padding:30px 34px; box-shadow:0 24px 60px rgba(44,35,23,.3)}
+  .modal h2{font-family:var(--serif); font-size:25px; margin:0 0 4px}
+  .modal .msub{color:var(--muted); margin-bottom:16px}
+  .modal h4{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--terra); margin:18px 0 6px}
+  .modal p{margin:6px 0; color:var(--ink2); font-size:14px}
+  .modal .close{float:right; background:none; border:1px solid var(--rule); border-radius:9px; padding:5px 12px; cursor:pointer; color:var(--ink2)}
+</style>
 </head>
 <body>
-  <header>
-    <h1>ShopWave <span class="tag">Crash Arena gear</span></h1>
-    <div class="top-actions">
-      <span class="tag" id="status"><span class="dot green"></span>all systems normal</span>
-      <button class="info-btn" onclick="openInfo()" title="What is this?">i</button>
+<div class="wrap">
+  <header class="masthead">
+    <div class="brand"><h1>ShopWave</h1><span class="sub">Crash Arena gear</span></div>
+    <div class="mhead-right">
+      <span class="statuspill" id="status"><span class="dot"></span> all systems normal</span>
+      <button class="infob" onclick="openInfo()" title="What is this?">i</button>
     </div>
   </header>
-  <main>
-    <section>
-      <div class="grid" id="catalog"></div>
-    </section>
-    <aside class="panel">
-      <h2>Chaos Panel</h2>
-      <p class="tag">Inject a real production fault. AppMedic will detect, trace, and prevent it.</p>
-      <button class="danger" onclick="setChaos(true)">Inject: slow payment (Android / IN)</button>
-      <div class="row">
-        <button class="ok" onclick="setChaos(false)">Clear fault</button>
-      </div>
-      <div class="state" id="chaosState"></div>
-      <p class="tag" style="margin-top:14px"><a href="#" onclick="openInfo();return false" style="color:var(--accent)">What is happening here?</a></p>
-    </aside>
-  </main>
 
-  <div class="overlay" id="overlay" onclick="if(event.target===this)closeInfo()">
-    <div class="modal">
-      <button class="closebtn" onclick="closeInfo()">close</button>
-      <h2>What is ShopWave?</h2>
-      <div class="sub">A live demo store &mdash; the application that AppMedic watches.</div>
-      <h4>The point</h4>
-      <p>ShopWave is a normal e-commerce store with real users browsing and checking out. It emits live telemetry (traces, business events) just like a real app.</p>
-      <h4>The Chaos Panel</h4>
-      <p>Click <b>Inject: slow payment</b> to simulate a bad deploy that slows the payment service &mdash; but only for Android shoppers in India. Their checkout starts failing, and they begin abandoning carts.</p>
-      <h4>What happens next</h4>
-      <p>Over on the <b>AppMedic console</b>, the AI agents notice the degraded experience, trace it to the exact service and deploy, quantify the revenue at risk, and &mdash; with your approval &mdash; roll it back. Click <b>Clear fault</b> and AppMedic reports all healthy again.</p>
-      <p class="tag">In short: this is the patient. AppMedic is the doctor.</p>
-    </div>
+  <section class="hero">
+    <div class="kicker">Official outfitter</div>
+    <h2>Gear up for the arena.</h2>
+    <p>Kits, passes and parts for Crash Arena Turbo Stars — shipped fast, played hard.</p>
+  </section>
+
+  <div class="grid">
+    <main>
+      <p class="shelf-title">This season</p>
+      <div class="catalog" id="catalog"></div>
+    </main>
+    <aside>
+      <div class="panel">
+        <p class="ptitle">Operations · Chaos Panel</p>
+        <p class="pdesc">Inject a real production fault. AppMedic will detect, trace, and prevent it.</p>
+        <button class="btn danger" onclick="setChaos(true)">Inject: slow payment (Android / IN)</button>
+        <button class="btn ghost" onclick="setChaos(false)">Clear fault</button>
+        <div class="fault" id="chaosState"></div>
+        <span class="linklike" onclick="openInfo()">What is happening here?</span>
+      </div>
+    </aside>
   </div>
 
-  <script>
-    const ITEMS = [
-      { name: "Turbo Kit", price: "INR 2,800" },
-      { name: "Arena Pass", price: "INR 1,500" },
-      { name: "Crash Coin x100", price: "INR 990" },
-      { name: "Nitro Decal", price: "INR 450" },
-      { name: "Champion Skin", price: "INR 3,600" },
-      { name: "Spare Parts Bundle", price: "INR 1,200" },
-    ];
-    document.getElementById("catalog").innerHTML = ITEMS.map(i =>
-      `<div class="card"><h3>${i.name}</h3><div class="price">${i.price}</div></div>`).join("");
-    function openInfo(){ document.getElementById("overlay").classList.add("open"); }
-    function closeInfo(){ document.getElementById("overlay").classList.remove("open"); }
+  <footer>ShopWave is a demo store monitored by AppMedic · the patient, to AppMedic's doctor.</footer>
+</div>
 
-    async function setChaos(active) {
-      const r = await fetch("/api/chaos", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(active
-          ? { active: true, fault: "payment_latency", service: "payment-svc", span: "razorpay.charge",
-              segment: "Android / IN", deploy: "#847", addedLatencyMs: 400 }
-          : { active: false }) });
-      render(await r.json());
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeInfo()">
+  <div class="modal">
+    <button class="close" onclick="closeInfo()">close</button>
+    <h2>What is ShopWave?</h2>
+    <div class="msub">A live demo store — the application that AppMedic watches.</div>
+    <h4>The point</h4>
+    <p>ShopWave is a normal e-commerce store with real users browsing and checking out. It emits live telemetry (traces, business events) just like a real app.</p>
+    <h4>The Chaos Panel</h4>
+    <p>Click <b>Inject: slow payment</b> to simulate a bad deploy that slows the payment service — but only for Android shoppers in India. Their checkout starts failing and they begin abandoning carts.</p>
+    <h4>What happens next</h4>
+    <p>On the <b>AppMedic console</b>, the AI agents notice the degraded experience, trace it to the exact service and deploy, quantify the revenue at risk, and — with your approval — roll it back. Click <b>Clear fault</b> and AppMedic reports all healthy again.</p>
+    <p style="color:var(--muted)">In short: this is the patient. AppMedic is the doctor.</p>
+  </div>
+</div>
+
+<script>
+  const ITEMS=[
+    {name:"Turbo Kit",price:"INR 2,800",meta:"Performance",c:"#b0512c"},
+    {name:"Arena Pass",price:"INR 1,500",meta:"Season",c:"#5d7150"},
+    {name:"Crash Coin x100",price:"INR 990",meta:"Currency",c:"#a07d2c"},
+    {name:"Nitro Decal",price:"INR 450",meta:"Cosmetic",c:"#8a3d1f"},
+    {name:"Champion Skin",price:"INR 3,600",meta:"Legendary",c:"#7a5a86"},
+    {name:"Spare Parts Bundle",price:"INR 1,200",meta:"Utility",c:"#4f6d72"},
+  ];
+  document.getElementById("catalog").innerHTML=ITEMS.map(i=>
+    `<div class="product"><div class="swatch" style="background:linear-gradient(150deg,${i.c},${i.c}cc)">${i.name[0]}</div>
+     <div><h3>${i.name}</h3><div class="price">${i.price}</div><div class="meta">${i.meta}</div></div></div>`).join("");
+
+  function openInfo(){document.getElementById("overlay").classList.add("open")}
+  function closeInfo(){document.getElementById("overlay").classList.remove("open")}
+
+  async function setChaos(active){
+    const r=await fetch("/api/chaos",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(active
+        ?{active:true,fault:"payment_latency",service:"payment-svc",span:"razorpay.charge",segment:"Android / IN",deploy:"#847",addedLatencyMs:400}
+        :{active:false})});
+    render(await r.json());
+  }
+  function render(s){
+    const el=document.getElementById("chaosState"), st=document.getElementById("status");
+    if(s.active){
+      el.innerHTML=`<span class="tag bad">Fault active</span><br>${s.fault} on <b>${s.service}</b> (${s.span})<br>segment <b>${s.segment}</b> · deploy ${s.deploy} · +${s.addedLatencyMs}ms`;
+      st.innerHTML='<span class="dot red"></span> degraded';
+    }else{
+      el.innerHTML=`<span class="tag ok">Healthy</span><br>No fault injected. All segments nominal.`;
+      st.innerHTML='<span class="dot"></span> all systems normal';
     }
-    function render(s) {
-      const el = document.getElementById("chaosState");
-      const st = document.getElementById("status");
-      if (s.active) {
-        el.innerHTML = `<b>FAULT ACTIVE</b><br>${s.fault} on <b>${s.service}</b> (${s.span})<br>segment <b>${s.segment}</b>, deploy ${s.deploy}, +${s.addedLatencyMs}ms`;
-        st.innerHTML = '<span class="dot red"></span>degraded';
-      } else {
-        el.innerHTML = "No fault injected.";
-        st.innerHTML = '<span class="dot green"></span>all systems normal';
-      }
-    }
-    fetch("/api/chaos").then(r => r.json()).then(render);
-  </script>
+  }
+  fetch("/api/chaos").then(r=>r.json()).then(render);
+</script>
 </body>
 </html>
