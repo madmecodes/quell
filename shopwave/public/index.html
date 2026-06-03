@@ -5,36 +5,58 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ShopWave</title>
   <style>
-    :root { color-scheme: dark; }
+    :root { --bg:#f3ead9; --panel:#fbf6ec; --panel2:#f6eddc; --line:#e3d5bd;
+            --muted:#8a7a64; --txt:#3b2f23; --accent:#a8552f; --accent-dk:#7d3d20; --green:#5b7d4b; }
     * { box-sizing: border-box; }
-    body { margin: 0; font: 15px/1.5 ui-sans-serif, system-ui, sans-serif;
-           background: #0b0d12; color: #e6e8ee; }
-    header { padding: 20px 28px; border-bottom: 1px solid #1d212b; display: flex;
-             align-items: center; justify-content: space-between; }
-    h1 { margin: 0; font-size: 20px; letter-spacing: -0.02em; }
-    .tag { color: #8b93a7; font-size: 13px; }
-    main { padding: 28px; display: grid; grid-template-columns: 1fr 340px; gap: 24px; }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .card { background: #11141c; border: 1px solid #1d212b; border-radius: 12px; padding: 18px; }
-    .card h3 { margin: 0 0 6px; font-size: 15px; }
-    .price { color: #9aa3b8; font-size: 13px; }
-    .panel { background: #11141c; border: 1px solid #1d212b; border-radius: 12px; padding: 18px; }
-    .panel h2 { margin: 0 0 12px; font-size: 15px; }
-    button { width: 100%; padding: 10px 14px; border-radius: 9px; border: 1px solid #2a2f3d;
-             background: #1a1e28; color: #e6e8ee; cursor: pointer; font-size: 14px; }
-    button.danger { background: #2a1416; border-color: #5b2026; color: #ff9ba3; }
-    button.ok { background: #122118; border-color: #245236; color: #8be0a6; }
-    .row { display: flex; gap: 8px; margin-top: 10px; }
-    .state { margin-top: 14px; font-size: 13px; color: #8b93a7; }
-    .state b { color: #e6e8ee; }
-    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
-    .dot.red { background: #ef4444; } .dot.green { background: #22c55e; }
+    body { margin:0; font:15px/1.5 ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+           background:var(--bg); color:var(--txt); }
+    header { padding:18px 28px; border-bottom:1px solid var(--line); display:flex;
+             align-items:center; justify-content:space-between; background:var(--panel); }
+    h1 { margin:0; font-size:20px; letter-spacing:-0.02em; }
+    .tag { color:var(--muted); font-size:13px; }
+    .top-actions { display:flex; align-items:center; gap:14px; }
+    .info-btn { width:30px; height:30px; border-radius:50%; border:1px solid var(--line);
+                background:var(--panel2); color:var(--accent); font-weight:700; cursor:pointer;
+                font-size:15px; display:grid; place-items:center; }
+    .info-btn:hover { background:#efe2cb; }
+    main { padding:28px; display:grid; grid-template-columns:1fr 360px; gap:24px; max-width:1100px; margin:0 auto; }
+    .grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; }
+    .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px;
+            box-shadow:0 1px 2px rgba(90,60,30,.04); }
+    .card h3 { margin:0 0 6px; font-size:15px; }
+    .price { color:var(--accent-dk); font-size:13px; font-weight:600; }
+    .panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px; }
+    .panel h2 { margin:0 0 12px; font-size:15px; }
+    button { width:100%; padding:11px 14px; border-radius:9px; border:1px solid var(--line);
+             background:var(--panel2); color:var(--txt); cursor:pointer; font-size:14px; font-weight:500; }
+    button:hover { border-color:#cdb892; }
+    button.danger { background:var(--accent); border-color:var(--accent); color:#fff; }
+    button.danger:hover { background:var(--accent-dk); }
+    button.ok { background:#e8efe0; border-color:#9fc089; color:#46663a; }
+    .row { display:flex; gap:8px; margin-top:10px; }
+    .state { margin-top:14px; font-size:13px; color:var(--muted); }
+    .state b { color:var(--txt); }
+    .dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
+    .dot.red { background:var(--accent); } .dot.green { background:var(--green); }
+    .overlay { position:fixed; inset:0; background:rgba(59,47,35,.45); display:none;
+               align-items:center; justify-content:center; padding:24px; z-index:50; }
+    .overlay.open { display:flex; }
+    .modal { background:var(--panel); border:1px solid var(--line); border-radius:16px;
+             max-width:600px; width:100%; padding:26px 28px; box-shadow:0 12px 40px rgba(90,60,30,.18); }
+    .modal h2 { margin:0 0 4px; font-size:20px; }
+    .modal .sub { color:var(--muted); margin-bottom:16px; }
+    .modal h4 { margin:16px 0 6px; font-size:14px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); }
+    .modal p { margin:6px 0; }
+    .closebtn { float:right; width:auto; padding:6px 12px; background:transparent; }
   </style>
 </head>
 <body>
   <header>
     <h1>ShopWave <span class="tag">Crash Arena gear</span></h1>
-    <span class="tag" id="status"><span class="dot green"></span>all systems normal</span>
+    <div class="top-actions">
+      <span class="tag" id="status"><span class="dot green"></span>all systems normal</span>
+      <button class="info-btn" onclick="openInfo()" title="What is this?">i</button>
+    </div>
   </header>
   <main>
     <section>
@@ -46,11 +68,27 @@
       <button class="danger" onclick="setChaos(true)">Inject: slow payment (Android / IN)</button>
       <div class="row">
         <button class="ok" onclick="setChaos(false)">Clear fault</button>
-        <button onclick="burst()">Send traffic burst</button>
       </div>
       <div class="state" id="chaosState"></div>
+      <p class="tag" style="margin-top:14px"><a href="#" onclick="openInfo();return false" style="color:var(--accent)">What is happening here?</a></p>
     </aside>
   </main>
+
+  <div class="overlay" id="overlay" onclick="if(event.target===this)closeInfo()">
+    <div class="modal">
+      <button class="closebtn" onclick="closeInfo()">close</button>
+      <h2>What is ShopWave?</h2>
+      <div class="sub">A live demo store &mdash; the application that Sentinel watches.</div>
+      <h4>The point</h4>
+      <p>ShopWave is a normal e-commerce store with real users browsing and checking out. It emits live telemetry (traces, business events) just like a real app.</p>
+      <h4>The Chaos Panel</h4>
+      <p>Click <b>Inject: slow payment</b> to simulate a bad deploy that slows the payment service &mdash; but only for Android shoppers in India. Their checkout starts failing, and they begin abandoning carts.</p>
+      <h4>What happens next</h4>
+      <p>Over on the <b>Sentinel console</b>, the AI agents notice the degraded experience, trace it to the exact service and deploy, quantify the revenue at risk, and &mdash; with your approval &mdash; roll it back. Click <b>Clear fault</b> and Sentinel reports all healthy again.</p>
+      <p class="tag">In short: this is the patient. Sentinel is the doctor.</p>
+    </div>
+  </div>
+
   <script>
     const ITEMS = [
       { name: "Turbo Kit", price: "INR 2,800" },
@@ -62,6 +100,8 @@
     ];
     document.getElementById("catalog").innerHTML = ITEMS.map(i =>
       `<div class="card"><h3>${i.name}</h3><div class="price">${i.price}</div></div>`).join("");
+    function openInfo(){ document.getElementById("overlay").classList.add("open"); }
+    function closeInfo(){ document.getElementById("overlay").classList.remove("open"); }
 
     async function setChaos(active) {
       const r = await fetch("/api/chaos", { method: "POST", headers: { "Content-Type": "application/json" },
@@ -71,7 +111,6 @@
           : { active: false }) });
       render(await r.json());
     }
-    async function burst() { await fetch("/api/chaos"); fetch("http://localhost:8080/api/catalog"); }
     function render(s) {
       const el = document.getElementById("chaosState");
       const st = document.getElementById("status");

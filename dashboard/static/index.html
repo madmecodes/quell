@@ -5,50 +5,75 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Sentinel</title>
 <style>
-  :root { color-scheme: dark; --bg:#0a0b0f; --panel:#12141c; --line:#1e2230;
-          --muted:#8b93a7; --txt:#e8eaf0; --red:#e4434f; --green:#2bd07a; --amber:#f0b84a; }
+  :root { --bg:#f3ead9; --panel:#fbf6ec; --panel2:#f6eddc; --line:#e3d5bd;
+          --muted:#8a7a64; --txt:#3b2f23; --accent:#a8552f; --accent-dk:#7d3d20;
+          --green:#5b7d4b; --amber:#b3812a; }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--txt);
-         font:15px/1.55 ui-sans-serif, system-ui, -apple-system, sans-serif; }
+         font:15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
   header { display:flex; align-items:center; justify-content:space-between;
-           padding:18px 28px; border-bottom:1px solid var(--line); }
+           padding:18px 28px; border-bottom:1px solid var(--line); background:var(--panel); }
   .brand { display:flex; align-items:center; gap:12px; }
   .brand b { font-size:19px; letter-spacing:-0.02em; }
   .brand span { color:var(--muted); font-size:13px; }
-  .shield { width:26px; height:26px; border-radius:7px; background:linear-gradient(135deg,var(--red),#7a1d24);
-            display:grid; place-items:center; font-weight:700; font-size:14px; }
+  .shield { width:28px; height:28px; border-radius:8px; background:linear-gradient(135deg,var(--accent),var(--accent-dk));
+            display:grid; place-items:center; font-weight:700; font-size:14px; color:#fff; }
+  .top-actions { display:flex; align-items:center; gap:14px; }
+  .info-btn { width:30px; height:30px; border-radius:50%; border:1px solid var(--line);
+              background:var(--panel2); color:var(--accent); font-weight:700; cursor:pointer;
+              font-size:15px; display:grid; place-items:center; }
+  .info-btn:hover { background:#efe2cb; }
   main { max-width:1080px; margin:0 auto; padding:28px; }
   .start { display:flex; gap:12px; align-items:center; margin-bottom:24px; }
   button { padding:11px 18px; border-radius:10px; border:1px solid var(--line);
-           background:#171a24; color:var(--txt); cursor:pointer; font-size:14px; font-weight:500; }
-  button:hover { border-color:#2c3142; }
-  button.primary { background:var(--red); border-color:var(--red); color:#fff; }
-  button.ok { background:#103222; border-color:#1f6b43; color:var(--green); }
+           background:var(--panel); color:var(--txt); cursor:pointer; font-size:14px; font-weight:500; }
+  button:hover { border-color:#cdb892; }
+  button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  button.primary:hover { background:var(--accent-dk); }
+  button.ok { background:#e8efe0; border-color:#9fc089; color:#46663a; }
   button.ghost { background:transparent; }
   .pipeline { display:flex; flex-direction:column; gap:12px; }
   .agent { display:flex; gap:14px; padding:16px 18px; background:var(--panel);
            border:1px solid var(--line); border-radius:12px; opacity:0; transform:translateY(6px);
-           animation:rise .35s forwards; }
+           animation:rise .35s forwards; box-shadow:0 1px 2px rgba(90,60,30,.04); }
   @keyframes rise { to { opacity:1; transform:none; } }
-  .icon { width:34px; height:34px; border-radius:9px; background:#1b1f2b; display:grid;
-          place-items:center; font-size:15px; flex:none; }
+  .icon { width:34px; height:34px; border-radius:9px; background:var(--panel2); border:1px solid var(--line);
+          display:grid; place-items:center; font-size:14px; font-weight:700; color:var(--accent); flex:none; }
   .agent .name { font-weight:600; font-size:13px; letter-spacing:.02em; text-transform:uppercase; color:var(--muted); }
   .agent .sum { margin-top:2px; }
-  .gate { border:1px solid #5a2a2f; background:linear-gradient(180deg,#1c1216,#140f12); }
-  .gate.learn { border-color:#3a3050; background:linear-gradient(180deg,#16131f,#100f16); }
+  .gate { border:1px solid #d8a98a; background:linear-gradient(180deg,#fbeee2,#f7e7d6); }
+  .gate.learn { border-color:#cdb892; background:linear-gradient(180deg,#f8f1e2,#f4ecd9); }
   .gate h3 { margin:0 0 4px; font-size:15px; }
   .gate .row { display:flex; gap:10px; margin-top:14px; }
-  .outcome { margin-top:8px; padding:18px; border-radius:12px; border:1px solid #1f6b43;
-             background:#0e2418; font-size:17px; font-weight:600; color:var(--green); }
+  .outcome { margin-top:8px; padding:18px; border-radius:12px; border:1px solid #9fc089;
+             background:#e8efe0; font-size:17px; font-weight:600; color:#3f5e33; }
   table { width:100%; border-collapse:collapse; margin-top:8px; font-size:14px; }
   th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
-  th { color:var(--muted); font-weight:500; font-size:12px; text-transform:uppercase; }
-  .score-good { color:var(--green); } .score-bad { color:var(--amber); }
+  th { color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase; }
+  .score-good { color:var(--green); font-weight:600; } .score-bad { color:var(--amber); font-weight:600; }
   .pill { font-size:12px; color:var(--amber); }
   .chk { display:flex; align-items:center; gap:8px; }
   .applied { margin-top:14px; font-size:13px; color:var(--muted); }
   .applied b { color:var(--txt); }
   .muted { color:var(--muted); }
+  /* info modal */
+  .overlay { position:fixed; inset:0; background:rgba(59,47,35,.45); display:none;
+             align-items:center; justify-content:center; padding:24px; z-index:50; }
+  .overlay.open { display:flex; }
+  .modal { background:var(--panel); border:1px solid var(--line); border-radius:16px;
+           max-width:680px; width:100%; max-height:85vh; overflow:auto; padding:26px 28px;
+           box-shadow:0 12px 40px rgba(90,60,30,.18); }
+  .modal h2 { margin:0 0 4px; font-size:20px; }
+  .modal .sub { color:var(--muted); margin-bottom:18px; }
+  .modal h4 { margin:18px 0 8px; font-size:14px; text-transform:uppercase; letter-spacing:.03em; color:var(--accent); }
+  .steps { display:flex; flex-direction:column; gap:10px; }
+  .step { display:flex; gap:12px; }
+  .step .n { width:26px; height:26px; border-radius:50%; background:var(--accent); color:#fff;
+             display:grid; place-items:center; font-size:13px; font-weight:700; flex:none; }
+  .agentlist { display:grid; grid-template-columns:1fr 1fr; gap:8px 18px; margin-top:4px; }
+  .agentlist div { font-size:13.5px; }
+  .agentlist b { color:var(--accent-dk); }
+  .closebtn { float:right; }
 </style>
 </head>
 <body>
@@ -57,19 +82,56 @@
     <div class="shield">S</div>
     <div><b>Sentinel</b> &nbsp;<span>user-experience guardian</span></div>
   </div>
-  <span class="muted" id="env">watching ShopWave</span>
+  <div class="top-actions">
+    <span class="muted" id="env">watching ShopWave</span>
+    <button class="info-btn" onclick="openInfo()" title="How it works">i</button>
+  </div>
 </header>
 <main>
   <div class="start">
     <button class="primary" onclick="start()">Detect &amp; prevent incident</button>
-    <span class="muted" id="hint">A fault is live on ShopWave. Run Sentinel to catch it.</span>
+    <span class="muted" id="hint">A fault is live on ShopWave. Run Sentinel to catch it. &nbsp;<a href="#" onclick="openInfo();return false" style="color:var(--accent)">How it works</a></span>
   </div>
   <div class="pipeline" id="pipeline"></div>
 </main>
 
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeInfo()">
+  <div class="modal">
+    <button class="ghost closebtn" onclick="closeInfo()">close</button>
+    <h2>How Sentinel works</h2>
+    <div class="sub">A team of AI agents that catches a bad user experience, traces the cause, and prevents it &mdash; with you in control.</div>
+
+    <h4>What you are looking at</h4>
+    <div>Sentinel watches <b>ShopWave</b>, a live store. When a fault hurts real users, six specialized agents run as a pipeline. You approve the fix and the learning. Everything is powered by <b>Gemini</b> on Google Cloud Agent Builder, using the <b>Dynatrace</b> MCP as the agents' senses and hands.</div>
+
+    <h4>The six agents</h4>
+    <div class="agentlist">
+      <div><b>Watcher</b> &mdash; spots the degraded user segment from real-user data</div>
+      <div><b>Tracer</b> &mdash; finds the exact service, span and deploy at fault</div>
+      <div><b>Judge</b> &mdash; quantifies users, carts and revenue at risk</div>
+      <div><b>Actuator</b> &mdash; executes the approved rollback and alerts ops</div>
+      <div><b>Scribe</b> &mdash; writes the prevented-incident report</div>
+      <div><b>Evaluator</b> &mdash; grades the agents from their own traces</div>
+    </div>
+
+    <h4>What happens, step by step</h4>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div>You inject a fault on ShopWave (slow payments for one segment).</div></div>
+      <div class="step"><div class="n">2</div><div>Watcher &rarr; Tracer &rarr; Judge investigate and report what's wrong, why, and the business impact.</div></div>
+      <div class="step"><div class="n">3</div><div><b>Gate 1 &mdash; you approve the action.</b> Nothing touches production without you.</div></div>
+      <div class="step"><div class="n">4</div><div>Actuator rolls back the bad deploy; Scribe logs the rescue.</div></div>
+      <div class="step"><div class="n">5</div><div>Evaluator grades each agent and proposes improvements.</div></div>
+      <div class="step"><div class="n">6</div><div><b>Gate 2 &mdash; you approve the learning.</b> The lesson is saved to the agent's memory, so next run it's faster and smarter.</div></div>
+    </div>
+
+    <h4>Why two approvals</h4>
+    <div>Human in the loop, twice: once before any change to production, once before the system changes itself. Autonomy with oversight.</div>
+  </div>
+</div>
+
 <script>
 const META = {
-  watcher:  { icon:"R", label:"Watcher" },
+  watcher:  { icon:"W", label:"Watcher" },
   tracer:   { icon:"T", label:"Tracer" },
   judge:    { icon:"J", label:"Judge" },
   actuator: { icon:"A", label:"Actuator" },
@@ -77,6 +139,8 @@ const META = {
   evaluator:{ icon:"E", label:"Evaluator" },
 };
 let timer = null, seen = new Set();
+function openInfo(){ document.getElementById("overlay").classList.add("open"); }
+function closeInfo(){ document.getElementById("overlay").classList.remove("open"); }
 
 async function start() {
   document.getElementById("pipeline").innerHTML = "";
@@ -86,7 +150,6 @@ async function start() {
   if (timer) clearInterval(timer);
   timer = setInterval(poll, 600);
 }
-
 function el(html) { const d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; }
 
 function renderEntry(e) {
@@ -98,7 +161,6 @@ function renderEntry(e) {
     `<div class="agent"><div class="icon">${m.icon}</div>
      <div><div class="name">${m.label}</div><div class="sum">${e.summary}</div></div></div>`));
 }
-
 function renderGate1(s) {
   if (seen.has("gate1")) return; seen.add("gate1");
   const impact = (s.entries.find(e => e.kind === "impact") || {}).summary || "";
@@ -112,7 +174,6 @@ function renderGate1(s) {
          <button class="ghost" onclick="approveAction(false)">Reject</button>
        </div></div></div>`));
 }
-
 function renderGate2(s) {
   if (seen.has("gate2")) return; seen.add("gate2");
   const rows = s.scorecard.map(g => {
@@ -132,11 +193,11 @@ function renderGate2(s) {
        <div class="row"><button class="ok" onclick="approveLearning()">Apply approved learning</button></div>
      </div></div>`));
 }
-
 function renderOutcome(s) {
   if (seen.has("outcome")) return; seen.add("outcome");
   const rep = s.entries.find(e => e.kind === "report");
   if (rep) document.getElementById("pipeline").appendChild(el(`<div class="outcome">${rep.summary}</div>`));
+  else document.getElementById("pipeline").appendChild(el(`<div class="outcome" style="background:#e8efe0">No fault detected &mdash; all user segments healthy.</div>`));
   if (s.applied_lessons && s.applied_lessons.length) {
     document.getElementById("pipeline").appendChild(el(
       `<div class="applied"><b>Learning applied:</b><br>` +
@@ -147,7 +208,6 @@ function renderOutcome(s) {
   document.getElementById("hint").textContent = "done. Run again to see agents improve.";
   if (timer) clearInterval(timer);
 }
-
 async function poll() {
   const s = await (await fetch("/api/state")).json();
   if (!s || !s.id) return;
@@ -156,7 +216,6 @@ async function poll() {
   if (s.pending === "learning") renderGate2(s);
   if (s.done) renderOutcome(s);
 }
-
 async function approveAction(ok) {
   const g = document.getElementById("g1"); if (g) g.querySelector(".row").innerHTML =
     ok ? '<span class="score-good">approved</span>' : '<span class="muted">rejected</span>';
