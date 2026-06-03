@@ -54,7 +54,7 @@ class Watcher(Agent):
             case_file.append(self.name, "detection", summary, {"healthy": True})
             return summary
         summary = (f"Degraded experience: segment {bad['segment']} on {bad.get('journey','')} "
-                   f"journey (apdex {bad['apdex']}, {bad['rage_clicks']} rage-clicks).")
+                   f"journey (apdex {bad['apdex']:.2f}, {bad['rage_clicks']} rage-clicks).")
         case_file.append(self.name, "detection", summary, {
             "segment": bad["segment"], "journey": bad.get("journey", ""),
             "apdex": bad["apdex"], "rage_clicks": bad["rage_clicks"],
@@ -78,7 +78,7 @@ class Watcher(Agent):
         bad = next(s for s in rum["segments"] if s.get("apdex", 1) < 0.7)
         fallback = (
             f"Degraded experience: segment {bad['segment']} on {bad['journey']} journey "
-            f"(apdex {bad['apdex']}, {bad['rage_clicks']} rage-clicks) since {bad['started']}."
+            f"(apdex {bad['apdex']:.2f}, {bad['rage_clicks']} rage-clicks) since {bad['started']}."
         )
         summary = self.narrate(
             {"segments": rum["segments"], "problems": problems},

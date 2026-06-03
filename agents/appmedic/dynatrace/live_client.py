@@ -49,6 +49,7 @@ class DynatraceClient:
     client_secret: str = field(default_factory=lambda: os.environ["DT_OAUTH_CLIENT_SECRET"])
     urn: str = field(default_factory=lambda: os.environ["DT_OAUTH_URN"])
     actions_taken: list[dict] = field(default_factory=list)
+    agent_traces: dict = field(default_factory=dict)
     _token: str = ""
     _token_exp: float = 0.0
 
@@ -118,36 +119,39 @@ class DynatraceClient:
     def rum_experience(self) -> dict:
         # ShopWave emits page-view bizevents with apdex, rage_clicks, segment, journey.
         recs = self.execute_dql(
-            "fetch bizevents, from: now()-15m "
-            "| filter event.type == \"page.view\" "
+            "fetch bizevents, from: now()-30m "
+            "| filter `event.type` == \"page.view\" "
             "| summarize apdex = avg(apdex), rage_clicks = sum(rage_clicks), "
             "conversion = avg(conversion), by:{segment, journey}")
-        segs = [{"segment": r.get("segment", "all"), "apdex": r.get("apdex", 1.0),
+        segs = [{"segment": r.get("segment", "all"), "apdex": float(r.get("apdex") or 1.0),
                  "rage_clicks": int(r.get("rage_clicks") or 0),
-                 "conversion": r.get("conversion", 0.0), "journey": r.get("journey", ""),
+                 "conversion": float(r.get("conversion") or 0.0), "journey": r.get("journey", ""),
                  "started": "recent"} for r in recs]
         healthy = all(s["apdex"] >= 0.7 for s in segs) if segs else True
         return {"healthy": healthy, "segments": segs or [{"segment": "all", "apdex": 1.0}]}
 
     def span_breakdown(self, service: str) -> dict:
+        # ShopWave tags each span with shop.service; duration is nanoseconds.
         recs = self.execute_dql(
-            f"fetch spans, from: now()-15m | filter service.name == \"{service}\" "
-            "| summarize ms = avg(duration)/1000000, by:{span.name} "
-            "| sort ms desc | limit 10")
-        span_ms = {r.get("span.name", "?"): round(r.get("ms") or 0, 1) for r in recs}
-        return {"service": service, "span_ms": span_ms or {"unknown": 0}, "recent_deploy": "n/a"}
+            f"fetch spans, from: now()-30m | filter `shop.service` == \"{service}\" "
+            "| summarize ms = avg(duration)/1000000, deploy = takeAny(`deploy.version`), "
+            "by:{`span.name`} | sort ms desc | limit 10")
+        span_ms = {r.get("span.name", "?"): round(float(r.get("ms") or 0), 1) for r in recs}
+        deploy = next((r.get("deploy") for r in recs if r.get("deploy")), "n/a")
+        return {"service": service, "span_ms": span_ms or {"unknown": 0}, "recent_deploy": deploy}
 
     def list_exceptions(self, service: str) -> list[dict]:
+        # Slow razorpay spans under chaos exceed ~200ms; surface them as the error signal.
         recs = self.execute_dql(
-            f"fetch spans, from: now()-15m | filter service.name == \"{service}\" "
-            "and isNotNull(span.events) | summarize c = count(), by:{span.name} | limit 5")
-        return [{"type": "SpanError", "span": r.get("span.name", "?"), "count": int(r.get("c") or 0)}
-                for r in recs]
+            f"fetch spans, from: now()-30m | filter `shop.service` == \"{service}\" "
+            "and duration > 200000000 | summarize c = count(), by:{`span.name`} | sort c desc | limit 5")
+        return [{"type": "SlowSpan", "span": r.get("span.name", "?"), "count": int(r.get("c") or 0)}
+                for r in recs if int(r.get("c") or 0) > 0]
 
     def business_impact(self, segment: str) -> dict:
         recs = self.execute_dql(
-            "fetch bizevents, from: now()-15m "
-            "| filter event.type == \"checkout.started\" "
+            "fetch bizevents, from: now()-30m "
+            "| filter `event.type` == \"checkout.started\" "
             "| summarize users = countDistinct(user_id), carts = count(), "
             "revenue = sum(cart_value_inr)")
         r = recs[0] if recs else {}
@@ -159,7 +163,10 @@ class DynatraceClient:
         return {"metric": metric, "breach_eta": "~1h", "trend": "degrading"}
 
     def get_agent_traces(self, incident_id: str) -> dict:
-        # AppMedic's own OTel spans, queried back out of Grail by incident id.
+        # The same agent spans we emit to Dynatrace are also captured in-memory, so
+        # the Evaluator can grade immediately (Grail ingestion has a short lag).
+        if self.agent_traces:
+            return self.agent_traces
         recs = self.execute_dql(
             f"fetch spans, from: now()-30m | filter incident_id == \"{incident_id}\" "
             "| summarize tool_calls = count(), latency_ms = sum(duration)/1000000, by:{agent}")
@@ -195,6 +202,7 @@ class DynatraceClient:
         return {"ok": True, "notebook_id": "nb-live", **rec}
 
     def record_agent_trace(self, agent: str, tool_calls: int, latency_ms: int, decision: str) -> None:
-        # Real telemetry is emitted via OTel spans; this is a no-op placeholder kept
-        # for interface parity with MockMCP.
-        pass
+        # The agent span is emitted to Dynatrace via OTel (real); we also keep it
+        # in-memory so the Evaluator can grade without waiting on ingestion lag.
+        self.agent_traces[agent] = {"tool_calls": tool_calls, "latency_ms": latency_ms,
+                                    "decision": decision}
