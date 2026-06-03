@@ -31,7 +31,7 @@ class Judge(Agent):
 
     def tool_callables(self, mcp: MockMCP, sink: dict) -> list:
         def business_impact(segment: str) -> dict:
-            """Get users affected, carts at risk, and revenue at risk (INR) for a segment.
+            """Get users affected, carts at risk, and revenue at risk (USD) for a segment.
             Args: segment: the affected user segment, e.g. 'Android / IN'."""
             bi = mcp.business_impact(segment)
             sink["impact"] = bi
@@ -55,9 +55,8 @@ class Judge(Agent):
             summary = "No measurable business impact."
             case_file.append(self.name, "impact", summary, impact)
             return summary
-        revenue_lakh = impact["revenue_at_risk_inr"] / 100000
         summary = (f"Impact: {impact['users_affected']} users, {impact['carts_at_risk']} carts, "
-                   f"INR {revenue_lakh:.1f}L at risk.")
+                   f"${impact['revenue_at_risk_usd']:,.0f} at risk.")
         # Real forecast (error-budget burn rate) when available; else a plain ETA.
         if forecast.get("burn_multiple"):
             summary += (f" Error budget burning {forecast['burn_multiple']}x "
@@ -83,9 +82,8 @@ class Judge(Agent):
             case_file.append(self.name, "impact", summary, impact)
             return 3, summary
 
-        revenue_lakh = impact["revenue_at_risk_inr"] / 100000
         fallback = (f"Impact: {impact['users_affected']} users, {impact['carts_at_risk']} carts, "
-                    f"INR {revenue_lakh:.1f}L at risk.")
+                    f"${impact['revenue_at_risk_usd']:,.0f} at risk.")
         if forecast.get("burn_multiple"):
             fallback += (f" Error budget burning {forecast['burn_multiple']}x "
                          f"({forecast['breaching']}/{forecast['total']} payment requests over SLO) "
@@ -94,7 +92,7 @@ class Judge(Agent):
             fallback += f" Forecast SLA breach in {forecast['breach_eta']}."
         summary = self.narrate(
             {**impact, "breach_eta": forecast["breach_eta"]},
-            "Quantify the business impact in plain numbers (users, carts, INR at risk, breach ETA).",
+            "Quantify the business impact in plain numbers (users, carts, USD at risk, breach ETA).",
             fallback)
         case_file.append(self.name, "impact", summary, {
             **impact,

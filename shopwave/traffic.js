@@ -31,7 +31,7 @@ async function session(i) {
   if (journey === "checkout") {
     await post("/api/cart", { cartId });
     await post("/api/checkout", {
-      segment, userId, cartId, cartValueInr: Math.round(1500 + Math.random() * 4000),
+      segment, userId, cartId, cartValueUsd: Math.round(15 + Math.random() * 40),
     });
   }
 }

@@ -48,8 +48,8 @@ app.post("/api/cart", async (req, res) => {
 
 app.post("/api/checkout", async (req, res) => {
   const chaos = getChaos();
-  const { segment = "Web / US", userId = "u0", cartId = "c0", cartValueInr = 2800 } = req.body || {};
-  await checkoutStarted({ segment, userId, cartId, cartValueInr });
+  const { segment = "Web / US", userId = "u0", cartId = "c0", cartValueUsd = 2800 } = req.body || {};
+  await checkoutStarted({ segment, userId, cartId, cartValueUsd });
 
   try {
     await span("payment-svc", "razorpay.charge", { "deploy.version": chaos.deploy, segment },
@@ -65,7 +65,7 @@ app.post("/api/checkout", async (req, res) => {
         await sleep(latency);
         s.setAttribute("latency.ms", Math.round(latency));
       });
-    await checkoutCompleted({ segment, userId, cartId, cartValueInr });
+    await checkoutCompleted({ segment, userId, cartId, cartValueUsd });
     res.json({ ok: true });
   } catch {
     res.status(502).json({ ok: false });

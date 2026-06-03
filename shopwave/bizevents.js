@@ -33,15 +33,15 @@ function pageView({ segment, journey, apdex, rageClicks, conversion }) {
 }
 
 // A checkout attempt with its cart value.
-function checkoutStarted({ segment, userId, cartId, cartValueInr }) {
+function checkoutStarted({ segment, userId, cartId, cartValueUsd }) {
   return sendBizEvent("checkout.started", {
-    segment, user_id: userId, cart_id: cartId, cart_value_inr: cartValueInr,
+    segment, user_id: userId, cart_id: cartId, cart_value_usd: cartValueUsd,
   });
 }
 
-function checkoutCompleted({ segment, userId, cartId, cartValueInr }) {
+function checkoutCompleted({ segment, userId, cartId, cartValueUsd }) {
   return sendBizEvent("checkout.completed", {
-    segment, user_id: userId, cart_id: cartId, cart_value_inr: cartValueInr,
+    segment, user_id: userId, cart_id: cartId, cart_value_usd: cartValueUsd,
   });
 }
 

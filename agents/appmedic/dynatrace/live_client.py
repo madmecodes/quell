@@ -153,10 +153,10 @@ class DynatraceClient:
             "fetch bizevents, from: now()-30m "
             "| filter `event.type` == \"checkout.started\" "
             "| summarize users = countDistinct(user_id), carts = count(), "
-            "revenue = sum(cart_value_inr)")
+            "revenue = sum(cart_value_usd)")
         r = recs[0] if recs else {}
         return {"users_affected": int(r.get("users") or 0), "carts_at_risk": int(r.get("carts") or 0),
-                "revenue_at_risk_inr": int(r.get("revenue") or 0), "segment": segment}
+                "revenue_at_risk_usd": int(r.get("revenue") or 0), "segment": segment}
 
     # SLO for the checkout payment path, used for a real error-budget forecast.
     SLO_MS = 200          # a payment span over 200ms is "bad"

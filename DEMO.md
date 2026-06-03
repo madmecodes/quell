@@ -26,14 +26,14 @@ India. No alert has fired yet."
 On the AppMedic console, click "Detect & prevent incident". Narrate the agents:
 - Watcher: degraded checkout experience, Android / IN, apdex 0.58.
 - Tracer: root cause - payment-svc razorpay.charge span +400ms, deploy #847.
-- Judge: 1,800 users, 2,400 carts, INR 6.8L at risk, SLA breach in ~1h.
+- Judge: 1,800 users, 2,400 carts, $8,400 at risk, SLA breach in ~1h.
 "Front-end pain, back-end cause, business impact - one chain. Only Dynatrace has
 all three signals."
 
 ## Beat 4 - human approves, fix applied (1:40-2:10)
 Gate 1 appears. "AppMedic never touches production on its own."
 Click "Approve rollback". Actuator rolls back #847, notifies ops; Scribe reports:
-"Rescued. 2,400 carts, INR 6.8L protected." Show the metric recover on ShopWave.
+"Rescued. 2,400 carts, $8,400 protected." Show the metric recover on ShopWave.
 
 ## Beat 5 - it improves itself (2:10-2:45)
 Gate 2: the Evaluator's scorecard, graded from each agent's own Dynatrace traces.

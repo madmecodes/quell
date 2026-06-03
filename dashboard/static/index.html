@@ -268,7 +268,7 @@ function fmt(s){
   return s
    .replace(/(payment-svc|catalog-svc|cart-svc)/g,'<span class="mono">$1</span>')
    .replace(/(razorpay\.charge|#\d+)/g,'<span class="mono">$1</span>')
-   .replace(/(INR [0-9.]+L|\d{3,} (?:users|carts))/g,'<b>$1</b>');
+   .replace(/(\$[0-9,]+|\d+ (?:users|carts)|[0-9.]+x)/g,'<b>$1</b>');
 }
 function renderEntry(e){
   const k="e"+e.step; if(seen.has(k))return; seen.add(k);

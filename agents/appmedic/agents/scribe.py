@@ -22,7 +22,7 @@ class Scribe(Agent):
         impact = case_file.latest("impact")
         action = case_file.latest("action")
 
-        revenue = impact.data.get("revenue_at_risk_inr", 0) if impact else 0
+        revenue = impact.data.get("revenue_at_risk_usd", 0) if impact else 0
         carts = impact.data.get("carts_at_risk", 0) if impact else 0
 
         markdown = "\n".join([
@@ -31,13 +31,13 @@ class Scribe(Agent):
             f"- Root cause: {root.summary if root else 'n/a'}",
             f"- Impact: {impact.summary if impact else 'n/a'}",
             f"- Action: {action.summary if action else 'n/a'}",
-            f"- Outcome: {carts} carts rescued, INR {revenue/100000:.1f}L protected.",
+            f"- Outcome: {carts} carts rescued, ${revenue:,.0f} protected.",
         ])
         notebook = mcp.create_dynatrace_notebook(                 # write 1
             title=f"AppMedic rescue {case_file.incident_id}", markdown=markdown,
         )
 
-        summary = f"Rescued. {carts} carts, INR {revenue/100000:.1f}L protected. Report: {notebook['notebook_id']}."
+        summary = f"Rescued. {carts} carts, ${revenue:,.0f} protected. Report: {notebook['notebook_id']}."
         case_file.append(self.name, "report", summary, {
             "notebook_id": notebook["notebook_id"],
             "carts_rescued": carts,

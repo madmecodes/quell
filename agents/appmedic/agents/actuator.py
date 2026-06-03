@@ -33,11 +33,11 @@ class Actuator(Agent):
             title=f"Preventive rollback of {deploy}",
             properties={"service": service, "reason": "predicted SLA breach"},
         )
-        revenue = impact.data.get("revenue_at_risk_inr", 0) if impact else 0
+        revenue = impact.data.get("revenue_at_risk_usd", 0) if impact else 0
         mcp.send_slack_message(                                    # write 3
             channel="#ops",
             text=(f"AppMedic: rolled back {deploy} on {service}. "
-                  f"Prevented ~INR {revenue/100000:.1f}L impact. Approved by on-call."),
+                  f"Prevented ~${revenue:,.0f} impact. Approved by on-call."),
         )
 
         summary = f"Rolled back {deploy} on {service}; ops notified. Action is reversible."

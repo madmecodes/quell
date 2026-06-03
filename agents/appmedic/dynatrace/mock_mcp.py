@@ -91,11 +91,11 @@ class MockMCP:
     def business_impact(self, segment: str) -> dict[str, Any]:
         """Business events: revenue/carts at risk. Judge uses this."""
         if not self.chaos.active:
-            return {"users_affected": 0, "carts_at_risk": 0, "revenue_at_risk_inr": 0}
+            return {"users_affected": 0, "carts_at_risk": 0, "revenue_at_risk_usd": 0}
         return {
             "users_affected": 1800,
             "carts_at_risk": 2400,
-            "revenue_at_risk_inr": 680000,
+            "revenue_at_risk_usd": 84000,
             "segment": segment,
         }
 
