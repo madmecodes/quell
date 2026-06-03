@@ -50,11 +50,32 @@ class RunSession:
         self._learning_event = threading.Event()
         self._learning_approved: set[str] = set()
 
-        chaos = ChaosState(active=True, fault="payment_latency", service="payment-svc",
-                           span="razorpay.charge", segment="Android / IN", deploy="#847",
-                           added_latency_ms=400)
+        # Read the live fault state from ShopWave so the demo is genuinely
+        # connected: injecting a fault on the store drives what Sentinel detects.
+        chaos = self._read_shopwave_chaos()
         # Mock by default; set SENTINEL_USE_LIVE_DT=true to read real Grail data.
         self._orch = Orchestrator(make_dynatrace(chaos), store)
+
+    @staticmethod
+    def _read_shopwave_chaos() -> ChaosState:
+        import os
+        import urllib.request
+        url = os.environ.get("SHOPWAVE_URL")
+        # Default scenario if ShopWave is unreachable, so the console always demos.
+        default = ChaosState(active=True, fault="payment_latency", service="payment-svc",
+                             span="razorpay.charge", segment="Android / IN", deploy="#847",
+                             added_latency_ms=400)
+        if not url:
+            return default
+        try:
+            with urllib.request.urlopen(url.rstrip("/") + "/api/chaos", timeout=5) as r:
+                d = json.loads(r.read())
+            return ChaosState(active=d.get("active", False), fault=d.get("fault", ""),
+                              service=d.get("service", "payment-svc"), span=d.get("span", "razorpay.charge"),
+                              segment=d.get("segment", "Android / IN"), deploy=d.get("deploy", "#847"),
+                              added_latency_ms=int(d.get("addedLatencyMs", 0)))
+        except Exception:
+            return default
         threading.Thread(target=self._run, daemon=True).start()
 
     def _run(self):
