@@ -144,7 +144,7 @@ class DynatraceClient:
         # Slow razorpay spans under chaos exceed ~200ms; surface them as the error signal.
         recs = self.execute_dql(
             f"fetch spans, from: now()-30m | filter `shop.service` == \"{service}\" "
-            "and duration > 200000000 | summarize c = count(), by:{`span.name`} | sort c desc | limit 5")
+            "and duration > 200ms | summarize c = count(), by:{`span.name`} | sort c desc | limit 5")
         return [{"type": "SlowSpan", "span": r.get("span.name", "?"), "count": int(r.get("c") or 0)}
                 for r in recs if int(r.get("c") or 0) > 0]
 
@@ -158,9 +158,44 @@ class DynatraceClient:
         return {"users_affected": int(r.get("users") or 0), "carts_at_risk": int(r.get("carts") or 0),
                 "revenue_at_risk_inr": int(r.get("revenue") or 0), "segment": segment}
 
-    def davis_forecast(self, metric: str) -> dict:
-        # Davis analyzer call would go here; trial may lack history, so degrade gracefully.
-        return {"metric": metric, "breach_eta": "~1h", "trend": "degrading"}
+    # SLO for the checkout payment path, used for a real error-budget forecast.
+    SLO_MS = 200          # a payment span over 200ms is "bad"
+    SLO_BUDGET = 0.005    # 99.5% target -> 0.5% of requests may be slow
+    SLO_WINDOW_H = 168    # error budget measured over a rolling 7 days
+
+    def davis_forecast(self, metric: str = "error_budget") -> dict:
+        """Real forecast from live data: measure the current SLO-breach rate on the
+        payment path and project when the error budget will be exhausted at that
+        burn rate. No hardcoded ETA -- it's computed from real Grail spans."""
+        try:
+            recs = self.execute_dql(
+                "fetch spans, from: now()-30m "
+                "| filter `shop.service` == \"payment-svc\" and `span.name` == \"razorpay.charge\" "
+                f"| summarize total = count(), breaching = countIf(duration > {self.SLO_MS}ms)")
+        except Exception:
+            return {"metric": metric, "breach_eta": None, "trend": "no data"}
+        r = recs[0] if recs else {}
+        total = int(r.get("total") or 0)
+        breaching = int(r.get("breaching") or 0)
+        if total == 0:
+            return {"metric": metric, "breach_eta": None, "trend": "no traffic"}
+        bad_rate = breaching / total
+        if bad_rate <= self.SLO_BUDGET:
+            return {"metric": metric, "breach_eta": None, "trend": "within budget",
+                    "bad_rate": round(bad_rate, 3), "breaching": breaching, "total": total}
+        eta_h = self.SLO_WINDOW_H * self.SLO_BUDGET / bad_rate  # budget / burn rate
+        if eta_h < 1:
+            eta = f"~{max(1, int(eta_h * 60))}m"
+        elif eta_h < 48:
+            eta = f"~{eta_h:.1f}h"
+        else:
+            eta = f"~{eta_h / 24:.1f}d"
+        return {"metric": metric, "breach_eta": eta, "trend": "degrading",
+                "bad_rate": round(bad_rate, 3), "breaching": breaching, "total": total,
+                "burn_multiple": round(bad_rate / self.SLO_BUDGET, 1),
+                "basis": f"{breaching}/{total} payment requests over {self.SLO_MS}ms SLO; "
+                         f"error budget {self.SLO_BUDGET*100:.1f}% burning at "
+                         f"{round(bad_rate/self.SLO_BUDGET,1)}x"}
 
     def get_agent_traces(self, incident_id: str) -> dict:
         # The same agent spans we emit to Dynatrace are also captured in-memory, so

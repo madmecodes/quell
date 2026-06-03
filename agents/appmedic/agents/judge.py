@@ -57,9 +57,15 @@ class Judge(Agent):
             return summary
         revenue_lakh = impact["revenue_at_risk_inr"] / 100000
         summary = (f"Impact: {impact['users_affected']} users, {impact['carts_at_risk']} carts, "
-                   f"INR {revenue_lakh:.1f}L at risk. Forecast SLA breach in {forecast['breach_eta']}.")
-        case_file.append(self.name, "impact", summary,
-                         {**impact, "breach_eta": forecast["breach_eta"], "llm_rationale": text})
+                   f"INR {revenue_lakh:.1f}L at risk.")
+        # Real forecast (error-budget burn rate) when available; else a plain ETA.
+        if forecast.get("burn_multiple"):
+            summary += (f" Error budget burning {forecast['burn_multiple']}x "
+                        f"({forecast['breaching']}/{forecast['total']} payment requests over SLO) "
+                        f"-> exhausts in {forecast['breach_eta']}.")
+        elif forecast.get("breach_eta"):
+            summary += f" Forecast SLA breach in {forecast['breach_eta']}."
+        case_file.append(self.name, "impact", summary, {**impact, **forecast, "llm_rationale": text})
         return summary
 
     # ---- deterministic fallback ----
@@ -78,10 +84,14 @@ class Judge(Agent):
             return 3, summary
 
         revenue_lakh = impact["revenue_at_risk_inr"] / 100000
-        fallback = (
-            f"Impact: {impact['users_affected']} users, {impact['carts_at_risk']} carts, "
-            f"INR {revenue_lakh:.1f}L at risk. Forecast SLA breach in {forecast['breach_eta']}."
-        )
+        fallback = (f"Impact: {impact['users_affected']} users, {impact['carts_at_risk']} carts, "
+                    f"INR {revenue_lakh:.1f}L at risk.")
+        if forecast.get("burn_multiple"):
+            fallback += (f" Error budget burning {forecast['burn_multiple']}x "
+                         f"({forecast['breaching']}/{forecast['total']} payment requests over SLO) "
+                         f"-> exhausts in {forecast['breach_eta']}.")
+        elif forecast.get("breach_eta"):
+            fallback += f" Forecast SLA breach in {forecast['breach_eta']}."
         summary = self.narrate(
             {**impact, "breach_eta": forecast["breach_eta"]},
             "Quantify the business impact in plain numbers (users, carts, INR at risk, breach ETA).",
