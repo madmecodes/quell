@@ -81,6 +81,9 @@ class RunSession:
     def _run(self):
         try:
             result = self._orch.handle(self.id, self._gate_action, self._gate_learning)
+            # Expose the case file even on the healthy path (no gate reached), so the
+            # "no fault detected" outcome renders too.
+            self.case = result.case_file
             self.applied_lessons = result.applied_lessons
             self.applied_defs = result.applied_definition_edits
         except Exception:
