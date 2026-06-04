@@ -48,7 +48,7 @@ app.post("/api/cart", async (req, res) => {
 
 app.post("/api/checkout", async (req, res) => {
   const chaos = getChaos();
-  const { segment = "Web / US", userId = "u0", cartId = "c0", cartValueUsd = 2800 } = req.body || {};
+  const { segment = "Web / US", userId = "u0", cartId = "c0", cartValueUsd = 34 } = req.body || {};
   await checkoutStarted({ segment, userId, cartId, cartValueUsd });
 
   try {
