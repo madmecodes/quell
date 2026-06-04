@@ -171,7 +171,7 @@ flowchart TD
 ```mermaid
 flowchart LR
   GH["GitHub\nmadmecodes/quell"]
-  subgraph GCP["Google Cloud (project sentinel-hack-2026)"]
+  subgraph GCP["Google Cloud (project via QUELL_GCP_PROJECT)"]
     CR1["Cloud Run: quell-dashboard\n(operator console + agents)"]
     CR2["Cloud Run: shopwave\n(demo store)"]
     VAI["Vertex AI: Gemini 2.5-pro / flash"]

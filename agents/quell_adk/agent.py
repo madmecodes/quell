@@ -62,6 +62,9 @@ def dynatrace_toolset() -> MCPToolset:
             ),
             timeout=60,
         ),
+        # Restrict to DQL so the agents run their one query and conclude, rather
+        # than exploring all 20 tools (smartscape, etc.) for many minutes.
+        tool_filter=["execute_dql"],
     )
 
 
@@ -72,10 +75,12 @@ watcher = LlmAgent(
     model=WORKER_MODEL, name="watcher",
     description="Detects degraded real-user experience by segment.",
     instruction=(
-        "You watch ShopWave's real-user telemetry in Dynatrace. Use execute_dql to "
-        "query recent bizevents of type 'page.view' and find any user segment whose "
-        "apdex dropped or rage-clicks spiked. Report the segment, journey, and when it "
-        "began. If everything is healthy, say so and stop."),
+        "Call execute_dql EXACTLY ONCE with this query:\n"
+        "fetch bizevents, from:now()-30m | filter `event.type` == \"page.view\" "
+        "| summarize apdex = avg(apdex), rage = sum(rage_clicks), by:{segment, journey} "
+        "| sort apdex asc | limit 5\n"
+        "Then report, in ONE sentence, the worst segment and journey (lowest apdex). "
+        "Do not call any other tool. Do not run more queries."),
     tools=[_dt],
 )
 
@@ -83,9 +88,12 @@ tracer = LlmAgent(
     model=WORKER_MODEL, name="tracer",
     description="Pinpoints the failing service, span, and deploy.",
     instruction=(
-        "Given the degraded segment from the watcher, use execute_dql over Dynatrace "
-        "spans to find the service and span with abnormal latency or errors, and the "
-        "deploy that correlates. Report a single most-likely root cause."),
+        "Call execute_dql EXACTLY ONCE with this query:\n"
+        "fetch spans, from:now()-30m | filter `shop.service` == \"payment-svc\" "
+        "| summarize ms = avg(duration)/1000000, deploy = takeAny(`deploy.version`), "
+        "by:{`span.name`} | sort ms desc | limit 5\n"
+        "Then report, in ONE sentence, the slowest span, its latency in ms, and the deploy. "
+        "Do not run more queries."),
     tools=[_dt],
 )
 
@@ -93,9 +101,11 @@ judge = LlmAgent(
     model=WORKER_MODEL, name="judge",
     description="Quantifies business impact and forecasts the breach.",
     instruction=(
-        "Use execute_dql over checkout bizevents to quantify users affected, carts at "
-        "risk, and revenue at risk for the impacted segment. State the impact in plain "
-        "numbers and the time until SLA breach."),
+        "Call execute_dql EXACTLY ONCE with this query:\n"
+        "fetch bizevents, from:now()-30m | filter `event.type` == \"checkout.started\" "
+        "| summarize users = countDistinct(user_id), carts = count(), revenue = sum(cart_value_usd)\n"
+        "Then report, in ONE sentence, the users, carts, and revenue (USD) at risk. "
+        "Do not run more queries."),
     tools=[_dt],
 )
 

@@ -1,6 +1,9 @@
 """Live-path configuration (Vertex AI / Gemini).
 
-Verified working for project quell-hack-2026:
+The GCP project is taken from the environment (QUELL_GCP_PROJECT, falling back to
+SENTINEL_GCP_PROJECT) and has no hardcoded default -- a missing/misconfigured
+project must fail loudly rather than silently 403 against a non-existent project.
+Verified working config:
   - host:   aiplatform.googleapis.com
   - region: global   (us-central1 returns 404 for these models)
   - models: gemini-2.5-pro, gemini-2.5-flash  (gemini-3-* not yet allowlisted)
@@ -33,8 +36,20 @@ def _load_dotenv() -> None:
 
 _load_dotenv()
 
-GCP_PROJECT = os.environ.get("QUELL_GCP_PROJECT", "quell-hack-2026")
-GCP_LOCATION = os.environ.get("QUELL_GCP_LOCATION", "global")
+# Resolve the project from the env. Accept the QUELL_* name first, then the
+# SENTINEL_* name used by the deployment .env. No hardcoded default: a wrong or
+# absent project should surface as a clear Vertex auth error, not a silent 403
+# against a project that does not exist.
+GCP_PROJECT = (
+    os.environ.get("QUELL_GCP_PROJECT")
+    or os.environ.get("SENTINEL_GCP_PROJECT")
+    or ""
+)
+GCP_LOCATION = (
+    os.environ.get("QUELL_GCP_LOCATION")
+    or os.environ.get("SENTINEL_GCP_LOCATION")
+    or "global"
+)
 
 # Worker agents (Watcher, Tracer, Judge, Actuator, Scribe). Swap to a Gemini 3
 # id here once access is granted.

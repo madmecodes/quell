@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 
 from . import config
 
@@ -53,5 +54,13 @@ def reason(role: str, lessons: str, observation: dict, instruction: str,
             model=model or config.WORKER_MODEL, contents=prompt)
         text = (resp.text or "").strip()
         return text or fallback
-    except Exception:
+    except Exception as exc:
+        # Live LLM was requested but failed (e.g. wrong GCP project -> 403). Surface
+        # it so a broken live path is detectable instead of masquerading as success.
+        print(
+            f"[quell.llm] live LLM reasoning failed for {role} "
+            f"(project={config.GCP_PROJECT!r}, model={model or config.WORKER_MODEL}); "
+            f"falling back to deterministic text: {type(exc).__name__}: {exc}",
+            file=sys.stderr,
+        )
         return fallback

@@ -29,8 +29,13 @@ if _dotenv.exists():
             os.environ.setdefault(k, v)
 
 os.environ.setdefault("GOOGLE_GENAI_USE_VERTEXAI", "true")
-os.environ.setdefault("GOOGLE_CLOUD_PROJECT", os.environ.get("QUELL_GCP_PROJECT", "sentinel-hack-2026"))
-os.environ.setdefault("GOOGLE_CLOUD_LOCATION", os.environ.get("QUELL_GCP_LOCATION", "global"))
+_gcp_project = os.environ.get("QUELL_GCP_PROJECT") or os.environ.get("SENTINEL_GCP_PROJECT", "")
+if _gcp_project:
+    os.environ.setdefault("GOOGLE_CLOUD_PROJECT", _gcp_project)
+os.environ.setdefault(
+    "GOOGLE_CLOUD_LOCATION",
+    os.environ.get("QUELL_GCP_LOCATION") or os.environ.get("SENTINEL_GCP_LOCATION", "global"),
+)
 
 from google.adk.runners import InMemoryRunner  # noqa: E402
 from google.genai import types  # noqa: E402
@@ -57,4 +62,10 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    import os
+    try:
+        asyncio.run(asyncio.wait_for(main(), timeout=180))
+    except asyncio.TimeoutError:
+        print("\n[run_adk] stopped at 180s safety cap")
+    finally:
+        os._exit(0)

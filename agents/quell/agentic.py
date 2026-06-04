@@ -14,6 +14,7 @@ off, so the caller falls back to the deterministic path.
 from __future__ import annotations
 
 import os
+import sys
 from dataclasses import dataclass
 
 from . import config
@@ -56,5 +57,14 @@ def run_agent(role: str, lessons: str, instruction: str, observation: str,
             if getattr(part, "function_call", None)
         )
         return AgentResult(text=(resp.text or "").strip(), tool_calls=max(n, 1))
-    except Exception:
+    except Exception as exc:
+        # Live tool-calling was requested but failed (e.g. wrong GCP project -> 403).
+        # Surface it so the caller's deterministic fallback is not mistaken for a real
+        # Gemini-driven ReAct run.
+        print(
+            f"[quell.agentic] live agent loop failed for {role} "
+            f"(project={config.GCP_PROJECT!r}, model={model or config.WORKER_MODEL}); "
+            f"falling back to deterministic path: {type(exc).__name__}: {exc}",
+            file=sys.stderr,
+        )
         return None
