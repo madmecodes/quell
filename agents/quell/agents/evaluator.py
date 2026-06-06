@@ -69,17 +69,16 @@ class Evaluator(Agent):
             grade = AgentGrade(agent=agent, score=round(max(score, 0.0), 2),
                                notes="; ".join(notes) or "within budget, on target")
 
-            # Tracer-specific: if it scanned every service blindly, teach it to
-            # use the Watcher's linked problem to jump straight to the suspect.
+            # Tracer-specific: if it inspected services one-by-one, teach it to use
+            # the single cross-service scan to find the worst span in one query.
             if agent == "tracer" and over > 0:
                 grade.proposed_lesson = (
-                    "Start from the Watcher's linked problem/segment and inspect the "
-                    "implicated service first instead of scanning all services in order."
+                    "Use scan_all_spans to find the worst span across all services in one "
+                    "query, instead of inspecting each service individually."
                 )
                 grade.proposed_definition_edit = (
-                    "Add to Tracer's instructions: 'Read the linked problem id from the "
-                    "case file and query that entity's spans first; only widen the search "
-                    "if no cause is found.'"
+                    "Add to Tracer's instructions: 'Call scan_all_spans once and trust its "
+                    "ranked result; only inspect a single service if the scan is ambiguous.'"
                 )
             card.grades.append(grade)
 

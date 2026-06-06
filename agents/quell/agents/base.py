@@ -49,7 +49,7 @@ class Agent(ABC):
             # live LLM is on, let Gemini decide which Dynatrace tools to call.
             result = None
             if config.USE_LIVE_LLM and hasattr(self, "tool_callables"):
-                sink: dict = {}
+                sink: dict = {"_case": case_file}  # tools may read prior findings
                 res = agentic.run_agent(
                     self.role, self.lessons_context(), self.instruction,
                     self.observe(case_file), self.tool_callables(mcp, sink))

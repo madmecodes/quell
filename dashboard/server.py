@@ -63,18 +63,22 @@ class RunSession:
         import urllib.request
         url = os.environ.get("SHOPWAVE_URL")
         # Default scenario if ShopWave is unreachable, so the console always demos.
-        default = ChaosState(active=True, fault="payment_latency", service="payment-svc",
-                             span="razorpay.charge", segment="iOS / US", deploy="#847",
-                             added_latency_ms=400)
+        default = ChaosState(active=True, scenario="payment_latency", fault="payment_latency",
+                             service="payment-svc", span="razorpay.charge", segment="iOS / US",
+                             journey="checkout", deploy="#847", added_latency_ms=2200, error_rate=0)
         if not url:
             return default
         try:
             with urllib.request.urlopen(url.rstrip("/") + "/api/chaos", timeout=5) as r:
                 d = json.loads(r.read())
-            return ChaosState(active=d.get("active", False), fault=d.get("fault", ""),
-                              service=d.get("service", "payment-svc"), span=d.get("span", "razorpay.charge"),
-                              segment=d.get("segment", "iOS / US"), deploy=d.get("deploy", "#847"),
-                              added_latency_ms=int(d.get("addedLatencyMs", 0)))
+            if not d.get("active"):
+                return ChaosState(active=False)
+            return ChaosState(active=True, scenario=d.get("scenario") or d.get("fault", ""),
+                              fault=d.get("fault", ""), service=d.get("service", "payment-svc"),
+                              span=d.get("span", "razorpay.charge"), segment=d.get("segment", "iOS / US"),
+                              journey=d.get("journey", "checkout"), deploy=d.get("deploy", "#847"),
+                              added_latency_ms=int(d.get("addedLatencyMs", 0)),
+                              error_rate=float(d.get("errorRate", 0)))
         except Exception:
             return default
 

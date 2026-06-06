@@ -60,7 +60,7 @@ class Watcher(Agent):
             "apdex": bad["apdex"], "rage_clicks": bad["rage_clicks"],
             "linked_problem": problems[0]["id"] if problems else None,
             "suspect_service": problems[0]["affected_service"] if problems else None,
-            "llm_rationale": text,
+            "dql": self._mcp.queries.get("rum"), "llm_rationale": text,
         })
         return summary
 
@@ -91,5 +91,6 @@ class Watcher(Agent):
             "rage_clicks": bad["rage_clicks"],
             "linked_problem": problems[0]["id"] if problems else None,
             "suspect_service": problems[0]["affected_service"] if problems else None,
+            "dql": mcp.queries.get("rum"),
         })
         return 2, summary
