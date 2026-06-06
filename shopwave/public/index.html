@@ -34,6 +34,8 @@
   .links{display:flex; gap:18px; font-size:14px; color:var(--ink2)}
   .links a{text-decoration:none; cursor:pointer}
   .links a:hover{color:var(--terra)}
+  .links a.ops-link{color:var(--terra); font-weight:600; border:1px solid var(--rule); padding:5px 11px; border-radius:8px}
+  .links a.ops-link:hover{background:var(--terra); color:#fff; border-color:var(--terra)}
   .search{flex:1; max-width:380px; margin-left:auto; position:relative}
   .search input{width:100%; padding:9px 14px 9px 34px; border-radius:22px; border:1px solid var(--rule); background:var(--paper2); font-size:14px; color:var(--ink)}
   .search svg{position:absolute; left:12px; top:9px; opacity:.5}
@@ -135,7 +137,27 @@
   .ops .tag.bad{background:#f3dccf; color:var(--terra-dk)} .ops .tag.ok{background:#e4ecdb; color:#3f5e33}
   .ops b{color:var(--terra-dk)}
 
-  footer{margin-top:50px; border-top:1px solid var(--rule); padding:26px 0; color:var(--muted); font-size:13px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px}
+  /* footer */
+  footer{margin-top:60px; background:#26201a; color:#d8cdb8}
+  .foot-top{max-width:1180px; margin:0 auto; padding:44px 24px 34px; display:grid; grid-template-columns:1.6fr 1fr 1fr 1.4fr; gap:34px}
+  @media(max-width:820px){.foot-top{grid-template-columns:1fr 1fr}}
+  @media(max-width:480px){.foot-top{grid-template-columns:1fr}}
+  .foot-brand h3{font-family:var(--serif); font-size:22px; margin:0 0 8px; color:#f5eede}
+  .foot-brand p{font-size:13.5px; line-height:1.65; color:#b3a78f; margin:0 0 14px; max-width:280px}
+  .qbadge{display:inline-flex; align-items:center; gap:8px; font-size:12px; background:#322a22; border:1px solid #43392e; border-radius:20px; padding:5px 12px; color:#cbbd9f}
+  .qbadge .qd{width:7px;height:7px;border-radius:50%;background:var(--sage)}
+  .fcol h5{font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:#9c8f76; margin:0 0 12px}
+  .fcol a{display:block; color:#c8bca4; text-decoration:none; font-size:13.5px; padding:5px 0; cursor:pointer}
+  .fcol a:hover{color:#f0a878}
+  .news p{font-size:13.5px; color:#b3a78f; margin:0 0 12px}
+  .news .row{display:flex; gap:8px}
+  .news input{flex:1; padding:10px 12px; border-radius:9px; border:1px solid #43392e; background:#322a22; color:#f0e8d8; font-size:13px}
+  .news button{padding:10px 16px; border-radius:9px; border:none; background:var(--terra); color:#fff; font-weight:600; cursor:pointer; font-size:13px}
+  .news button:hover{background:var(--terra-dk)}
+  .foot-bot{border-top:1px solid #3a3127}
+  .foot-bot-in{max-width:1180px; margin:0 auto; padding:16px 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; font-size:12.5px; color:#9c8f76}
+  .foot-bot-in .pays{display:flex; gap:7px; align-items:center}
+  .foot-bot-in .pays span{border:1px solid #43392e; border-radius:5px; padding:2px 7px; font-size:11px; color:#b3a78f; font-family:var(--mono)}
 
   /* generic modal (info) */
   .info p{margin:6px 0; color:var(--ink2); font-size:14px}
@@ -149,13 +171,14 @@
   <div class="wrap nav">
     <a class="logo" href="#"><h1>ShopWave</h1><span class="sub">Crash Arena gear</span></a>
     <nav class="links">
-      <a onclick="scrollToShop()">Shop</a><a onclick="scrollToShop()">New</a><a onclick="openInfo()">About</a>
+      <a onclick="scrollToShop()">Shop</a>
+      <a onclick="openOps()" class="ops-link">⚙ Operations</a>
+      <a onclick="openInfo()">About</a>
     </nav>
     <div class="search">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
       <input placeholder="Search gear…" />
     </div>
-    <button class="iconbtn" onclick="openOps()" title="Operations">⚙</button>
     <button class="iconbtn" onclick="openCart()" title="Cart">🛒<span class="badge" id="cartBadge" style="display:none">0</span></button>
   </div>
   <div class="wrap subbar">
@@ -188,9 +211,42 @@
   <div class="grid" id="catalog"></div>
 </main>
 
-<footer class="wrap">
-  <span>© 2026 ShopWave · Official Crash Arena Turbo Stars outfitter</span>
-  <span><a onclick="openInfo()" style="cursor:pointer; color:var(--terra-dk)">About this store</a></span>
+<footer>
+  <div class="foot-top">
+    <div class="foot-brand">
+      <h3>ShopWave</h3>
+      <p>The official outfitter for Crash Arena Turbo Stars — apparel, hardware and collectibles, shipped fast worldwide.</p>
+      <span class="qbadge"><span class="qd"></span> Reliability monitored by Quell</span>
+    </div>
+    <div class="fcol">
+      <h5>Shop</h5>
+      <a onclick="scrollToShop()">All gear</a>
+      <a onclick="scrollToShop()">Apparel</a>
+      <a onclick="scrollToShop()">Gaming</a>
+      <a onclick="scrollToShop()">New arrivals</a>
+    </div>
+    <div class="fcol">
+      <h5>Support</h5>
+      <a onclick="openInfo()">Shipping &amp; returns</a>
+      <a onclick="openInfo()">Track order</a>
+      <a onclick="openOps()">Operations</a>
+      <a onclick="openInfo()">Contact us</a>
+    </div>
+    <div class="news">
+      <h5 style="font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:#9c8f76; margin:0 0 12px">Join the pit crew</h5>
+      <p>Drops, restocks and player-only deals — straight to your inbox.</p>
+      <div class="row">
+        <input placeholder="you@example.com" />
+        <button onclick="this.textContent='Joined ✓'">Subscribe</button>
+      </div>
+    </div>
+  </div>
+  <div class="foot-bot">
+    <div class="foot-bot-in">
+      <span>© 2026 ShopWave · Official Crash Arena Turbo Stars outfitter</span>
+      <span class="pays"><span>VISA</span><span>MC</span><span>AMEX</span><span>UPI</span><span>PayPal</span></span>
+    </div>
+  </div>
 </footer>
 
 <!-- scrim -->
