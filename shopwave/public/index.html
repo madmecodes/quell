@@ -266,9 +266,20 @@
   <div class="dhead"><h3>Operations</h3><button class="dclose" onclick="closeAll()">×</button></div>
   <div class="dbody">
     <p class="ptitle">Chaos Panel</p>
-    <p class="pdesc">Inject a real production fault. Quell will detect, trace, and prevent it.</p>
-    <button class="danger" onclick="setChaos(true)">Inject: slow payment (iOS / US)</button>
-    <button class="ghost" onclick="setChaos(false)">Clear fault</button>
+    <p class="pdesc">Inject a real production fault. Each scenario breaks a different service — Quell will detect, trace, and prevent whatever you pick.</p>
+    <label style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Scenario</label>
+    <select id="scenario" style="width:100%;margin:6px 0 12px;padding:10px 12px;border:1px solid var(--rule);border-radius:9px;background:var(--paper);font-size:14px;color:var(--ink)">
+      <option value="payment_latency">Slow payments — payment-svc</option>
+      <option value="checkout_errors">Checkout failing — payment-svc 5xx</option>
+      <option value="catalog_slowdown">Catalog slow — catalog-svc</option>
+      <option value="cart_failures">Cart failures — cart-svc</option>
+      <option value="third_party_outage">Razorpay outage — external gateway</option>
+    </select>
+    <button class="danger" onclick="injectScenario()">Inject selected fault</button>
+    <div class="row">
+      <button class="ghost" onclick="injectRandom()">Random incident</button>
+      <button class="ghost" onclick="setChaos(false)">Clear fault</button>
+    </div>
     <div class="fault" id="chaosState"></div>
   </div>
 </aside>
@@ -406,9 +417,9 @@ async function placeOrder(){
   st.className = "paystate"; st.textContent = "Contacting payment service…";
   // if the fault is active for this segment, surface the slow experience
   const chaos = await (await fetch("/api/chaos")).json();
-  const slow = chaos.active && chaos.segment === region();
+  const slow = chaos.active && chaos.segment === region() && chaos.journey === "checkout";
   let slowTimer;
-  if (slow) slowTimer = setTimeout(()=>{ st.className="paystate slow"; st.textContent="Payment is taking longer than usual…"; }, 600);
+  if (slow) slowTimer = setTimeout(()=>{ st.className="paystate slow"; st.textContent="Payment is taking longer than usual…"; }, 400);
   const t0 = performance.now();
   const r = await fetch("/api/checkout", { method:"POST", headers:{"Content-Type":"application/json"},
     body: JSON.stringify({ segment: region(), userId:"shopper-"+Date.now(), cartId:"c"+Date.now(), cartValueUsd: total }) });
@@ -429,17 +440,32 @@ async function placeOrder(){
 }
 
 // ---- chaos ----
-async function setChaos(active){
+const SCENARIO_IDS = ["payment_latency","checkout_errors","catalog_slowdown","cart_failures","third_party_outage"];
+async function injectScenario(scenario){
+  const sid = scenario || document.getElementById("scenario").value;
   const r = await fetch("/api/chaos", { method:"POST", headers:{"Content-Type":"application/json"},
-    body: JSON.stringify(active
-      ? { active:true, fault:"payment_latency", service:"payment-svc", span:"razorpay.charge", segment:"iOS / US", deploy:"#847", addedLatencyMs:400 }
-      : { active:false }) });
+    body: JSON.stringify({ active:true, scenario: sid }) });
+  const s = await r.json();
+  // default the shopper's region to the affected segment so the pain is felt
+  const sel = document.getElementById("region"); if (sel && s.segment) sel.value = s.segment;
+  renderChaos(s);
+}
+function injectRandom(){
+  const sid = SCENARIO_IDS[Math.floor(Math.random()*SCENARIO_IDS.length)];
+  document.getElementById("scenario").value = sid;
+  injectScenario(sid);
+}
+async function setChaos(active){
+  if (active) return injectScenario();
+  const r = await fetch("/api/chaos", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ active:false }) });
   renderChaos(await r.json());
 }
 function renderChaos(s){
   const el = document.getElementById("chaosState"), dot = document.getElementById("statusDot"), txt = document.getElementById("statusTxt");
   if (s.active){
-    el.innerHTML = `<span class="tag bad">Fault active</span><br>${s.fault} on <b>${s.service}</b> (${s.span})<br>segment <b>${s.segment}</b> · deploy ${s.deploy} · +${s.addedLatencyMs}ms`;
+    el.innerHTML = `<span class="tag bad">Fault active · ${s.label||s.scenario}</span><br>${s.blurb||""}<br>`+
+      `<b>${s.service}</b> (${s.span}) · segment <b>${s.segment}</b> · deploy ${s.deploy}`+
+      (s.addedLatencyMs?` · +${s.addedLatencyMs}ms`:``)+(s.errorRate?` · ${Math.round(s.errorRate*100)}% errors`:``);
     dot.className = "status-dot red"; txt.textContent = "Service degraded · "+s.segment;
   } else {
     el.innerHTML = `<span class="tag ok">Healthy</span><br>No fault injected. All segments nominal.`;
