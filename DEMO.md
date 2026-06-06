@@ -18,13 +18,13 @@ checkout because of it. Quell can - and it fixes it before they leave."
 Show ShopWave: a live store, traffic flowing, Dynatrace receiving telemetry.
 
 ## Beat 2 - inject the fault (0:30-0:50)
-On ShopWave, click the Chaos Panel: "Inject: slow payment (Android / IN)".
+On ShopWave, click the Chaos Panel: "Inject: slow payment (iOS / US)".
 "A bad deploy just slowed the payment service - but only for Android users in
 India. No alert has fired yet."
 
 ## Beat 3 - Quell detects, traces, quantifies (0:50-1:40)
 On the Quell console, click "Detect & prevent incident". Narrate the agents:
-- Watcher: degraded checkout experience, Android / IN, apdex 0.58.
+- Watcher: degraded checkout experience, iOS / US, apdex 0.58.
 - Tracer: root cause - payment-svc razorpay.charge span +400ms, deploy #847.
 - Judge: 1,800 users, 2,400 carts, $8,400 at risk, SLA breach in ~1h.
 "Front-end pain, back-end cause, business impact - one chain. Only Dynatrace has

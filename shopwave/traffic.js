@@ -5,7 +5,8 @@
 
 const BASE = process.env.SHOPWAVE_URL || "http://localhost:8080";
 
-const SEGMENTS = ["Web / US", "iOS / US", "Android / IN", "Web / EU", "Android / BR"];
+// US-only segments. iOS / US is the segment the Chaos Panel degrades.
+const SEGMENTS = ["Web / US", "iOS / US", "iOS / US", "Android / US", "Web / US"];
 const JOURNEYS = ["browse", "browse", "checkout"];
 
 const pick = (a) => a[Math.floor(Math.random() * a.length)];

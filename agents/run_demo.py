@@ -44,7 +44,7 @@ def main() -> None:
     store = LessonStore()
     chaos = ChaosState(
         active=True, fault="payment_latency", service="payment-svc",
-        span="razorpay.charge", segment="Android / IN", deploy="#847",
+        span="razorpay.charge", segment="iOS / US", deploy="#847",
         added_latency_ms=400,
     )
 

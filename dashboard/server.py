@@ -64,7 +64,7 @@ class RunSession:
         url = os.environ.get("SHOPWAVE_URL")
         # Default scenario if ShopWave is unreachable, so the console always demos.
         default = ChaosState(active=True, fault="payment_latency", service="payment-svc",
-                             span="razorpay.charge", segment="Android / IN", deploy="#847",
+                             span="razorpay.charge", segment="iOS / US", deploy="#847",
                              added_latency_ms=400)
         if not url:
             return default
@@ -73,7 +73,7 @@ class RunSession:
                 d = json.loads(r.read())
             return ChaosState(active=d.get("active", False), fault=d.get("fault", ""),
                               service=d.get("service", "payment-svc"), span=d.get("span", "razorpay.charge"),
-                              segment=d.get("segment", "Android / IN"), deploy=d.get("deploy", "#847"),
+                              segment=d.get("segment", "iOS / US"), deploy=d.get("deploy", "#847"),
                               added_latency_ms=int(d.get("addedLatencyMs", 0)))
         except Exception:
             return default

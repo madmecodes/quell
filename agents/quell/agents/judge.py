@@ -32,7 +32,7 @@ class Judge(Agent):
     def tool_callables(self, mcp: MockMCP, sink: dict) -> list:
         def business_impact(segment: str) -> dict:
             """Get users affected, carts at risk, and revenue at risk (USD) for a segment.
-            Args: segment: the affected user segment, e.g. 'Android / IN'."""
+            Args: segment: the affected user segment, e.g. 'iOS / US'."""
             bi = mcp.business_impact(segment)
             sink["impact"] = bi
             return bi

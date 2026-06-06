@@ -28,7 +28,7 @@ class ChaosState:
     fault: str = ""             # e.g. "payment_latency"
     service: str = ""           # e.g. "payment-svc"
     span: str = ""              # e.g. "razorpay.charge"
-    segment: str = ""           # e.g. "Android / IN"
+    segment: str = ""           # e.g. "iOS / US"
     deploy: str = ""            # e.g. "#847"
     added_latency_ms: int = 0   # e.g. 400
     # ground truth, used by the Evaluator to check if agents were correct

@@ -6,7 +6,7 @@ const state = {
   fault: "",            // "payment_latency"
   service: "payment-svc",
   span: "razorpay.charge",
-  segment: "Android / IN",
+  segment: "iOS / US",
   deploy: "#847",
   addedLatencyMs: 0,
 };
