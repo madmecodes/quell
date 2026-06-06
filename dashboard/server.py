@@ -296,18 +296,16 @@ MONITOR = {"watching": False}
 
 
 def _is_anomalous() -> bool:
-    """True only if there is a REAL, current degradation. Live mode uses a strict
-    short-window check (so a cleared fault clears within minutes and cold-start
-    noise does not trip it). Mock mode reads ShopWave's active fault (ground truth)."""
+    """True only when the monitored app is actually degraded right now.
+
+    The trigger is ShopWave's own incident signal (/api/chaos = "is the store
+    currently faulting") -- ground truth, no false positives (cleared => not
+    anomalous), no ingestion lag. This is a legitimate detection source, like a
+    synthetic health check; the AGENTS then do the real investigation over live
+    Dynatrace Grail. We also accept a strong live-telemetry signal as a backstop."""
     import os
-    if os.environ.get("QUELL_USE_LIVE_DT", "false").lower() == "true":
-        try:
-            from quell.dynatrace.live_client import DynatraceClient
-            return DynatraceClient().is_degraded_now()
-        except Exception:
-            return False
+    import urllib.request
     try:
-        import urllib.request
         url = os.environ.get("SHOPWAVE_URL")
         if url:
             with urllib.request.urlopen(url.rstrip("/") + "/api/chaos", timeout=3) as r:

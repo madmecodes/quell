@@ -131,23 +131,22 @@ class DynatraceClient:
         healthy = all(s["apdex"] >= 0.7 for s in segs) if segs else True
         return {"healthy": healthy, "segments": segs or [{"segment": "all", "apdex": 1.0}]}
 
-    def is_degraded_now(self, window_min: int = 3, apdex_floor: float = 0.7,
-                        min_samples: int = 12) -> bool:
-        """Strict, SHORT-window anomaly check for the autonomous monitor. Looks only
-        at the last few minutes (so a cleared fault stops looking anomalous quickly)
-        and requires a real, sustained drop with enough samples (so cold-start noise
-        does not trip a false positive)."""
+    def is_degraded_now(self, window_min: int = 2, apdex_bad: float = 0.7,
+                        min_bad: int = 3) -> bool:
+        """Strict, short-window anomaly check for the autonomous monitor. COUNTS the
+        bad page views (apdex below threshold) in the last couple of minutes rather
+        than averaging -- healthy traffic sits ~0.93 and never dips below 0.7, so a
+        handful of genuinely bad events is an unambiguous, fast signal that no
+        cold-start or averaging dilution can hide or fake. Clears within ~2 min of a
+        fault being removed (the bad events age out of the window)."""
         try:
             recs = self.execute_dql(
-                f"fetch bizevents, from:now()-{window_min}m | filter `event.type` == \"page.view\" "
-                "| summarize apdex = avg(apdex), n = count(), by:{segment, journey} "
-                "| sort apdex asc | limit 1")
+                f"fetch bizevents, from:now()-{window_min}m "
+                f"| filter `event.type` == \"page.view\" and apdex < {apdex_bad} "
+                "| summarize bad = count(), by:{segment, journey} | sort bad desc | limit 1")
         except Exception:
             return False
-        if not recs:
-            return False
-        r = recs[0]
-        return float(r.get("apdex") or 1.0) < apdex_floor and int(r.get("n") or 0) >= min_samples
+        return bool(recs) and int(recs[0].get("bad") or 0) >= min_bad
 
     def worst_span(self) -> dict:
         """Across ALL services, find the span with the most errors / highest latency.
