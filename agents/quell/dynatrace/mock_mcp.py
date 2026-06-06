@@ -97,6 +97,9 @@ class MockMCP:
 
     def span_breakdown(self, service: str) -> dict[str, Any]:
         """Per-span latency for one service (Tracer fallback uses this)."""
+        self.queries["spans"] = (
+            f'fetch spans, from:now()-30m | filter `shop.service` == "{service}" '
+            "| summarize ms = avg(duration)/1000000, by:{`span.name`} | sort ms desc")
         spans = {"catalog.query": 22, "cart.read": 14, "payment.init": 31}
         if self.chaos.active and self.chaos.service == service:
             spans[self.chaos.span] = 42 + self.chaos.added_latency_ms

@@ -151,10 +151,11 @@ class DynatraceClient:
                 "total": int(r.get("total") or 0), "deploy": r.get("deploy") or "n/a"}
 
     def span_breakdown(self, service: str) -> dict:
-        recs = self.execute_dql(
-            f"fetch spans, from: now()-30m | filter `shop.service` == \"{service}\" "
-            "| summarize ms = avg(duration)/1000000, deploy = takeAny(`deploy.version`), "
-            "by:{`span.name`} | sort ms desc | limit 10")
+        q = (f"fetch spans, from: now()-30m | filter `shop.service` == \"{service}\" "
+             "| summarize ms = avg(duration)/1000000, deploy = takeAny(`deploy.version`), "
+             "by:{`span.name`} | sort ms desc | limit 10")
+        self.queries["spans"] = q
+        recs = self.execute_dql(q)
         span_ms = {r.get("span.name", "?"): round(float(r.get("ms") or 0), 1) for r in recs}
         deploy = next((r.get("deploy") for r in recs if r.get("deploy")), "n/a")
         return {"service": service, "span_ms": span_ms or {"unknown": 0}, "recent_deploy": deploy}
