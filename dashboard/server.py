@@ -160,6 +160,15 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, (STATIC / "index.html").read_bytes(), "text/html")
         elif self.path == "/api/state":
             self._json(CURRENT.snapshot() if CURRENT else {"id": None})
+        elif self.path.startswith("/img/"):
+            # serve static assets (agent emblems, hero art) safely from STATIC/img
+            name = Path(self.path).name
+            f = STATIC / "img" / name
+            if f.exists() and f.is_file():
+                ctype = "image/png" if name.endswith(".png") else "application/octet-stream"
+                self._send(200, f.read_bytes(), ctype)
+            else:
+                self._send(404, b"not found", "text/plain")
         else:
             self._send(404, b"not found", "text/plain")
 
