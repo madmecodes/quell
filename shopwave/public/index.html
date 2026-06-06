@@ -7,162 +7,397 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%235d7150'/%3E%3Ctext x='16' y='24' font-size='22' text-anchor='middle' fill='%23f5eede' font-family='Georgia,serif' font-weight='700'%3ES%3C/text%3E%3C/svg%3E" />
 <style>
   :root{
-    --paper:#ece2cf; --paper2:#f5eede; --card:#f7f1e3; --ink:#2c2317; --ink2:#5b4d38;
-    --muted:#8c7c61; --rule:#d6c4a3; --rule2:#e4d6ba;
-    --terra:#b0512c; --terra-dk:#8a3d1f; --sage:#5d7150;
+    --paper:#ece2cf; --paper2:#f5eede; --card:#fbf7ee; --ink:#2c2317; --ink2:#5b4d38;
+    --muted:#8c7c61; --rule:#ddccab; --rule2:#e8dcc2;
+    --terra:#b0512c; --terra-dk:#8a3d1f; --sage:#5d7150; --gold:#a07d2c; --star:#cf9a3a;
     --serif:"Hoefler Text","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
     --sans:ui-sans-serif,-apple-system,"Segoe UI",Roboto,system-ui,sans-serif;
     --mono:ui-monospace,"SF Mono",Menlo,"Cascadia Code",monospace;
   }
   *{box-sizing:border-box}
   html,body{margin:0}
-  body{background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.55;
-    background-image:radial-gradient(120% 80% at 50% -10%, #f3ecda 0%, var(--paper) 60%); min-height:100vh}
-  body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.5;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E")}
-  .wrap{position:relative; z-index:1; max-width:1120px; margin:0 auto; padding:0 26px 60px}
+  body{background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.5;
+    background-image:radial-gradient(120% 70% at 50% -10%, #f3ecda 0%, var(--paper) 55%); min-height:100vh}
+  a{color:inherit}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 24px}
 
-  .masthead{display:flex; align-items:center; justify-content:space-between; padding:22px 4px 18px; border-bottom:1px solid var(--rule)}
-  .brand{display:flex; align-items:baseline; gap:12px}
-  .brand h1{font-family:var(--serif); font-size:26px; margin:0; letter-spacing:.3px}
-  .brand .sub{font-size:11px; letter-spacing:.24em; text-transform:uppercase; color:var(--muted)}
-  .mhead-right{display:flex; align-items:center; gap:16px}
-  .statuspill{display:flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink2)}
-  .dot{width:9px; height:9px; border-radius:50%; background:var(--sage)}
-  .dot.red{background:var(--terra); box-shadow:0 0 0 0 rgba(176,81,44,.5); animation:pulse 1.6s infinite}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(176,81,44,.5)}70%{box-shadow:0 0 0 8px rgba(176,81,44,0)}100%{box-shadow:0 0 0 0 rgba(176,81,44,0)}}
-  .infob{width:32px; height:32px; border-radius:50%; border:1px solid var(--rule); background:var(--paper2); color:var(--terra); font-family:var(--serif); font-style:italic; font-size:17px; cursor:pointer; display:grid; place-items:center}
-  .infob:hover{background:#efe4cd}
+  /* top announcement */
+  .ribbon{background:var(--terra-dk); color:#f7e9da; text-align:center; font-size:12.5px; letter-spacing:.04em; padding:7px}
+  .ribbon b{color:#fff}
 
-  .hero{padding:34px 0 22px}
-  .hero .kicker{font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--terra); font-weight:600}
-  .hero h2{font-family:var(--serif); font-size:34px; margin:10px 0 6px; letter-spacing:-.3px}
-  .hero p{color:var(--ink2); margin:0; max-width:560px}
+  /* header */
+  header{position:sticky; top:0; z-index:30; background:rgba(245,238,222,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--rule)}
+  .nav{display:flex; align-items:center; gap:20px; padding:14px 0}
+  .logo{display:flex; align-items:baseline; gap:9px; text-decoration:none}
+  .logo h1{font-family:var(--serif); font-size:23px; margin:0; letter-spacing:.3px}
+  .logo .sub{font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--muted)}
+  .links{display:flex; gap:18px; font-size:14px; color:var(--ink2)}
+  .links a{text-decoration:none; cursor:pointer}
+  .links a:hover{color:var(--terra)}
+  .search{flex:1; max-width:380px; margin-left:auto; position:relative}
+  .search input{width:100%; padding:9px 14px 9px 34px; border-radius:22px; border:1px solid var(--rule); background:var(--paper2); font-size:14px; color:var(--ink)}
+  .search svg{position:absolute; left:12px; top:9px; opacity:.5}
+  .iconbtn{position:relative; width:38px; height:38px; border-radius:50%; border:1px solid var(--rule); background:var(--paper2); cursor:pointer; display:grid; place-items:center; font-size:16px; color:var(--ink)}
+  .iconbtn:hover{background:#efe4cd}
+  .badge{position:absolute; top:-5px; right:-5px; min-width:18px; height:18px; border-radius:9px; background:var(--terra); color:#fff; font-size:11px; font-weight:700; display:grid; place-items:center; padding:0 4px}
 
-  .grid{display:grid; grid-template-columns:1fr 340px; gap:30px; align-items:start}
-  @media(max-width:880px){.grid{grid-template-columns:1fr}}
+  /* region bar */
+  .subbar{display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--rule); font-size:13px; color:var(--ink2)}
+  .subbar select{border:1px solid var(--rule); background:var(--paper2); border-radius:8px; padding:5px 8px; font-size:13px; color:var(--ink); font-family:var(--sans)}
+  .status-dot{width:8px;height:8px;border-radius:50%;background:var(--sage);display:inline-block;margin-right:5px}
+  .status-dot.red{background:var(--terra); animation:pulse 1.4s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(176,81,44,.5)}70%{box-shadow:0 0 0 7px rgba(176,81,44,0)}100%{box-shadow:0 0 0 0 rgba(176,81,44,0)}}
 
-  .shelf-title{font-family:var(--serif); font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin:0 0 16px; padding-bottom:8px; border-bottom:1px solid var(--rule2)}
-  .catalog{display:grid; grid-template-columns:repeat(2,1fr); gap:16px}
-  @media(max-width:560px){.catalog{grid-template-columns:1fr}}
-  .product{background:var(--card); border:1px solid var(--rule2); border-radius:14px; padding:16px; display:flex; gap:14px; align-items:center; transition:.15s}
-  .product:hover{transform:translateY(-2px); box-shadow:0 8px 22px rgba(90,60,30,.09); border-color:#cdb98e}
-  .swatch{width:54px; height:54px; border-radius:11px; flex:none; display:grid; place-items:center; font-family:var(--serif); font-size:22px; color:#f7eede; font-weight:700}
-  .product h3{font-family:var(--serif); font-size:16.5px; margin:0 0 2px}
-  .product .price{font-family:var(--mono); font-size:13px; color:var(--terra-dk)}
-  .product .meta{font-size:11.5px; color:var(--muted); letter-spacing:.04em}
+  /* hero */
+  .hero{display:grid; grid-template-columns:1.1fr .9fr; gap:28px; align-items:center; padding:34px 0 18px}
+  @media(max-width:760px){.hero{grid-template-columns:1fr}}
+  .hero .kick{font-size:11px; letter-spacing:.3em; text-transform:uppercase; color:var(--terra); font-weight:700}
+  .hero h2{font-family:var(--serif); font-size:42px; line-height:1.05; margin:10px 0 10px; letter-spacing:-.5px}
+  .hero p{color:var(--ink2); margin:0 0 18px; max-width:440px}
+  .hero .cta{padding:12px 22px; border-radius:11px; border:none; background:var(--terra); color:#fff; font-weight:600; cursor:pointer; font-size:14.5px}
+  .hero .cta:hover{background:var(--terra-dk)}
+  .hero-art{height:230px; border-radius:18px; background:linear-gradient(135deg,#d8c19c,#c9a878); position:relative; overflow:hidden; box-shadow:0 12px 30px rgba(120,80,40,.18)}
+  .hero-art::after{content:"🏁"; position:absolute; inset:0; display:grid; place-items:center; font-size:90px; opacity:.85}
 
-  aside .panel{background:var(--card); border:1px solid var(--rule2); border-radius:15px; padding:18px 20px; box-shadow:0 2px 10px rgba(90,60,30,.05)}
-  .panel .ptitle{font-family:var(--serif); font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin:0 0 4px}
-  .panel .pdesc{font-size:13px; color:var(--ink2); margin:0 0 14px}
-  .btn{width:100%; font-family:var(--sans); font-size:14.5px; font-weight:600; padding:13px 16px; border-radius:12px; cursor:pointer; border:1px solid var(--rule); background:var(--paper2); color:var(--ink); transition:.15s}
-  .btn:hover{border-color:#c3ab80}
-  .btn.danger{background:var(--terra); border-color:var(--terra); color:#f8efe2; box-shadow:0 8px 20px rgba(138,61,31,.22)}
-  .btn.danger:hover{background:var(--terra-dk)}
-  .btn.ghost{background:transparent; margin-top:9px}
-  .fault{margin-top:16px; font-family:var(--mono); font-size:12px; color:var(--ink2); border-top:1px dashed var(--rule); padding-top:14px; line-height:1.7}
-  .fault .tag{display:inline-block; font-family:var(--sans); font-size:10px; letter-spacing:.18em; text-transform:uppercase; font-weight:700; padding:2px 8px; border-radius:20px; margin-bottom:6px}
-  .fault .tag.bad{background:#f3dccf; color:var(--terra-dk)} .fault .tag.ok{background:#e4ecdb; color:#3f5e33}
-  .fault b{color:var(--terra-dk)}
-  .linklike{display:inline-block; margin-top:14px; color:var(--terra-dk); font-weight:600; text-decoration:underline; text-underline-offset:3px; font-size:13px; cursor:pointer}
+  /* section */
+  .sec-head{display:flex; align-items:baseline; justify-content:space-between; margin:30px 0 16px}
+  .sec-head h3{font-family:var(--serif); font-size:22px; margin:0}
+  .sec-head .count{color:var(--muted); font-size:13px}
+  .grid{display:grid; grid-template-columns:repeat(4,1fr); gap:18px}
+  @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:520px){.grid{grid-template-columns:1fr}}
+  .product{background:var(--card); border:1px solid var(--rule2); border-radius:15px; overflow:hidden; display:flex; flex-direction:column; transition:.16s}
+  .product:hover{transform:translateY(-3px); box-shadow:0 14px 30px rgba(120,80,40,.14); border-color:var(--rule)}
+  .pimg{aspect-ratio:1; background:#efe7d6; display:grid; place-items:center; overflow:hidden}
+  .pimg img{width:100%; height:100%; object-fit:cover}
+  .pimg .ph{font-family:var(--serif); font-size:40px; color:#c9b289}
+  .pbody{padding:14px 15px 16px; display:flex; flex-direction:column; gap:5px; flex:1}
+  .pcat{font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+  .pname{font-family:var(--serif); font-size:16.5px; margin:0}
+  .stars{color:var(--star); font-size:12.5px; letter-spacing:1px}
+  .stars span{color:var(--muted); font-family:var(--sans); letter-spacing:0; margin-left:4px}
+  .prow{display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:8px}
+  .price{font-family:var(--mono); font-weight:600; font-size:16px; color:var(--terra-dk)}
+  .addbtn{border:1px solid var(--terra); background:transparent; color:var(--terra); font-weight:600; font-size:13px; padding:7px 12px; border-radius:9px; cursor:pointer}
+  .addbtn:hover{background:var(--terra); color:#fff}
 
-  footer{margin-top:42px; padding-top:18px; border-top:1px solid var(--rule); font-size:12px; color:var(--muted)}
+  /* drawers + modals */
+  .scrim{position:fixed; inset:0; background:rgba(44,35,23,.42); opacity:0; pointer-events:none; transition:.2s; z-index:40; backdrop-filter:blur(2px)}
+  .scrim.open{opacity:1; pointer-events:auto}
+  .drawer{position:fixed; top:0; right:0; height:100%; width:390px; max-width:92vw; background:var(--paper2); z-index:50; transform:translateX(100%); transition:.24s; box-shadow:-12px 0 40px rgba(44,35,23,.25); display:flex; flex-direction:column}
+  .drawer.open{transform:none}
+  .drawer h3{font-family:var(--serif); font-size:20px; margin:0}
+  .dhead{display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--rule)}
+  .dclose{border:none; background:none; font-size:20px; cursor:pointer; color:var(--muted)}
+  .dbody{flex:1; overflow:auto; padding:8px 20px}
+  .citem{display:flex; gap:12px; padding:14px 0; border-bottom:1px solid var(--rule2)}
+  .citem .ci{width:58px; height:58px; border-radius:10px; background:#efe7d6; flex:none; overflow:hidden}
+  .citem .ci img{width:100%;height:100%;object-fit:cover}
+  .citem .cn{font-family:var(--serif); font-size:15px}
+  .citem .cp{font-family:var(--mono); font-size:13px; color:var(--terra-dk)}
+  .qty{display:flex; align-items:center; gap:8px; margin-top:5px}
+  .qty button{width:24px;height:24px;border-radius:6px;border:1px solid var(--rule);background:var(--paper);cursor:pointer;font-size:14px}
+  .empty{color:var(--muted); text-align:center; padding:40px 0}
+  .dfoot{padding:18px 20px; border-top:1px solid var(--rule)}
+  .subtotal{display:flex; justify-content:space-between; font-size:16px; margin-bottom:12px}
+  .subtotal b{font-family:var(--mono)}
+  .bigbtn{width:100%; padding:13px; border-radius:11px; border:none; background:var(--terra); color:#fff; font-weight:600; font-size:15px; cursor:pointer}
+  .bigbtn:hover{background:var(--terra-dk)}
+  .bigbtn:disabled{opacity:.6; cursor:default}
 
-  .overlay{position:fixed; inset:0; background:rgba(44,35,23,.5); display:none; align-items:center; justify-content:center; padding:24px; z-index:50; backdrop-filter:blur(2px)}
-  .overlay.open{display:flex}
-  .modal{background:var(--paper2); border:1px solid var(--rule); border-radius:18px; max-width:600px; width:100%; padding:30px 34px; box-shadow:0 24px 60px rgba(44,35,23,.3)}
-  .modal h2{font-family:var(--serif); font-size:25px; margin:0 0 4px}
-  .modal .msub{color:var(--muted); margin-bottom:16px}
-  .modal h4{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--terra); margin:18px 0 6px}
-  .modal p{margin:6px 0; color:var(--ink2); font-size:14px}
-  .modal .close{float:right; background:none; border:1px solid var(--rule); border-radius:9px; padding:5px 12px; cursor:pointer; color:var(--ink2)}
+  .modal-wrap{position:fixed; inset:0; z-index:60; display:none; align-items:center; justify-content:center; padding:22px}
+  .modal-wrap.open{display:flex}
+  .modal{background:var(--paper2); border:1px solid var(--rule); border-radius:18px; max-width:520px; width:100%; max-height:90vh; overflow:auto; box-shadow:0 24px 60px rgba(44,35,23,.3)}
+  .modal .mhead{display:flex; justify-content:space-between; align-items:center; padding:20px 24px; border-bottom:1px solid var(--rule)}
+  .modal .mhead h3{font-family:var(--serif); font-size:21px; margin:0}
+  .mbody{padding:20px 24px}
+  .field{margin-bottom:12px}
+  .field label{display:block; font-size:12px; color:var(--muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:.06em}
+  .field input{width:100%; padding:10px 12px; border:1px solid var(--rule); border-radius:9px; background:var(--paper); font-size:14px; color:var(--ink)}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .ordsum{background:var(--card); border:1px solid var(--rule2); border-radius:12px; padding:14px; margin-bottom:16px; font-size:14px}
+  .ordsum .l{display:flex; justify-content:space-between; padding:3px 0; color:var(--ink2)}
+  .ordsum .t{display:flex; justify-content:space-between; padding-top:8px; margin-top:6px; border-top:1px solid var(--rule2); font-weight:700}
+  .ordsum .t b{font-family:var(--mono)}
+  .paystate{margin-top:10px; font-size:13px; color:var(--muted); min-height:18px}
+  .paystate.slow{color:var(--terra)}
+  .ok-screen{text-align:center; padding:30px 24px}
+  .ok-screen .check{width:60px;height:60px;border-radius:50%;background:#e8efe0;color:var(--sage);display:grid;place-items:center;font-size:30px;margin:0 auto 14px}
+
+  /* ops panel */
+  .ops .dhead{background:linear-gradient(180deg,#f3e6d6,#efe1cf)}
+  .ops .ptitle{font-family:var(--serif); font-size:13px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:14px 0 6px}
+  .ops .pdesc{font-size:13px; color:var(--ink2); margin:0 0 12px}
+  .ops .danger{width:100%; padding:12px; border-radius:11px; border:1px solid var(--terra); background:var(--terra); color:#fff; font-weight:600; cursor:pointer}
+  .ops .ghost{width:100%; padding:11px; border-radius:11px; border:1px solid var(--rule); background:transparent; cursor:pointer; margin-top:9px; color:var(--ink)}
+  .ops .fault{margin-top:14px; font-family:var(--mono); font-size:12px; color:var(--ink2); border-top:1px dashed var(--rule); padding-top:12px; line-height:1.7}
+  .ops .tag{display:inline-block; font-family:var(--sans); font-size:10px; letter-spacing:.16em; text-transform:uppercase; font-weight:700; padding:2px 8px; border-radius:20px; margin-bottom:6px}
+  .ops .tag.bad{background:#f3dccf; color:var(--terra-dk)} .ops .tag.ok{background:#e4ecdb; color:#3f5e33}
+  .ops b{color:var(--terra-dk)}
+
+  footer{margin-top:50px; border-top:1px solid var(--rule); padding:26px 0; color:var(--muted); font-size:13px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px}
+
+  /* generic modal (info) */
+  .info p{margin:6px 0; color:var(--ink2); font-size:14px}
+  .info h4{font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--terra); margin:16px 0 6px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="masthead">
-    <div class="brand"><h1>ShopWave</h1><span class="sub">Crash Arena gear</span></div>
-    <div class="mhead-right">
-      <span class="statuspill" id="status"><span class="dot"></span> all systems normal</span>
-      <button class="infob" onclick="openInfo()" title="What is this?">i</button>
-    </div>
-  </header>
+<div class="ribbon">Free shipping over <b>$50</b> · Crash Arena Turbo Stars official store · Players' choice 2026</div>
 
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#"><h1>ShopWave</h1><span class="sub">Crash Arena gear</span></a>
+    <nav class="links">
+      <a onclick="scrollToShop()">Shop</a><a onclick="scrollToShop()">New</a><a onclick="openInfo()">About</a>
+    </nav>
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <input placeholder="Search gear…" />
+    </div>
+    <button class="iconbtn" onclick="openOps()" title="Operations">⚙</button>
+    <button class="iconbtn" onclick="openCart()" title="Cart">🛒<span class="badge" id="cartBadge" style="display:none">0</span></button>
+  </div>
+  <div class="wrap subbar">
+    <span><span class="status-dot" id="statusDot"></span><span id="statusTxt">All systems normal</span></span>
+    <span style="margin-left:auto">Shopping from</span>
+    <select id="region" onchange="onRegion()">
+      <option value="Android / IN">Android · India</option>
+      <option value="Web / US">Web · US</option>
+      <option value="iOS / US">iOS · US</option>
+      <option value="Web / EU">Web · EU</option>
+    </select>
+  </div>
+</header>
+
+<main class="wrap">
   <section class="hero">
-    <div class="kicker">Official outfitter</div>
-    <h2>Gear up for the arena.</h2>
-    <p>Kits, passes and parts for Crash Arena Turbo Stars — shipped fast, played hard.</p>
+    <div>
+      <div class="kick">New season drop</div>
+      <h2>Gear built for the arena.</h2>
+      <p>Apparel, hardware and collectibles for Crash Arena Turbo Stars — engineered for players, shipped fast.</p>
+      <button class="cta" onclick="scrollToShop()">Shop the collection</button>
+    </div>
+    <div class="hero-art"></div>
   </section>
 
-  <div class="grid">
-    <main>
-      <p class="shelf-title">This season</p>
-      <div class="catalog" id="catalog"></div>
-    </main>
-    <aside>
-      <div class="panel">
-        <p class="ptitle">Operations · Chaos Panel</p>
-        <p class="pdesc">Inject a real production fault. Quell will detect, trace, and prevent it.</p>
-        <button class="btn danger" onclick="setChaos(true)">Inject: slow payment (Android / IN)</button>
-        <button class="btn ghost" onclick="setChaos(false)">Clear fault</button>
-        <div class="fault" id="chaosState"></div>
-        <span class="linklike" onclick="openInfo()">What is happening here?</span>
-      </div>
-    </aside>
+  <div class="sec-head" id="shop">
+    <h3>Featured gear</h3>
+    <span class="count" id="count"></span>
   </div>
+  <div class="grid" id="catalog"></div>
+</main>
 
-  <footer>ShopWave is a demo store monitored by Quell.</footer>
+<footer class="wrap">
+  <span>© 2026 ShopWave · Official Crash Arena Turbo Stars outfitter</span>
+  <span><a onclick="openInfo()" style="cursor:pointer; color:var(--terra-dk)">About this store</a></span>
+</footer>
+
+<!-- scrim -->
+<div class="scrim" id="scrim" onclick="closeAll()"></div>
+
+<!-- cart drawer -->
+<aside class="drawer" id="cart">
+  <div class="dhead"><h3>Your cart</h3><button class="dclose" onclick="closeAll()">×</button></div>
+  <div class="dbody" id="cartItems"></div>
+  <div class="dfoot">
+    <div class="subtotal">Subtotal <b id="subtotal">$0</b></div>
+    <button class="bigbtn" id="checkoutBtn" onclick="openCheckout()" disabled>Checkout</button>
+  </div>
+</aside>
+
+<!-- ops drawer (chaos) -->
+<aside class="drawer ops" id="ops">
+  <div class="dhead"><h3>Operations</h3><button class="dclose" onclick="closeAll()">×</button></div>
+  <div class="dbody">
+    <p class="ptitle">Chaos Panel</p>
+    <p class="pdesc">Inject a real production fault. Quell will detect, trace, and prevent it.</p>
+    <button class="danger" onclick="setChaos(true)">Inject: slow payment (Android / IN)</button>
+    <button class="ghost" onclick="setChaos(false)">Clear fault</button>
+    <div class="fault" id="chaosState"></div>
+  </div>
+</aside>
+
+<!-- checkout modal -->
+<div class="modal-wrap" id="checkoutModal">
+  <div class="modal">
+    <div class="mhead"><h3 id="coTitle">Checkout</h3><button class="dclose" onclick="closeCheckout()">×</button></div>
+    <div class="mbody" id="coBody">
+      <div class="ordsum" id="coSummary"></div>
+      <div class="grid2">
+        <div class="field"><label>First name</label><input value="Alex" /></div>
+        <div class="field"><label>Last name</label><input value="Rao" /></div>
+      </div>
+      <div class="field"><label>Email</label><input value="alex@example.com" /></div>
+      <div class="field"><label>Card number</label><input value="4242 4242 4242 4242" /></div>
+      <div class="grid2">
+        <div class="field"><label>Expiry</label><input value="04 / 28" /></div>
+        <div class="field"><label>CVC</label><input value="123" /></div>
+      </div>
+      <button class="bigbtn" id="payBtn" onclick="placeOrder()">Pay <span id="payAmt"></span></button>
+      <div class="paystate" id="payState"></div>
+    </div>
+  </div>
 </div>
 
-<div class="overlay" id="overlay" onclick="if(event.target===this)closeInfo()">
+<!-- info modal -->
+<div class="modal-wrap info" id="infoModal">
   <div class="modal">
-    <button class="close" onclick="closeInfo()">close</button>
-    <h2>What is ShopWave?</h2>
-    <div class="msub">A live demo store — the application that Quell watches.</div>
-    <h4>The point</h4>
-    <p>ShopWave is a normal e-commerce store with real users browsing and checking out. It emits live telemetry (traces, business events) just like a real app.</p>
-    <h4>The Chaos Panel</h4>
-    <p>Click <b>Inject: slow payment</b> to simulate a bad deploy that slows the payment service — but only for Android shoppers in India. Their checkout starts failing and they begin abandoning carts.</p>
-    <h4>What happens next</h4>
-    <p>On the <b>Quell console</b>, the AI agents notice the degraded experience, trace it to the exact service and deploy, quantify the revenue at risk, and — with your approval — roll it back. Click <b>Clear fault</b> and Quell reports all healthy again.</p>
-    <p style="color:var(--muted)">In short: ShopWave is the live app; Quell watches it and quells incidents before they spread.</p>
+    <div class="mhead"><h3>About ShopWave</h3><button class="dclose" onclick="closeInfo()">×</button></div>
+    <div class="mbody">
+      <p style="color:var(--muted)">A live demo store — the application that Quell watches.</p>
+      <h4>The point</h4>
+      <p>ShopWave is a working e-commerce store: browse, add to cart, check out. Every action emits live telemetry (traces and business events) to Dynatrace — exactly like a real app.</p>
+      <h4>The Chaos Panel (⚙ Operations)</h4>
+      <p>Inject a fault to slow the payment service for one shopper segment (Android / India). Checkout for that segment visibly slows and carts start failing.</p>
+      <h4>What happens next</h4>
+      <p>On the <b>Quell console</b>, six AI agents notice the degraded experience, trace it to the exact service and deploy, price the revenue at risk, and — with your approval — roll it back and alert Slack. Clear the fault and Quell reports healthy again.</p>
+    </div>
   </div>
 </div>
 
 <script>
-  const ITEMS=[
-    {name:"Turbo Kit",price:"$34",meta:"Performance",c:"#b0512c"},
-    {name:"Arena Pass",price:"$18",meta:"Season",c:"#5d7150"},
-    {name:"Crash Coin x100",price:"$12",meta:"Currency",c:"#a07d2c"},
-    {name:"Nitro Decal",price:"$6",meta:"Cosmetic",c:"#8a3d1f"},
-    {name:"Champion Skin",price:"$44",meta:"Legendary",c:"#7a5a86"},
-    {name:"Spare Parts Bundle",price:"$15",meta:"Utility",c:"#4f6d72"},
-  ];
-  document.getElementById("catalog").innerHTML=ITEMS.map(i=>
-    `<div class="product"><div class="swatch" style="background:linear-gradient(150deg,${i.c},${i.c}cc)">${i.name[0]}</div>
-     <div><h3>${i.name}</h3><div class="price">${i.price}</div><div class="meta">${i.meta}</div></div></div>`).join("");
+const PRODUCTS = [
+  { id:"headset",    name:"Nitro Gaming Headset",   cat:"Gaming",      price:89, rating:4.8 },
+  { id:"rc-car",     name:"Turbo RC Racer",         cat:"Toys",        price:64, rating:4.9 },
+  { id:"controller", name:"Pro Wireless Controller",cat:"Gaming",      price:54, rating:4.7 },
+  { id:"hoodie",     name:"Crash Arena Hoodie",     cat:"Apparel",     price:48, rating:4.8 },
+  { id:"toolbox",    name:"Hobby Toolbox Kit",      cat:"Tools",       price:39, rating:4.7 },
+  { id:"cap",        name:"Arena Field Cap",        cat:"Apparel",     price:24, rating:4.5 },
+  { id:"mug",        name:"Champion Mug",           cat:"Lifestyle",   price:16, rating:4.6 },
+  { id:"decals",     name:"Decal Sticker Pack",     cat:"Accessories", price:9,  rating:4.4 },
+];
+const cart = {};  // id -> qty
+const fmt = (n) => "$" + n.toLocaleString();
 
-  function openInfo(){document.getElementById("overlay").classList.add("open")}
-  function closeInfo(){document.getElementById("overlay").classList.remove("open")}
+function stars(r){
+  const full = Math.round(r);
+  return "★".repeat(full) + "☆".repeat(5-full) + `<span>${r.toFixed(1)}</span>`;
+}
+function renderCatalog(){
+  document.getElementById("count").textContent = PRODUCTS.length + " items";
+  document.getElementById("catalog").innerHTML = PRODUCTS.map(p => `
+    <div class="product">
+      <div class="pimg"><img src="/products/${p.id}.png" alt="${p.name}"
+           onerror="this.style.display='none';this.parentNode.innerHTML='<div class=ph>${p.name[0]}</div>'"></div>
+      <div class="pbody">
+        <div class="pcat">${p.cat}</div>
+        <h4 class="pname">${p.name}</h4>
+        <div class="stars">${stars(p.rating)}</div>
+        <div class="prow"><span class="price">${fmt(p.price)}</span>
+          <button class="addbtn" onclick="addToCart('${p.id}')">Add to cart</button></div>
+      </div>
+    </div>`).join("");
+}
 
-  async function setChaos(active){
-    const r=await fetch("/api/chaos",{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(active
-        ?{active:true,fault:"payment_latency",service:"payment-svc",span:"razorpay.charge",segment:"Android / IN",deploy:"#847",addedLatencyMs:400}
-        :{active:false})});
-    render(await r.json());
+// ---- telemetry helpers ----
+function region(){ return document.getElementById("region").value; }
+async function post(path, body){ try{ await fetch(path, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});}catch{} }
+function pageview(journey){ post("/api/pageview", { segment: region(), journey }); }
+
+// ---- cart ----
+function addToCart(id){
+  cart[id] = (cart[id]||0)+1;
+  post("/api/cart", { cartId: "c"+Date.now() });
+  renderCart(); openCart();
+}
+function changeQty(id, d){ cart[id]=(cart[id]||0)+d; if(cart[id]<=0) delete cart[id]; renderCart(); }
+function cartCount(){ return Object.values(cart).reduce((a,b)=>a+b,0); }
+function cartTotal(){ return Object.entries(cart).reduce((s,[id,q])=> s + PRODUCTS.find(p=>p.id===id).price*q, 0); }
+function renderCart(){
+  const n = cartCount(); const badge = document.getElementById("cartBadge");
+  badge.style.display = n? "grid":"none"; badge.textContent = n;
+  const items = Object.entries(cart);
+  document.getElementById("cartItems").innerHTML = items.length ? items.map(([id,q])=>{
+    const p = PRODUCTS.find(x=>x.id===id);
+    return `<div class="citem"><div class="ci"><img src="/products/${id}.png" onerror="this.style.display='none'"></div>
+      <div style="flex:1"><div class="cn">${p.name}</div><div class="cp">${fmt(p.price)}</div>
+        <div class="qty"><button onclick="changeQty('${id}',-1)">−</button>${q}<button onclick="changeQty('${id}',1)">+</button></div></div></div>`;
+  }).join("") : `<div class="empty">Your cart is empty.</div>`;
+  document.getElementById("subtotal").textContent = fmt(cartTotal());
+  document.getElementById("checkoutBtn").disabled = !items.length;
+}
+
+// ---- drawers / modals ----
+function openCart(){ closeAll(true); document.getElementById("scrim").classList.add("open"); document.getElementById("cart").classList.add("open"); }
+function openOps(){ closeAll(true); document.getElementById("scrim").classList.add("open"); document.getElementById("ops").classList.add("open"); }
+function closeAll(silent){ document.getElementById("scrim").classList.remove("open"); document.getElementById("cart").classList.remove("open"); document.getElementById("ops").classList.remove("open"); }
+function openInfo(){ document.getElementById("infoModal").classList.add("open"); }
+function closeInfo(){ document.getElementById("infoModal").classList.remove("open"); }
+function scrollToShop(){ document.getElementById("shop").scrollIntoView({behavior:"smooth"}); }
+
+function openCheckout(){
+  closeAll();
+  const total = cartTotal();
+  document.getElementById("coSummary").innerHTML =
+    Object.entries(cart).map(([id,q])=>{const p=PRODUCTS.find(x=>x.id===id);
+      return `<div class="l"><span>${p.name} × ${q}</span><span>${fmt(p.price*q)}</span></div>`;}).join("")
+    + `<div class="l"><span>Shipping</span><span>${total>=50?"Free":"$5"}</span></div>`
+    + `<div class="t"><span>Total</span><b>${fmt(total + (total>=50?0:5))}</b></div>`;
+  document.getElementById("payAmt").textContent = fmt(total + (total>=50?0:5));
+  document.getElementById("payState").textContent = "";
+  document.getElementById("payBtn").disabled = false;
+  document.getElementById("coBody").querySelectorAll(".field,.grid2,.bigbtn,.ordsum").forEach(e=>e.style.display="");
+  document.getElementById("coTitle").textContent = "Checkout";
+  document.getElementById("checkoutModal").classList.add("open");
+  pageview("checkout");
+}
+function closeCheckout(){ document.getElementById("checkoutModal").classList.remove("open"); }
+
+async function placeOrder(){
+  const total = cartTotal() + (cartTotal()>=50?0:5);
+  const btn = document.getElementById("payBtn"), st = document.getElementById("payState");
+  btn.disabled = true; btn.textContent = "Processing…";
+  st.className = "paystate"; st.textContent = "Contacting payment service…";
+  // if the fault is active for this segment, surface the slow experience
+  const chaos = await (await fetch("/api/chaos")).json();
+  const slow = chaos.active && chaos.segment === region();
+  let slowTimer;
+  if (slow) slowTimer = setTimeout(()=>{ st.className="paystate slow"; st.textContent="Payment is taking longer than usual…"; }, 600);
+  const t0 = performance.now();
+  const r = await fetch("/api/checkout", { method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ segment: region(), userId:"shopper-"+Date.now(), cartId:"c"+Date.now(), cartValueUsd: total }) });
+  if (slowTimer) clearTimeout(slowTimer);
+  const ms = Math.round(performance.now()-t0);
+  if (r.ok){
+    Object.keys(cart).forEach(k=>delete cart[k]); renderCart();
+    document.getElementById("coTitle").textContent = "Order confirmed";
+    document.getElementById("coBody").innerHTML =
+      `<div class="ok-screen"><div class="check">✓</div>
+       <h3 style="font-family:var(--serif);margin:0 0 6px">Thanks for your order!</h3>
+       <p style="color:var(--muted)">Paid ${fmt(total)} · processed in ${ms}ms${slow?" (degraded)":""}.<br>A confirmation is on its way.</p>
+       <button class="bigbtn" style="margin-top:14px;max-width:200px" onclick="closeCheckout()">Continue shopping</button></div>`;
+  } else {
+    btn.disabled=false; btn.textContent="Retry payment";
+    st.className="paystate slow"; st.textContent="Payment failed — the service is degraded. Please retry.";
   }
-  function render(s){
-    const el=document.getElementById("chaosState"), st=document.getElementById("status");
-    if(s.active){
-      el.innerHTML=`<span class="tag bad">Fault active</span><br>${s.fault} on <b>${s.service}</b> (${s.span})<br>segment <b>${s.segment}</b> · deploy ${s.deploy} · +${s.addedLatencyMs}ms`;
-      st.innerHTML='<span class="dot red"></span> degraded';
-    }else{
-      el.innerHTML=`<span class="tag ok">Healthy</span><br>No fault injected. All segments nominal.`;
-      st.innerHTML='<span class="dot"></span> all systems normal';
-    }
+}
+
+// ---- chaos ----
+async function setChaos(active){
+  const r = await fetch("/api/chaos", { method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify(active
+      ? { active:true, fault:"payment_latency", service:"payment-svc", span:"razorpay.charge", segment:"Android / IN", deploy:"#847", addedLatencyMs:400 }
+      : { active:false }) });
+  renderChaos(await r.json());
+}
+function renderChaos(s){
+  const el = document.getElementById("chaosState"), dot = document.getElementById("statusDot"), txt = document.getElementById("statusTxt");
+  if (s.active){
+    el.innerHTML = `<span class="tag bad">Fault active</span><br>${s.fault} on <b>${s.service}</b> (${s.span})<br>segment <b>${s.segment}</b> · deploy ${s.deploy} · +${s.addedLatencyMs}ms`;
+    dot.className = "status-dot red"; txt.textContent = "Service degraded · "+s.segment;
+  } else {
+    el.innerHTML = `<span class="tag ok">Healthy</span><br>No fault injected. All segments nominal.`;
+    dot.className = "status-dot"; txt.textContent = "All systems normal";
   }
-  fetch("/api/chaos").then(r=>r.json()).then(render);
+}
+function onRegion(){ /* region affects checkout segment + telemetry */ pageview("browse"); }
+
+// init
+renderCatalog(); renderCart();
+fetch("/api/chaos").then(r=>r.json()).then(renderChaos);
+pageview("browse");
+document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ closeAll(); closeCheckout(); closeInfo(); }});
 </script>
 </body>
 </html>
