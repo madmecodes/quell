@@ -14,6 +14,22 @@ Built for the Google Cloud Rapid Agent Hackathon, Dynatrace track. Powered by
 Gemini on Google Cloud Agent Builder, with the Dynatrace MCP server as the
 agents' senses and hands.
 
+**The hosted console runs live**: it reads real Dynatrace Grail and reasons with
+real Gemini (graceful fallback to a deterministic path if the tenant is sparse).
+
+- **Five fault scenarios** -- slow payments, checkout errors, catalog slowdown, cart
+  failures, external (Razorpay) outage. The agents *discover* the faulted service from
+  telemetry (a cross-service scan), so each run is a genuinely different diagnosis, not
+  a replayed script.
+- **Autonomous** -- Quell continuously watches Dynatrace and launches the investigation
+  itself the moment it detects an anomaly; you still approve the fix. A manual "Detect"
+  button remains as an override.
+- **Live observability in the console** -- sparkline charts (latency, apdex, revenue,
+  error-budget) streamed from Grail, plus the *exact DQL* each agent ran shown inline.
+- **Real action** -- the approved rollback creates a Dynatrace workflow + event and posts
+  a prevented-incident summary to Slack.
+- **Continuous traffic** -- ShopWave self-generates load so the tenant always has live data.
+
 ## Why Dynatrace is the core, not decoration
 
 Quell acts on truth that exists only in live production telemetry: real users,

@@ -1,48 +1,59 @@
 # Quell - 3 minute demo script
 
-Goal: show a multi-agent system that catches a real user-experience incident,
-prevents it under human control, and improves itself - all observed in Dynatrace.
+Goal: show an autonomous multi-agent system that catches a real user-experience
+incident on live Dynatrace data, prevents it under human control, and improves
+itself - across multiple fault types, with live telemetry on screen.
 
-## Setup (before recording)
-```bash
-./run_all.sh                      # ShopWave :8080, Quell console :8090
-cd shopwave && node traffic.js    # steady real traffic (optional, for live mode)
-```
-Have two tabs open: ShopWave (8080) and the Quell console (8090).
+## Live URLs (record against these)
+- ShopWave store: https://shopwave-908906947513.us-central1.run.app
+- Quell console: https://quell-dashboard-908906947513.us-central1.run.app  (runs live)
+
+The hosted console reads real Grail and reasons with real Gemini. ShopWave
+self-generates continuous traffic, so Dynatrace always has live data.
 
 ## Beat 1 - the problem (0:00-0:30)
-"Teams find out their app is broken from angry users or the cloud bill. Monitoring
-tells you a server is at 200ms; it can't tell you 2,400 real users just abandoned
-checkout because of it. Quell can - and it fixes it before they leave."
+"When an app degrades, you find out from angry users or the cloud bill. Monitoring
+says a server is at 200ms; it can't tell you real shoppers just abandoned checkout
+and how much revenue that costs. Quell can - and it fixes it before they leave."
+Show ShopWave: a real store with live traffic; the console's live Dynatrace charts.
 
-Show ShopWave: a live store, traffic flowing, Dynatrace receiving telemetry.
+## Beat 2 - inject a fault (0:30-0:55)
+On ShopWave, open Operations and pick a scenario (e.g. "Checkout failing -
+payment-svc 5xx") and Inject. As an iOS/US shopper, add to cart and check out -
+the payment visibly hangs ("Payment is taking longer than usual..."), then fails.
+"A bad deploy is failing checkout for iOS users. No human has touched the console."
 
-## Beat 2 - inject the fault (0:30-0:50)
-On ShopWave, click the Chaos Panel: "Inject: slow payment (iOS / US)".
-"A bad deploy just slowed the payment service - but only for Android users in
-India. No alert has fired yet."
-
-## Beat 3 - Quell detects, traces, quantifies (0:50-1:40)
-On the Quell console, click "Detect & prevent incident". Narrate the agents:
-- Watcher: degraded checkout experience, iOS / US, apdex 0.58.
-- Tracer: root cause - payment-svc razorpay.charge span +400ms, deploy #847.
-- Judge: 1,800 users, 2,400 carts, $8,400 at risk, SLA breach in ~1h.
-"Front-end pain, back-end cause, business impact - one chain. Only Dynatrace has
-all three signals."
+## Beat 3 - Quell detects autonomously (0:55-1:40)
+Switch to the console. Within ~15s the banner reads "Anomaly detected - Quell
+launched this investigation autonomously." Narrate the agents streaming in:
+- Watcher: degraded experience, iOS / US.
+- Tracer: discovered the cause across ALL services - payment-svc razorpay.charge,
+  63 failing requests, deploy #894. Expand "the exact DQL Quell ran" - it's a real
+  query against your Grail tenant.
+- Judge: 461 users, $15,541 at risk, error budget burning 30x.
+Point at the live charts spiking. "This isn't a script - it discovered the faulted
+service from real telemetry. Pick a different scenario and it diagnoses a different
+root cause."
 
 ## Beat 4 - human approves, fix applied (1:40-2:10)
-Gate 1 appears. "Quell never touches production on its own."
-Click "Approve rollback". Actuator rolls back #847, notifies ops; Scribe reports:
-"Rescued. 2,400 carts, $8,400 protected." Show the metric recover on ShopWave.
+Gate 1 appears. "Autonomy with oversight - it never touches production without you."
+Click "Approve rollback". The Actuator rolls back #894, and a prevented-incident
+summary posts to Slack (#incidents). Scribe: "Rescued. 365 carts, $12,369 protected."
 
-## Beat 5 - it improves itself (2:10-2:45)
+## Beat 5 - it improves itself (2:10-2:40)
 Gate 2: the Evaluator's scorecard, graded from each agent's own Dynatrace traces.
-"Tracer scored 0.85 - it scanned every service. We approve the lesson."
-Click "Apply approved learning". Run a second incident: Tracer now goes straight
-to the implicated service - 4 tool calls down to 2, score 1.0.
-"The agent learned, with a human in the loop. Two checkpoints: approve the action,
-approve the learning."
+"Tracer used 4 tool calls - inefficient. Approve the lesson." Apply learning, run
+again: Tracer now uses the one-shot cross-service scan - 4 calls down to 2.
+"It learned, with a human in the loop. Two approvals: the fix, and the learning."
 
-## Beat 6 - close (2:45-3:00)
-"Gemini on Agent Builder, the Dynatrace MCP as its senses and hands, observing
-even itself. Quell: the on-call shift where nothing breaks."
+## Beat 6 - close (2:40-3:00)
+"Gemini on Agent Builder, the Dynatrace MCP as its senses and hands, watching - and
+improving - itself. Five fault types, real diagnosis, real revenue, live the whole
+way through. Quell: the on-call shift where nothing breaks."
+
+## Local fully-live run (optional B-roll)
+```bash
+cd shopwave && SELF_TRAFFIC=true node server.js &     # continuous telemetry
+# inject a scenario via the store, then:
+cd agents && QUELL_USE_LIVE_DT=true QUELL_USE_LIVE_LLM=true python3 run_demo.py
+```
