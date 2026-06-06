@@ -75,6 +75,33 @@
   .rcard .nm{font-family:var(--serif); font-size:14px}
   .rcard .rl{font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-top:1px}
 
+  /* live charts */
+  .panel-head{display:flex; align-items:center; justify-content:space-between; margin:30px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--rule2)}
+  .panel-head h3{font-family:var(--serif); font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin:0}
+  .panel-head .dtlink{font-size:12px; color:var(--terra-dk); text-decoration:none; font-weight:600}
+  .panel-head .dtlink:hover{text-decoration:underline}
+  .charts{display:grid; grid-template-columns:repeat(4,1fr); gap:14px}
+  @media(max-width:780px){.charts{grid-template-columns:repeat(2,1fr)}}
+  .chartcard{background:var(--card); border:1px solid var(--rule2); border-radius:13px; padding:12px 14px}
+  .chartcard .cl{font-size:11px; color:var(--muted); letter-spacing:.04em}
+  .chartcard .cv{font-family:var(--mono); font-size:18px; color:var(--terra-dk); margin:2px 0 6px}
+  .chartcard svg{width:100%; height:42px; display:block}
+  .chartcard.alert{border-color:var(--terra); box-shadow:0 4px 14px rgba(138,61,31,.12)}
+
+  /* autonomous banner */
+  .auto-banner{display:none; align-items:center; gap:12px; background:linear-gradient(180deg,#f8ead9,#f4e2cd);
+    border:1px solid var(--terra); border-radius:13px; padding:12px 16px; margin:6px 0 4px; color:var(--terra-dk); font-size:14px}
+  .auto-banner.on{display:flex}
+  .auto-banner b{font-family:var(--serif)}
+  .auto-banner .rad{width:10px;height:10px;border-radius:50%;background:var(--terra);animation:beat 1.3s infinite}
+
+  /* dql viewer */
+  .dql{margin-top:8px}
+  .dql summary{font-size:11px; color:var(--terra-dk); cursor:pointer; letter-spacing:.04em; outline:none}
+  .dql pre{margin:6px 0 0; background:#2b2419; color:#e7dcc4; border-radius:8px; padding:10px 12px; font-family:var(--mono);
+    font-size:11.5px; line-height:1.5; white-space:pre-wrap; overflow-x:auto}
+  .dql .ran{color:#9ec08a}
+
   /* layout */
   .grid{display:grid; grid-template-columns:1fr 300px; gap:30px; align-items:start; margin-top:8px}
   @media(max-width:880px){.grid{grid-template-columns:1fr}}
@@ -193,6 +220,15 @@
     <div class="stat"><div class="v" id="statProtected">$0</div><div class="l">protected this run</div></div>
   </div>
 
+  <div class="auto-banner" id="autoBanner"><span class="rad"></span>
+    <span><b>Anomaly detected.</b> Quell launched this investigation autonomously — you still approve the fix.</span></div>
+
+  <div class="panel-head">
+    <h3>Live telemetry · Dynatrace</h3>
+    <a class="dtlink" id="dtLink" href="#" target="_blank" style="display:none">Open in Dynatrace ↗</a>
+  </div>
+  <div class="charts" id="charts"></div>
+
   <p class="roster-head">The response team</p>
   <div class="roster" id="roster"></div>
 
@@ -290,40 +326,66 @@ function renderRoster(){
 function activate(a){ const r=document.getElementById("r-"+a); if(r)r.classList.add("active"); }
 
 function scrollTimeline(){ const t=document.getElementById("timelineScroll"); if(t) t.scrollTo({top:t.scrollHeight, behavior:"smooth"}); }
-async function start(){
+let renderedId=null;
+function resetTimeline(auto){
   P().innerHTML=""; seen=new Set();
   ORDER.forEach(a=>{const r=document.getElementById("r-"+a); if(r)r.classList.remove("active");});
   document.getElementById("statProtected").textContent="$0";
   document.getElementById("liveTag").classList.add("on");
-  await fetch("/api/start",{method:"POST"});
-  document.getElementById("hint").textContent="dispatching agents…";
+  document.getElementById("autoBanner").classList.toggle("on", !!auto);
+}
+function beginRender(id, auto){
+  if(renderedId===id) return;
+  renderedId=id; resetTimeline(auto);
   if(timer)clearInterval(timer);
   timer=setInterval(poll,600);
 }
+async function start(){            // manual override
+  document.getElementById("autoBanner").classList.remove("on");
+  const r=await(await fetch("/api/start",{method:"POST"})).json();
+  beginRender(r.started, false);
+  document.getElementById("hint").textContent="dispatching agents…";
+}
+// Heartbeat: render whatever incident is active (manual OR autonomous).
+async function heartbeat(){
+  try{
+    const mon=await(await fetch("/api/monitor")).json();
+    if(mon.dynatrace){ const a=document.getElementById("dtLink"); a.href=mon.dynatrace+"/ui/apps/dynatrace.notebooks/"; a.style.display="inline"; }
+    if(mon.autonomous && !mon.active && !document.getElementById("autoBanner").classList.contains("on"))
+      document.getElementById("hint").textContent="Quell is watching ShopWave for anomalies…";
+    const s=await(await fetch("/api/state")).json();
+    if(s && s.id && s.id!==renderedId && ((s.entries&&s.entries.length)||s.pending))
+      beginRender(s.id, s.auto);
+  }catch(e){}
+}
+function esc(t){return (t||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function fmt(s){
   return s
-   .replace(/(payment-svc|catalog-svc|cart-svc)/g,'<span class="mono">$1</span>')
-   .replace(/(razorpay\.charge|#\d+)/g,'<span class="mono">$1</span>')
-   .replace(/(\$[0-9,]+|\d+ (?:users|carts)|[0-9.]+x)/g,'<b>$1</b>');
+   .replace(/([a-z]+-svc)/g,'<span class="mono">$1</span>')
+   .replace(/(razorpay\.\w+|catalog\.query|cart\.add|payment\.init|#\d+)/g,'<span class="mono">$1</span>')
+   .replace(/(\$[0-9,]+|\d+ (?:users|carts)|[0-9.]+x|\d+ms)/g,'<b>$1</b>');
 }
 function renderEntry(e){
   const k="e"+e.step; if(seen.has(k))return; seen.add(k);
   const m=META[e.agent]||{label:e.agent,role:""};
   activate(e.agent);
-  // surface the $ at risk into the stat
   const mm=e.summary.match(/\$[0-9,]+/); if(mm) document.getElementById("statProtected").textContent=mm[0];
+  const dql=(e.data&&e.data.dql)?`<details class="dql"><summary>▸ the exact DQL Quell ran against Dynatrace</summary>`+
+    `<pre><span class="ran">// executed live against your Grail tenant</span>\n${esc(e.data.dql)}</pre></details>`:"";
   P().appendChild(el(`<div class="station done"><div class="node">${emb(e.agent)}</div>
     <div class="card"><div class="role">${m.role}</div><div class="agent">${m.label}</div>
-    <div class="finding">${fmt(e.summary)}</div></div></div>`));
+    <div class="finding">${fmt(e.summary)}</div>${dql}</div></div>`));
 }
 function renderGate1(s){
   if(seen.has("g1"))return; seen.add("g1");
   const impact=(s.entries.find(e=>e.kind==="impact")||{}).summary||"";
+  const rc=(s.entries.find(e=>e.kind==="root_cause")||{}).data||{};
+  const svc=rc.service||"the service", dep=rc.deploy||"the deploy";
   P().appendChild(el(`<div class="station"><div class="node" style="background:var(--terra);color:#f7eede;font-size:20px">!</div>
     <div class="card gate" id="g1"><div class="glabel">Gate 1 · approval required</div>
     <h3>Approve preventive action</h3>
     <div class="finding">${fmt(impact)}</div>
-    <div class="finding" style="margin-top:7px;color:var(--muted)">Proposed: roll back <span class="mono">#847</span> on <span class="mono">payment-svc</span> — reversible, blast radius 1 service.</div>
+    <div class="finding" style="margin-top:7px;color:var(--muted)">Proposed: roll back <span class="mono">${dep}</span> on <span class="mono">${svc}</span> — reversible, blast radius 1 service.</div>
     <div class="row"><button class="btn go" onclick="approveAction(true)">Approve rollback</button>
     <button class="btn" onclick="approveAction(false)">Reject</button></div></div></div>`));
 }
@@ -377,7 +439,43 @@ async function approveLearning(){
   const g=document.getElementById("g2"); if(g)g.querySelector(".row").innerHTML='<span class="s-good">learning applied ✓</span>';
   await fetch("/api/approve-learning",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({agents})});
 }
+// ---- live charts ----
+const CHART_KEYS=[["latency","#b0512c"],["apdex","#5d7150"],["revenue","#a07d2c"],["errors","#8a3d1f"]];
+function sparkline(values, color){
+  const v=values.filter(x=>x!=null);
+  if(!v.length) return `<svg viewBox="0 0 100 42"></svg>`;
+  const min=Math.min(...v), max=Math.max(...v), rng=(max-min)||1;
+  const n=values.length;
+  let d="", started=false;
+  values.forEach((y,i)=>{ if(y==null)return; const x=(i/(n-1))*100; const yy=40-((y-min)/rng)*36;
+    d+=(started?"L":"M")+x.toFixed(1)+" "+yy.toFixed(1)+" "; started=true; });
+  const lastX=100, lastV=values[values.length-1];
+  return `<svg viewBox="0 0 100 42" preserveAspectRatio="none">
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke"/>
+  </svg>`;
+}
+function lastVal(key, values){
+  const v=values.filter(x=>x!=null); const last=v.length?v[v.length-1]:0;
+  if(key==="apdex") return last.toFixed(2);
+  if(key==="revenue") return "$"+Math.round(last).toLocaleString();
+  if(key==="latency") return Math.round(last)+"ms";
+  return Math.round(last);
+}
+function renderCharts(m){
+  const wrap=document.getElementById("charts");
+  wrap.innerHTML=CHART_KEYS.map(([k,c])=>{
+    const s=m[k]; if(!s) return "";
+    const vals=s.values||[];
+    const alert=(k==="latency"&&lastVal(k,vals).replace(/\D/g,"")>300)||(k==="apdex"&&parseFloat(lastVal(k,vals))<0.7)||(k==="errors"&&(vals[vals.length-1]||0)>0);
+    return `<div class="chartcard${alert?' alert':''}"><div class="cl">${s.label}</div>
+      <div class="cv">${lastVal(k,vals)}</div>${sparkline(vals,c)}</div>`;
+  }).join("");
+}
+async function updateCharts(){ try{ renderCharts(await(await fetch("/api/metrics")).json()); }catch(e){} }
+
 renderRoster();
+updateCharts(); setInterval(updateCharts, 4000);
+heartbeat(); setInterval(heartbeat, 2500);
 </script>
 </body>
 </html>
