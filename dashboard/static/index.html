@@ -82,11 +82,39 @@
   .panel-head .dtlink:hover{text-decoration:underline}
   .charts{display:grid; grid-template-columns:repeat(4,1fr); gap:14px}
   @media(max-width:780px){.charts{grid-template-columns:repeat(2,1fr)}}
-  .chartcard{background:var(--card); border:1px solid var(--rule2); border-radius:13px; padding:12px 14px}
+  .chartcard{background:var(--card); border:1px solid var(--rule2); border-radius:13px; padding:12px 14px 8px; position:relative}
   .chartcard .cl{font-size:11px; color:var(--muted); letter-spacing:.04em}
-  .chartcard .cv{font-family:var(--mono); font-size:18px; color:var(--terra-dk); margin:2px 0 6px}
-  .chartcard svg{width:100%; height:42px; display:block}
-  .chartcard.alert{border-color:var(--terra); box-shadow:0 4px 14px rgba(138,61,31,.12)}
+  .chartcard .cv{font-family:var(--mono); font-size:20px; color:var(--terra-dk); margin:2px 0 6px}
+  .chartcard svg{width:100%; height:72px; display:block}
+  .chartcard.alert{border-color:var(--terra); box-shadow:0 6px 18px rgba(138,61,31,.16)}
+  .chartcard.alert .cv{color:var(--terra)}
+  .chartcard .pill{position:absolute; top:12px; right:12px; font-size:9px; letter-spacing:.1em; text-transform:uppercase; font-weight:700; color:var(--terra); background:#f3dccf; padding:2px 7px; border-radius:20px; display:none}
+  .chartcard.alert .pill{display:inline-block}
+
+  /* service topology */
+  .topo{display:flex; align-items:stretch; gap:0; background:var(--card); border:1px solid var(--rule2); border-radius:13px; padding:16px 18px; overflow-x:auto}
+  .tnode{flex:1; min-width:90px; text-align:center; padding:10px 6px; border-radius:11px; border:1px solid transparent; transition:.2s}
+  .tnode .tdot{width:34px;height:34px;border-radius:50%;margin:0 auto 7px;background:#e7eede; border:2px solid var(--sage); display:grid; place-items:center; color:var(--sage); font-size:15px}
+  .tnode .tnm{font-family:var(--serif); font-size:14px}
+  .tnode .tid{font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:1px}
+  .tnode.fault{border-color:var(--terra); background:#f8ead9}
+  .tnode.fault .tdot{background:#f3dccf; border-color:var(--terra); color:var(--terra); animation:beat 1.3s infinite}
+  .tnode.fault .tnm{color:var(--terra-dk)}
+  .tnode.down{opacity:.55}
+  .tarrow{display:flex; align-items:center; color:var(--rule); font-size:18px; padding:0 4px}
+  .tarrow.hot{color:var(--terra)}
+
+  /* impact wall */
+  .impact{display:flex; flex-direction:column; gap:10px}
+  .impact .row{display:flex; align-items:baseline; justify-content:space-between}
+  .impact .row .k{font-size:12.5px; color:var(--ink2)}
+  .impact .row .vv{font-family:var(--serif); font-size:19px; color:var(--terra-dk)}
+  .impact .svc{font-size:11px; color:var(--muted); margin-top:2px}
+  .impact .svc b{color:var(--sage); font-family:var(--mono); font-weight:600}
+
+  /* agent card detail */
+  .card .ameta{display:flex; gap:10px; flex-wrap:wrap; margin:5px 0 0; font-size:11px; color:var(--muted); font-family:var(--mono)}
+  .card .ameta b{color:var(--terra-dk); font-weight:600}
 
   /* autonomous banner */
   .auto-banner{display:none; align-items:center; gap:12px; background:linear-gradient(180deg,#f8ead9,#f4e2cd);
@@ -229,6 +257,9 @@
   </div>
   <div class="charts" id="charts"></div>
 
+  <div class="panel-head"><h3>Service topology · blast radius</h3></div>
+  <div class="topo" id="topo"></div>
+
   <p class="roster-head">The response team</p>
   <div class="roster" id="roster"></div>
 
@@ -243,6 +274,10 @@
       </div>
     </main>
     <aside>
+      <div class="panel">
+        <p class="ptitle">Impact this session</p>
+        <div class="impact" id="impact"><div class="row"><span class="k">No incidents yet — Quell is watching.</span></div></div>
+      </div>
       <div class="panel">
         <p class="ptitle">Monitored app</p>
         <div class="patient">
@@ -353,6 +388,7 @@ async function heartbeat(){
     if(mon.dynatrace){ const a=document.getElementById("dtLink"); a.href=mon.dynatrace+"/ui/apps/dynatrace.notebooks/"; a.style.display="inline"; }
     if(mon.autonomous && !mon.active && !document.getElementById("autoBanner").classList.contains("on"))
       document.getElementById("hint").textContent="Quell is watching ShopWave for anomalies…";
+    if(!mon.active) renderTopology(mon.fault_active ? (mon.fault_span||mon.fault_service) : null);
     const s=await(await fetch("/api/state")).json();
     if(s && s.id && s.id!==renderedId && ((s.entries&&s.entries.length)||s.pending))
       beginRender(s.id, s.auto);
@@ -372,9 +408,13 @@ function renderEntry(e){
   const mm=e.summary.match(/\$[0-9,]+/); if(mm) document.getElementById("statProtected").textContent=mm[0];
   const dql=(e.data&&e.data.dql)?`<details class="dql"><summary>▸ the exact DQL Quell ran against Dynatrace</summary>`+
     `<pre><span class="ran">// executed live against your Grail tenant</span>\n${esc(e.data.dql)}</pre></details>`:"";
+  const tr=(window._traces||{})[e.agent]||{};
+  const meta=(tr.tool_calls!=null)?`<div class="ameta"><span><b>${tr.tool_calls}</b> tool calls</span>`+
+    (tr.latency_ms!=null?`<span><b>${tr.latency_ms}</b>ms</span>`:"")+
+    `<span>via Dynatrace MCP</span></div>`:"";
   P().appendChild(el(`<div class="station done"><div class="node">${emb(e.agent)}</div>
     <div class="card"><div class="role">${m.role}</div><div class="agent">${m.label}</div>
-    <div class="finding">${fmt(e.summary)}</div>${dql}</div></div>`));
+    <div class="finding">${fmt(e.summary)}</div>${meta}${dql}</div></div>`));
 }
 function renderGate1(s){
   if(seen.has("g1"))return; seen.add("g1");
@@ -424,7 +464,10 @@ async function poll(){
   const before=seen.size;
   const s=await(await fetch("/api/state")).json();
   if(!s||!s.id)return;
+  window._traces=s.traces||{};            // tool calls + latency for agent cards
   (s.entries||[]).filter(e=>e.kind!=="evaluation").forEach(renderEntry);
+  const rc=(s.entries||[]).find(e=>e.kind==="root_cause");
+  if(rc&&rc.data&&rc.data.service) renderTopology(rc.data.span||rc.data.service);
   if(s.pending==="action")renderGate1(s);
   if(s.pending==="learning")renderGate2(s);
   if(s.done){renderOutcome(s); document.getElementById("liveTag").classList.remove("on");}
@@ -439,42 +482,82 @@ async function approveLearning(){
   const g=document.getElementById("g2"); if(g)g.querySelector(".row").innerHTML='<span class="s-good">learning applied ✓</span>';
   await fetch("/api/approve-learning",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({agents})});
 }
-// ---- live charts ----
-const CHART_KEYS=[["latency","#b0512c"],["apdex","#5d7150"],["revenue","#a07d2c"],["errors","#8a3d1f"]];
-function sparkline(values, color){
-  const v=values.filter(x=>x!=null);
-  if(!v.length) return `<svg viewBox="0 0 100 42"></svg>`;
-  const min=Math.min(...v), max=Math.max(...v), rng=(max-min)||1;
-  const n=values.length;
-  let d="", started=false;
-  values.forEach((y,i)=>{ if(y==null)return; const x=(i/(n-1))*100; const yy=40-((y-min)/rng)*36;
-    d+=(started?"L":"M")+x.toFixed(1)+" "+yy.toFixed(1)+" "; started=true; });
-  const lastX=100, lastV=values[values.length-1];
-  return `<svg viewBox="0 0 100 42" preserveAspectRatio="none">
-    <path d="${d}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke"/>
+// ---- live area charts (gradient fill + SLO threshold + breach highlight) ----
+const CHART_META={
+  latency:{color:"#b0512c", thr:300, bad:v=>v>300},
+  apdex:  {color:"#5d7150", thr:0.7, bad:v=>v<0.7},
+  revenue:{color:"#a07d2c", thr:null, bad:()=>false},
+  errors: {color:"#8a3d1f", thr:0,   bad:v=>v>0},
+};
+let _chartSeq=0;
+function areaChart(values, color, threshold){
+  const nums=values.map(x=>x==null?null:+x), present=nums.filter(x=>x!=null);
+  if(!present.length) return `<svg viewBox="0 0 100 60" preserveAspectRatio="none"></svg>`;
+  let lo=Math.min(...present), hi=Math.max(...present);
+  if(threshold!=null){ lo=Math.min(lo,threshold); hi=Math.max(hi,threshold); }
+  const rng=(hi-lo)||1, n=nums.length, H=60, pad=6;
+  const X=i=>(i/(Math.max(n-1,1)))*100, Y=y=>H-pad-((y-lo)/rng)*(H-2*pad);
+  let line="", area="", started=false, lastX=0;
+  nums.forEach((y,i)=>{ if(y==null)return; const x=X(i), yy=Y(y);
+    if(!started){ line=`M${x.toFixed(1)} ${yy.toFixed(1)}`; area=`M${x.toFixed(1)} ${H} L${x.toFixed(1)} ${yy.toFixed(1)}`; started=true; }
+    else { line+=` L${x.toFixed(1)} ${yy.toFixed(1)}`; area+=` L${x.toFixed(1)} ${yy.toFixed(1)}`; } lastX=x; });
+  area+=` L${lastX.toFixed(1)} ${H} Z`;
+  const gid="cg"+(_chartSeq++);
+  const thr = threshold!=null ? `<line x1="0" y1="${Y(threshold).toFixed(1)}" x2="100" y2="${Y(threshold).toFixed(1)}" stroke="#b0512c" stroke-width="0.7" stroke-dasharray="3 2" opacity="0.45"/>` : "";
+  return `<svg viewBox="0 0 100 60" preserveAspectRatio="none">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${color}" stop-opacity="0.34"/><stop offset="1" stop-color="${color}" stop-opacity="0.02"/></linearGradient></defs>
+    <path d="${area}" fill="url(#${gid})"/>${thr}
+    <path d="${line}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
   </svg>`;
 }
 function lastVal(key, values){
   const v=values.filter(x=>x!=null); const last=v.length?v[v.length-1]:0;
-  if(key==="apdex") return last.toFixed(2);
+  if(key==="apdex") return (+last).toFixed(2);
   if(key==="revenue") return "$"+Math.round(last).toLocaleString();
   if(key==="latency") return Math.round(last)+"ms";
   return Math.round(last);
 }
 function renderCharts(m){
-  const wrap=document.getElementById("charts");
-  wrap.innerHTML=CHART_KEYS.map(([k,c])=>{
-    const s=m[k]; if(!s) return "";
-    const vals=s.values||[];
-    const alert=(k==="latency"&&lastVal(k,vals).replace(/\D/g,"")>300)||(k==="apdex"&&parseFloat(lastVal(k,vals))<0.7)||(k==="errors"&&(vals[vals.length-1]||0)>0);
-    return `<div class="chartcard${alert?' alert':''}"><div class="cl">${s.label}</div>
-      <div class="cv">${lastVal(k,vals)}</div>${sparkline(vals,c)}</div>`;
+  document.getElementById("charts").innerHTML=["latency","apdex","revenue","errors"].map(k=>{
+    const s=m[k]; if(!s) return ""; const meta=CHART_META[k]; const vals=s.values||[];
+    const last=[...vals].reverse().find(x=>x!=null); const alert=(last!=null)&&meta.bad(+last);
+    return `<div class="chartcard${alert?' alert':''}"><span class="pill">breaching</span>
+      <div class="cl">${s.label}</div><div class="cv">${lastVal(k,vals)}</div>${areaChart(vals, meta.color, meta.thr)}</div>`;
   }).join("");
 }
 async function updateCharts(){ try{ renderCharts(await(await fetch("/api/metrics")).json()); }catch(e){} }
 
-renderRoster();
+// ---- service topology / blast radius ----
+const SERVICES=[["catalog-svc","Catalog"],["cart-svc","Cart"],["payment-svc","Payment"],["razorpay.gateway","Gateway"]];
+function renderTopology(faulted){
+  const f=(faulted||"").toLowerCase();
+  const idx=SERVICES.findIndex(([id])=> f && (f.includes(id.split(".")[0]) || id.toLowerCase()===f));
+  document.getElementById("topo").innerHTML=SERVICES.map(([id,nm],i)=>{
+    const on=idx>=0 && i===idx;
+    const down=idx>=0 && i>idx; // downstream of the fault = blast radius
+    const node=`<div class="tnode${on?' fault':''}${down?' down':''}"><div class="tdot">${on?'!':'✓'}</div>
+      <div class="tnm">${nm}</div><div class="tid">${id}</div></div>`;
+    return node + (i<SERVICES.length-1?`<div class="tarrow${(idx>=0&&i>=idx)?' hot':''}">→</div>`:"");
+  }).join("");
+}
+
+// ---- impact wall ----
+async function updateImpact(){
+  try{
+    const d=await(await fetch("/api/impact")).json();
+    const el=document.getElementById("impact");
+    if(!d.count){ el.innerHTML=`<div class="row"><span class="k">No incidents yet — Quell is watching.</span></div>`; return; }
+    el.innerHTML=`<div class="row"><span class="k">Incidents prevented</span><span class="vv">${d.count}</span></div>
+      <div class="row"><span class="k">Revenue protected</span><span class="vv">$${(d.dollars||0).toLocaleString()}</span></div>
+      <div class="row"><span class="k">Avg time to resolve</span><span class="vv">${d.avg_resolve_s}s</span></div>
+      ${d.services&&d.services.length?`<div class="svc">healed: ${d.services.map(s=>`<b>${s}</b>`).join(" · ")}</div>`:""}`;
+  }catch(e){}
+}
+
+renderRoster(); renderTopology(null);
 updateCharts(); setInterval(updateCharts, 4000);
+updateImpact(); setInterval(updateImpact, 4000);
 heartbeat(); setInterval(heartbeat, 2500);
 </script>
 </body>

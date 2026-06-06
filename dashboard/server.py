@@ -54,8 +54,12 @@ class RunSession:
 
         # Read the live fault state from ShopWave so the demo is genuinely
         # connected: injecting a fault on the store drives what Quell detects.
+        import time as _t
+        self._started = _t.monotonic()
+        self.resolve_s = None
         chaos = self._read_shopwave_chaos()
         mcp = self._choose_backend(chaos)
+        self._mcp = mcp                        # for per-agent traces in the snapshot
         self._orch = Orchestrator(mcp, store)
         threading.Thread(target=self._run, daemon=True).start()
 
@@ -105,6 +109,7 @@ class RunSession:
             return default
 
     def _run(self):
+        import time as _t
         try:
             result = self._orch.handle(self.id, self._gate_action, self._gate_learning)
             # Expose the case file even on the healthy path (no gate reached), so the
@@ -112,6 +117,17 @@ class RunSession:
             self.case = result.case_file
             self.applied_lessons = result.applied_lessons
             self.applied_defs = result.applied_definition_edits
+            # Tally cumulative impact when an incident was actually rescued.
+            rep = self.case.latest("report") if self.case else None
+            if rep and not getattr(self, "_dismissed", False):
+                self.resolve_s = round(_t.monotonic() - self._started, 1)
+                rc = self.case.latest("root_cause")
+                IMPACT["count"] += 1
+                IMPACT["dollars"] += int(rep.data.get("revenue_protected_usd",
+                                          rep.data.get("revenue_protected_inr", 0)) or 0)
+                IMPACT["resolve_total"] += self.resolve_s
+                if rc and rc.data.get("service"):
+                    IMPACT["services"].add(rc.data["service"])
         except Exception:
             import traceback
             self.error = traceback.format_exc()
@@ -143,6 +159,7 @@ class RunSession:
 
     def dismiss(self):
         """End a waiting auto-incident cleanly (its anomaly cleared before approval)."""
+        self._dismissed = True
         self.done = True
         self._action_ok = False
         self._action_event.set()
@@ -159,14 +176,20 @@ class RunSession:
             card = [{"agent": g.agent, "score": g.score, "notes": g.notes,
                      "lesson": g.proposed_lesson, "definition_edit": g.proposed_definition_edit}
                     for g in self.scorecard.grades]
+        traces = {}
+        try:
+            traces = dict(self._mcp.agent_traces)
+        except Exception:
+            pass
         return {"id": self.id, "pending": self.pending, "done": self.done,
-                "auto": self.auto, "backend": self.backend,
+                "auto": self.auto, "backend": self.backend, "traces": traces,
                 "entries": entries, "scorecard": card,
                 "applied_lessons": self.applied_lessons, "applied_defs": self.applied_defs}
 
 
 STORE = LessonStore()
 CURRENT: RunSession | None = None
+IMPACT = {"count": 0, "dollars": 0, "resolve_total": 0.0, "services": set()}
 
 # ---- live metrics for the console charts (cached briefly) -------------------
 _METRICS_CACHE = {"at": 0.0, "data": None}
@@ -190,6 +213,20 @@ def _live_metrics() -> dict:
         data = _synthetic_metrics()
     _METRICS_CACHE.update(at=_t.monotonic(), data=data)
     return data
+
+
+def _store_chaos() -> dict:
+    """Current fault state from ShopWave (source of truth for the trigger + topology)."""
+    import os
+    import urllib.request
+    try:
+        url = os.environ.get("SHOPWAVE_URL")
+        if url:
+            with urllib.request.urlopen(url.rstrip("/") + "/api/chaos", timeout=3) as r:
+                return json.loads(r.read())
+    except Exception:
+        pass
+    return {}
 
 
 def _synthetic_metrics() -> dict:
@@ -253,14 +290,23 @@ class Handler(BaseHTTPRequestHandler):
             self._json(CURRENT.snapshot() if CURRENT else {"id": None})
         elif self.path == "/api/metrics":
             self._json(_live_metrics())
+        elif self.path == "/api/impact":
+            avg = round(IMPACT["resolve_total"] / IMPACT["count"], 1) if IMPACT["count"] else 0
+            self._json({"count": IMPACT["count"], "dollars": IMPACT["dollars"],
+                        "avg_resolve_s": avg, "services": sorted(IMPACT["services"])})
         elif self.path == "/api/monitor":
             import os
+            c = _store_chaos()
             self._json({
                 "autonomous": os.environ.get("QUELL_AUTONOMOUS", "false").lower() == "true",
                 "watching": MONITOR["watching"],
                 "incident": CURRENT.id if CURRENT else None,
                 "active": bool(CURRENT and not CURRENT.done),
                 "dynatrace": os.environ.get("DT_ENVIRONMENT", ""),
+                "fault_active": bool(c.get("active")),
+                "fault_service": c.get("service", ""),
+                "fault_span": c.get("span", ""),
+                "scenario": c.get("scenario", ""),
             })
         elif self.path.startswith("/img/"):
             # serve static assets (agent emblems, hero art) safely from STATIC/img
