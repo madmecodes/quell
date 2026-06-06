@@ -131,6 +131,24 @@ class DynatraceClient:
         healthy = all(s["apdex"] >= 0.7 for s in segs) if segs else True
         return {"healthy": healthy, "segments": segs or [{"segment": "all", "apdex": 1.0}]}
 
+    def is_degraded_now(self, window_min: int = 3, apdex_floor: float = 0.7,
+                        min_samples: int = 12) -> bool:
+        """Strict, SHORT-window anomaly check for the autonomous monitor. Looks only
+        at the last few minutes (so a cleared fault stops looking anomalous quickly)
+        and requires a real, sustained drop with enough samples (so cold-start noise
+        does not trip a false positive)."""
+        try:
+            recs = self.execute_dql(
+                f"fetch bizevents, from:now()-{window_min}m | filter `event.type` == \"page.view\" "
+                "| summarize apdex = avg(apdex), n = count(), by:{segment, journey} "
+                "| sort apdex asc | limit 1")
+        except Exception:
+            return False
+        if not recs:
+            return False
+        r = recs[0]
+        return float(r.get("apdex") or 1.0) < apdex_floor and int(r.get("n") or 0) >= min_samples
+
     def worst_span(self) -> dict:
         """Across ALL services, find the span with the most errors / highest latency.
         This lets Tracer discover the faulted service+span from data instead of

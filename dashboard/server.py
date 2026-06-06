@@ -141,6 +141,14 @@ class RunSession:
         self._learning_approved = set(agents)
         self._learning_event.set()
 
+    def dismiss(self):
+        """End a waiting auto-incident cleanly (its anomaly cleared before approval)."""
+        self.done = True
+        self._action_ok = False
+        self._action_event.set()
+        self._learning_approved = set()
+        self._learning_event.set()
+
     def snapshot(self) -> dict:
         entries = []
         if self.case:
@@ -288,17 +296,16 @@ MONITOR = {"watching": False}
 
 
 def _is_anomalous() -> bool:
-    """True if there is a live degradation worth investigating. Uses real Grail
-    when live; otherwise reads ShopWave's active fault."""
+    """True only if there is a REAL, current degradation. Live mode uses a strict
+    short-window check (so a cleared fault clears within minutes and cold-start
+    noise does not trip it). Mock mode reads ShopWave's active fault (ground truth)."""
     import os
     if os.environ.get("QUELL_USE_LIVE_DT", "false").lower() == "true":
         try:
             from quell.dynatrace.live_client import DynatraceClient
-            rum = DynatraceClient().rum_experience()
-            if not rum.get("healthy", True):
-                return True
+            return DynatraceClient().is_degraded_now()
         except Exception:
-            pass
+            return False
     try:
         import urllib.request
         url = os.environ.get("SHOPWAVE_URL")
@@ -316,13 +323,20 @@ def _monitor_loop():
     MONITOR["watching"] = True
     cooldown_until = 0.0
     while True:
-        _t.sleep(15)
+        _t.sleep(12)
         try:
+            anomalous = _is_anomalous()
             if CURRENT and not CURRENT.done:
-                continue                      # an incident is already in flight
+                # If an auto-incident is waiting for approval but the anomaly has
+                # already cleared, dismiss it so no phantom lingers (false positive).
+                if CURRENT.auto and CURRENT.pending and not anomalous:
+                    CURRENT.dismiss()
+                    CURRENT = None
+                    cooldown_until = _t.monotonic() + 30
+                continue
             if _t.monotonic() < cooldown_until:
                 continue
-            if _is_anomalous():
+            if anomalous:
                 CURRENT = RunSession(STORE, auto=True)   # Quell launches itself
                 cooldown_until = _t.monotonic() + 45
         except Exception:
