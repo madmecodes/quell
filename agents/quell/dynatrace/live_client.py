@@ -44,10 +44,10 @@ def _http(method: str, url: str, headers: dict[str, str], body: bytes | None = N
 
 @dataclass
 class DynatraceClient:
-    environment: str = field(default_factory=lambda: os.environ["DT_ENVIRONMENT"].rstrip("/"))
-    client_id: str = field(default_factory=lambda: os.environ["DT_OAUTH_CLIENT_ID"])
-    client_secret: str = field(default_factory=lambda: os.environ["DT_OAUTH_CLIENT_SECRET"])
-    urn: str = field(default_factory=lambda: os.environ["DT_OAUTH_URN"])
+    environment: str = field(default_factory=lambda: os.environ.get("DT_ENVIRONMENT", "").rstrip("/"))
+    client_id: str = field(default_factory=lambda: os.environ.get("DT_OAUTH_CLIENT_ID", ""))
+    client_secret: str = field(default_factory=lambda: os.environ.get("DT_OAUTH_CLIENT_SECRET", ""))
+    urn: str = field(default_factory=lambda: os.environ.get("DT_OAUTH_URN", ""))
     actions_taken: list[dict] = field(default_factory=list)
     agent_traces: dict = field(default_factory=dict)
     queries: dict = field(default_factory=dict)  # purpose -> exact DQL run (for the console)
