@@ -80,7 +80,15 @@
   @media(max-width:880px){.grid{grid-template-columns:1fr}}
 
   /* timeline */
-  .chart-title{font-family:var(--serif); font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin:0 0 18px; padding-bottom:8px; border-bottom:1px solid var(--rule2)}
+  .chart-title{font-family:var(--serif); font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin:0 0 18px; padding-bottom:8px; border-bottom:1px solid var(--rule2); display:flex; justify-content:space-between; align-items:center}
+  .chart-title .live-tag{font-family:var(--sans); font-size:10px; letter-spacing:.1em; color:var(--terra); opacity:0; transition:.2s}
+  .chart-title .live-tag.on{opacity:1}
+  .timeline-scroll{height:560px; overflow-y:auto; overflow-x:hidden; padding:2px 8px 8px 0; position:relative;
+    -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+    mask-image:linear-gradient(to bottom, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%)}
+  .timeline-scroll::-webkit-scrollbar{width:8px}
+  .timeline-scroll::-webkit-scrollbar-thumb{background:var(--rule); border-radius:4px}
+  .timeline-scroll::-webkit-scrollbar-track{background:transparent}
   .timeline{position:relative; padding-left:54px}
   .timeline::before{content:""; position:absolute; left:21px; top:8px; bottom:8px; width:2px; background:linear-gradient(var(--rule), var(--rule2))}
   .station{position:relative; margin-bottom:16px; opacity:0; transform:translateY(8px); animation:rise .4s forwards}
@@ -190,10 +198,12 @@
 
   <div class="grid">
     <main>
-      <p class="chart-title">Case timeline</p>
-      <div class="timeline" id="pipeline">
-        <div class="station" style="opacity:.6"><div class="node" style="border-color:var(--rule);color:var(--muted);font-size:20px">—</div>
-          <div class="card"><div class="finding" style="color:var(--muted)">Idle. Press <b>Detect &amp; prevent incident</b> to dispatch the agents.</div></div></div>
+      <p class="chart-title">Case timeline <span class="live-tag" id="liveTag">● running</span></p>
+      <div class="timeline-scroll" id="timelineScroll">
+        <div class="timeline" id="pipeline">
+          <div class="station" style="opacity:.6"><div class="node" style="border-color:var(--rule);color:var(--muted);font-size:20px">—</div>
+            <div class="card"><div class="finding" style="color:var(--muted)">Idle. Press <b>Detect &amp; prevent incident</b> to dispatch the agents.</div></div></div>
+        </div>
       </div>
     </main>
     <aside>
@@ -279,10 +289,12 @@ function renderRoster(){
 }
 function activate(a){ const r=document.getElementById("r-"+a); if(r)r.classList.add("active"); }
 
+function scrollTimeline(){ const t=document.getElementById("timelineScroll"); if(t) t.scrollTo({top:t.scrollHeight, behavior:"smooth"}); }
 async function start(){
   P().innerHTML=""; seen=new Set();
   ORDER.forEach(a=>{const r=document.getElementById("r-"+a); if(r)r.classList.remove("active");});
   document.getElementById("statProtected").textContent="$0";
+  document.getElementById("liveTag").classList.add("on");
   await fetch("/api/start",{method:"POST"});
   document.getElementById("hint").textContent="dispatching agents…";
   if(timer)clearInterval(timer);
@@ -347,12 +359,14 @@ function renderOutcome(s){
   if(timer)clearInterval(timer);
 }
 async function poll(){
+  const before=seen.size;
   const s=await(await fetch("/api/state")).json();
   if(!s||!s.id)return;
   (s.entries||[]).filter(e=>e.kind!=="evaluation").forEach(renderEntry);
   if(s.pending==="action")renderGate1(s);
   if(s.pending==="learning")renderGate2(s);
-  if(s.done)renderOutcome(s);
+  if(s.done){renderOutcome(s); document.getElementById("liveTag").classList.remove("on");}
+  if(seen.size>before) scrollTimeline();   // keep newest entry in view
 }
 async function approveAction(ok){
   const g=document.getElementById("g1"); if(g)g.querySelector(".row").innerHTML=ok?'<span class="s-good">approved ✓</span>':'<span style="color:var(--muted)">rejected</span>';
