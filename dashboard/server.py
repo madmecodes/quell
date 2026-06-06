@@ -35,15 +35,17 @@ class RunSession:
 
     _counter = 0
 
-    def __init__(self, store: LessonStore):
+    def __init__(self, store: LessonStore, auto: bool = False):
         RunSession._counter += 1
         self.id = f"INC-{RunSession._counter:03d}"
+        self.auto = auto                       # was this self-launched by the monitor?
         self.case: CaseFile | None = None
         self.scorecard: Scorecard | None = None
         self.pending: str | None = None       # "action" | "learning" | None
         self.done = False
         self.applied_lessons: list[str] = []
         self.applied_defs: list[str] = []
+        self.backend = "mock"
 
         self._action_event = threading.Event()
         self._action_ok = False
@@ -53,9 +55,29 @@ class RunSession:
         # Read the live fault state from ShopWave so the demo is genuinely
         # connected: injecting a fault on the store drives what Quell detects.
         chaos = self._read_shopwave_chaos()
-        # Mock by default; set QUELL_USE_LIVE_DT=true to read real Grail data.
-        self._orch = Orchestrator(make_dynatrace(chaos), store)
+        mcp = self._choose_backend(chaos)
+        self._orch = Orchestrator(mcp, store)
         threading.Thread(target=self._run, daemon=True).start()
+
+    def _choose_backend(self, chaos: ChaosState):
+        """Live when real Grail shows the incident; otherwise fall back to mock so a
+        public run never breaks (sparse trial data / Gemini hiccup)."""
+        import os
+        if os.environ.get("QUELL_USE_LIVE_DT", "false").lower() != "true":
+            return make_dynatrace(chaos)
+        try:
+            from quell.dynatrace.live_client import DynatraceClient
+            client = DynatraceClient()
+            rum = client.rum_experience()
+            if not rum.get("healthy", True):   # live data confirms a degradation
+                self.backend = "live"
+                return client
+        except Exception:
+            pass
+        # Live is healthy/empty or errored; if a fault is known active, use mock.
+        from quell.dynatrace.mock_mcp import MockMCP
+        self.backend = "mock"
+        return MockMCP(chaos=chaos)
 
     @staticmethod
     def _read_shopwave_chaos() -> ChaosState:
@@ -130,12 +152,69 @@ class RunSession:
                      "lesson": g.proposed_lesson, "definition_edit": g.proposed_definition_edit}
                     for g in self.scorecard.grades]
         return {"id": self.id, "pending": self.pending, "done": self.done,
+                "auto": self.auto, "backend": self.backend,
                 "entries": entries, "scorecard": card,
                 "applied_lessons": self.applied_lessons, "applied_defs": self.applied_defs}
 
 
 STORE = LessonStore()
 CURRENT: RunSession | None = None
+
+# ---- live metrics for the console charts (cached briefly) -------------------
+_METRICS_CACHE = {"at": 0.0, "data": None}
+
+
+def _live_metrics() -> dict:
+    """Time-series for the charts. Live Grail when configured; else a synthetic
+    series shaped by the active ShopWave fault so the demo still animates."""
+    import os
+    import time as _t
+    if _METRICS_CACHE["data"] is not None and _t.monotonic() - _METRICS_CACHE["at"] < 4:
+        return _METRICS_CACHE["data"]
+    data = {}
+    if os.environ.get("QUELL_USE_LIVE_DT", "false").lower() == "true":
+        try:
+            from quell.dynatrace.live_client import DynatraceClient
+            data = DynatraceClient().metrics_series()
+        except Exception:
+            data = {}
+    if not data:
+        data = _synthetic_metrics()
+    _METRICS_CACHE.update(at=_t.monotonic(), data=data)
+    return data
+
+
+def _synthetic_metrics() -> dict:
+    """Plausible 20-point series; spikes when a ShopWave fault is active."""
+    import math
+    import os
+    import urllib.request
+    active, lat_label, lat_base, errs = False, "payment-svc latency (ms)", 60, 0
+    try:
+        url = os.environ.get("SHOPWAVE_URL")
+        if url:
+            with urllib.request.urlopen(url.rstrip("/") + "/api/chaos", timeout=3) as r:
+                c = json.loads(r.read())
+            if c.get("active"):
+                active = True
+                lat_label = f"{c.get('service','service')} latency (ms)"
+                lat_base = 60 + int(c.get("addedLatencyMs", 0))
+                errs = 1 if c.get("errorRate") else 0
+    except Exception:
+        pass
+    n = 20
+    def ramp(base, lo):
+        return [round(lo + (base - lo) * (0 if i < 12 else (i - 12) / 7), 1) if active
+                else round(lo + 8 * math.sin(i / 2), 1) for i in range(n)]
+    apdex = [round(0.93 - (0.35 if (active and i >= 12) else 0) * ((i - 12) / 7 if i >= 12 else 0), 2) for i in range(n)]
+    rev = [round(1800 + 400 * math.sin(i / 2)) for i in range(n)]
+    errser = [(int(8 * (i - 12) / 7) if (active and errs and i >= 12) else 0) for i in range(n)]
+    return {
+        "latency": {"label": lat_label, "values": ramp(lat_base, 55)},
+        "apdex": {"label": "apdex (all users)", "values": apdex},
+        "revenue": {"label": "checkout revenue ($/min)", "values": rev},
+        "errors": {"label": "failed requests / min", "values": errser},
+    }
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -164,6 +243,17 @@ class Handler(BaseHTTPRequestHandler):
             self._send(200, (STATIC / "index.html").read_bytes(), "text/html")
         elif self.path == "/api/state":
             self._json(CURRENT.snapshot() if CURRENT else {"id": None})
+        elif self.path == "/api/metrics":
+            self._json(_live_metrics())
+        elif self.path == "/api/monitor":
+            import os
+            self._json({
+                "autonomous": os.environ.get("QUELL_AUTONOMOUS", "false").lower() == "true",
+                "watching": MONITOR["watching"],
+                "incident": CURRENT.id if CURRENT else None,
+                "active": bool(CURRENT and not CURRENT.done),
+                "dynatrace": os.environ.get("DT_ENVIRONMENT", ""),
+            })
         elif self.path.startswith("/img/"):
             # serve static assets (agent emblems, hero art) safely from STATIC/img
             name = Path(self.path).name
@@ -193,9 +283,58 @@ class Handler(BaseHTTPRequestHandler):
             self._send(404, b"not found", "text/plain")
 
 
+# ---- autonomous monitor -----------------------------------------------------
+MONITOR = {"watching": False}
+
+
+def _is_anomalous() -> bool:
+    """True if there is a live degradation worth investigating. Uses real Grail
+    when live; otherwise reads ShopWave's active fault."""
+    import os
+    if os.environ.get("QUELL_USE_LIVE_DT", "false").lower() == "true":
+        try:
+            from quell.dynatrace.live_client import DynatraceClient
+            rum = DynatraceClient().rum_experience()
+            if not rum.get("healthy", True):
+                return True
+        except Exception:
+            pass
+    try:
+        import urllib.request
+        url = os.environ.get("SHOPWAVE_URL")
+        if url:
+            with urllib.request.urlopen(url.rstrip("/") + "/api/chaos", timeout=3) as r:
+                return bool(json.loads(r.read()).get("active"))
+    except Exception:
+        pass
+    return False
+
+
+def _monitor_loop():
+    import time as _t
+    global CURRENT
+    MONITOR["watching"] = True
+    cooldown_until = 0.0
+    while True:
+        _t.sleep(15)
+        try:
+            if CURRENT and not CURRENT.done:
+                continue                      # an incident is already in flight
+            if _t.monotonic() < cooldown_until:
+                continue
+            if _is_anomalous():
+                CURRENT = RunSession(STORE, auto=True)   # Quell launches itself
+                cooldown_until = _t.monotonic() + 45
+        except Exception:
+            pass
+
+
 def main():
     import os
     port = int(os.environ.get("PORT", "8090"))
+    if os.environ.get("QUELL_AUTONOMOUS", "false").lower() == "true":
+        threading.Thread(target=_monitor_loop, daemon=True).start()
+        print("[quell] autonomous monitor enabled")
     print(f"[quell] dashboard on http://0.0.0.0:{port}")
     ThreadingHTTPServer(("0.0.0.0", port), Handler).serve_forever()
 
