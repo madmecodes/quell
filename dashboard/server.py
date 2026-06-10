@@ -30,6 +30,8 @@ from quell.dynatrace.factory import make_dynatrace  # noqa: E402
 from quell.memory import LessonStore  # noqa: E402
 from quell.orchestrator import Orchestrator  # noqa: E402
 
+import state_store  # noqa: E402  (local module, persisted incidents + audit)
+
 STATIC = Path(__file__).parent / "static"
 
 
@@ -144,15 +146,60 @@ class RunSession:
                 IMPACT["resolve_total"] += self.resolve_s
                 if rc and rc.data.get("service"):
                     IMPACT["services"].add(rc.data["service"])
+                service = rc.data.get("service", "") if rc else ""
+                span = rc.data.get("span", "") if rc else ""
+                segment = rc.data.get("segment", "") if rc else ""
                 HISTORY.append({
                     "id": self.id,
                     "scenario": self._scenario,
-                    "service": rc.data.get("service", "") if rc else "",
+                    "service": service,
                     "dollars": dollars,
                     "resolve_s": self.resolve_s,
                     "when": datetime.now().strftime("%H:%M:%S"),
                     "outcome": "prevented",
                 })
+                # Persist a full incident record (entries + scorecard) so the
+                # Incidents / Audit surfaces survive restarts and are replayable.
+                try:
+                    traces = {}
+                    try:
+                        traces = dict(self._mcp.agent_traces)
+                    except Exception:
+                        pass
+                    tool_calls_total = sum(int(t.get("tool_calls", 0) or 0)
+                                           for t in traces.values())
+                    entries = []
+                    for e in self.case.entries():
+                        item = {"agent": e.agent, "kind": e.kind,
+                                "role": e.kind, "summary": e.summary}
+                        if isinstance(e.data, dict) and e.data.get("dql"):
+                            item["dql"] = e.data["dql"]
+                        entries.append(item)
+                    scorecard = []
+                    if self.scorecard:
+                        scorecard = [{"agent": g.agent, "score": g.score,
+                                      "notes": g.notes, "lesson": g.proposed_lesson}
+                                     for g in self.scorecard.grades]
+                    state_store.add_incident({
+                        "id": self.id,
+                        "scenario": self._scenario,
+                        "service": service,
+                        "span": span,
+                        "segment": segment,
+                        "dollars": dollars,
+                        "resolve_s": self.resolve_s,
+                        "when": datetime.now().isoformat(timespec="seconds"),
+                        "outcome": "prevented",
+                        "backend": self.backend,
+                        "tool_calls_total": tool_calls_total,
+                        "agents": 6,
+                        "root_cause": (rc.summary if rc else "") or "",
+                        "entries": entries,
+                        "scorecard": scorecard,
+                        "traces": traces,
+                    })
+                except Exception:
+                    pass
                 log_activity(f"Rescued - ${dollars} protected")
         except Exception:
             import traceback
@@ -239,8 +286,32 @@ ACTIVITY: deque = deque(maxlen=40)
 HISTORY: deque = deque(maxlen=20)
 
 
+def _infer_audit_type(text: str) -> str:
+    low = text.lower()
+    if "anomaly detected" in low or "started" in low:
+        return "detect"
+    if "dismissed" in low:
+        return "dismiss"
+    if "rescued" in low:
+        return "rescue"
+    if "watching" in low:
+        return "watch"
+    if "approved" in low or "approve" in low:
+        return "approve"
+    if ":" in text:  # "Watcher: ...", agent replay lines
+        return "agent"
+    return "watch"
+
+
 def log_activity(text: str) -> None:
     ACTIVITY.append({"t": datetime.now().strftime("%H:%M:%S"), "text": text})
+    try:
+        inc = CURRENT.id if CURRENT else None
+        state_store.add_audit({"t": datetime.now().isoformat(timespec="seconds"),
+                               "type": _infer_audit_type(text), "text": text,
+                               "incident": inc})
+    except Exception:
+        pass
 
 # ---- live metrics for the console charts (cached briefly) -------------------
 _METRICS_CACHE = {"at": 0.0, "data": None}
@@ -280,12 +351,27 @@ def _store_chaos() -> dict:
     return {}
 
 
+ERROR_SCENARIOS = {"checkout_errors", "cart_failures", "third_party_outage"}
+
+
 def _synthetic_metrics() -> dict:
-    """Plausible 20-point series; spikes when a ShopWave fault is active."""
+    """One fault model -> all series mutually consistent.
+
+    Every series is derived from the SAME active fault so latency-up coincides with
+    apdex-down and revenue-down in the same window (judges spot incoherence).
+      - latency scenario: latency UP, apdex DOWN (~0.55-0.62), revenue dip ~25-35%,
+        errors ~0, throughput slight dip.
+      - error scenario: errors UP, apdex DOWN, revenue dip MORE (~35-50%),
+        latency mild rise, throughput dip.
+      - no fault: everything low/flat/steady.
+    """
     import math
     import os
     import urllib.request
-    active, lat_label, lat_base, errs = False, "payment-svc latency (ms)", 60, 0
+    active = False
+    service = "payment-svc"
+    scenario = ""
+    added_latency = 0
     try:
         url = os.environ.get("SHOPWAVE_URL")
         if url:
@@ -293,23 +379,234 @@ def _synthetic_metrics() -> dict:
                 c = json.loads(r.read())
             if c.get("active"):
                 active = True
-                lat_label = f"{c.get('service','service')} latency (ms)"
-                lat_base = 60 + int(c.get("addedLatencyMs", 0))
-                errs = 1 if c.get("errorRate") else 0
+                service = c.get("service", "service")
+                scenario = c.get("scenario") or c.get("fault", "")
+                added_latency = int(c.get("addedLatencyMs", 0) or 0)
     except Exception:
         pass
+
     n = 20
-    def ramp(base, lo):
-        return [round(lo + (base - lo) * (0 if i < 12 else (i - 12) / 7), 1) if active
-                else round(lo + 8 * math.sin(i / 2), 1) for i in range(n)]
-    apdex = [round(0.93 - (0.35 if (active and i >= 12) else 0) * ((i - 12) / 7 if i >= 12 else 0), 2) for i in range(n)]
-    rev = [round(1800 + 400 * math.sin(i / 2)) for i in range(n)]
-    errser = [(int(8 * (i - 12) / 7) if (active and errs and i >= 12) else 0) for i in range(n)]
+    fault_start = 12  # fault begins ramping at point 12
+
+    def progress(i):
+        """0 before the fault, ramping 0->1 across the tail of the window."""
+        if not active or i < fault_start:
+            return 0.0
+        return (i - fault_start) / (n - 1 - fault_start)
+
+    is_error = scenario in ERROR_SCENARIOS
+
+    # ---- latency ----
+    lat_lo = 60
+    if active and is_error:
+        lat_peak = lat_lo + 90          # mild rise under an error fault
+    elif active:
+        lat_peak = lat_lo + max(120, added_latency)   # full ramp for latency faults
+    else:
+        lat_peak = lat_lo
+    latency = [round(lat_lo + (lat_peak - lat_lo) * progress(i)
+                     + (4 * math.sin(i / 2) if not active else 0), 1) for i in range(n)]
+
+    # ---- apdex (down to ~0.55-0.62 under any fault) ----
+    apdex_lo = 0.58 if is_error else 0.60
+    apdex = [round(0.94 - (0.94 - apdex_lo) * progress(i)
+                   + (0.0 if active else 0.0), 2) for i in range(n)]
+    if not active:
+        apdex = [round(0.93 + 0.012 * math.sin(i / 3), 2) for i in range(n)]
+
+    # ---- revenue (steady ~1800; error faults dip more than latency faults) ----
+    rev_base = 1800
+    rev_dip = 0.42 if is_error else 0.30   # fraction of revenue lost at fault peak
+    revenue = [round(rev_base * (1 - rev_dip * progress(i))
+                     + (120 * math.sin(i / 2) if not active else 60 * math.sin(i / 2)))
+               for i in range(n)]
+
+    # ---- errors (only ramps for error scenarios) ----
+    if active and is_error:
+        errors = [int(round(14 * progress(i))) for i in range(n)]
+    else:
+        errors = [0 for _ in range(n)]
+
+    # ---- throughput (steady 900-1300, dips under fault) ----
+    tp_base = 1180
+    tp_dip = 0.22 if is_error else 0.14
+    throughput = [int(round(tp_base * (1 - tp_dip * progress(i))
+                            + 60 * math.sin(i / 2.5)))
+                  for i in range(n)]
+
+    lat_label = f"{service} latency (ms)" if active else "payment-svc latency (ms)"
     return {
-        "latency": {"label": lat_label, "values": ramp(lat_base, 55)},
+        "latency": {"label": lat_label, "values": latency},
         "apdex": {"label": "apdex (all users)", "values": apdex},
-        "revenue": {"label": "checkout revenue ($/min)", "values": rev},
-        "errors": {"label": "failed requests / min", "values": errser},
+        "revenue": {"label": "checkout revenue ($/min)", "values": revenue},
+        "errors": {"label": "failed requests / min", "values": errors},
+        "throughput": {"label": "requests / min", "values": throughput},
+    }
+
+
+# ---- DQL catalog (the real strings each agent runs) -------------------------
+
+def _dql_catalog() -> list:
+    """The exact DQL each step would run, sourced from the real query strings in
+    live_client / mock_mcp so the console shows 'the query Quell ran' for real."""
+    rum = ('fetch bizevents, from:now()-30m | filter `event.type` == "page.view" '
+           "| summarize apdex = avg(apdex), rage = sum(rage_clicks), conversion = avg(conversion), "
+           "by:{segment, journey} | sort apdex asc")
+    spans = ("fetch spans, from:now()-30m | filter isNotNull(`shop.service`) "
+             "| summarize avg_ms = avg(duration)/1000000, errors = countIf(outcome == \"error\"), "
+             "total = count(), deploy = takeAny(`deploy.version`), by:{`shop.service`, `span.name`} "
+             "| sort errors desc, avg_ms desc | limit 10")
+    impact = ('fetch bizevents, from:now()-30m | filter `event.type` == "checkout.started" '
+              "| summarize users = countDistinct(user_id), carts = count(), revenue = sum(cart_value_usd)")
+    forecast = ('fetch spans, from:now()-30m | filter `shop.service` == "payment-svc" '
+                'and `span.name` == "razorpay.charge" '
+                "| summarize total = count(), bad = countIf(duration > 200ms or outcome == \"error\")")
+    traces = ('fetch spans, from:now()-30m | filter isNotNull(incident_id) '
+              "| summarize tool_calls = count(), latency_ms = sum(duration)/1000000, by:{agent}")
+    return [
+        {"step": 1, "agent": "watcher", "dql": rum},
+        {"step": 2, "agent": "tracer", "dql": spans},
+        {"step": 3, "agent": "judge", "dql": impact},
+        {"step": 3, "agent": "judge", "dql": forecast},
+        {"step": 4, "agent": "actuator", "dql": forecast},
+        {"step": 5, "agent": "scribe", "dql": rum},
+        {"step": 6, "agent": "evaluator", "dql": traces},
+    ]
+
+
+def _agent_registry() -> list:
+    """The 6 agents, in order, with their role, tools, representative DQL and the
+    last-run stats from the most recent incident (traces + scorecard) if present."""
+    cat = {c["agent"]: c["dql"] for c in _dql_catalog()}
+    incidents = state_store.all_incidents()
+    latest = incidents[0] if incidents else None
+    last_traces = (latest or {}).get("traces", {}) if latest else {}
+    last_card = {g["agent"].lower(): g for g in (latest or {}).get("scorecard", [])} if latest else {}
+    total_runs = len(incidents)
+
+    def last_run(key, label):
+        tr = None
+        for k, v in (last_traces or {}).items():
+            if k.lower() == key or k.lower() == label.lower():
+                tr = v
+                break
+        grade = last_card.get(key) or last_card.get(label.lower())
+        if not tr and not grade:
+            return None
+        return {
+            "tool_calls": (tr or {}).get("tool_calls") if tr else None,
+            "latency_ms": (tr or {}).get("latency_ms") if tr else None,
+            "score": grade.get("score") if grade else None,
+            "decision": (tr or {}).get("decision") if tr else None,
+        }
+
+    defs = [
+        {"key": "watcher", "label": "Watcher", "role": "Detection",
+         "blurb": "Watches real-user experience by segment and journey. Flags the first "
+                  "degraded cohort before it shows up in aggregate dashboards.",
+         "tools": [{"name": "execute_dql", "desc": "RUM experience by segment (apdex, rage clicks)"},
+                   {"name": "list_problems", "desc": "Active Davis problems on the tenant"}]},
+        {"key": "tracer", "label": "Tracer", "role": "Root cause",
+         "blurb": "Finds the worst span across ALL services from data -- never assuming a "
+                  "service -- and ties it to the deploy that introduced the regression.",
+         "tools": [{"name": "execute_dql", "desc": "Worst span across services (errors, latency, deploy)"},
+                   {"name": "list_exceptions", "desc": "Failing spans for a service"}]},
+        {"key": "judge", "label": "Judge", "role": "Business impact",
+         "blurb": "Quantifies users, carts and revenue at risk, then forecasts when the "
+                  "error budget breaches at the current burn rate.",
+         "tools": [{"name": "execute_dql", "desc": "Business impact (users, carts, revenue)"},
+                   {"name": "davis_forecast", "desc": "Error-budget burn + breach ETA"}]},
+        {"key": "actuator", "label": "Actuator", "role": "Action",
+         "blurb": "Proposes a reversible mitigation and routes it for human approval, "
+                  "then notifies the on-call channel and emits a Dynatrace event.",
+         "tools": [{"name": "create_workflow_for_notification", "desc": "Recommend reversible action"},
+                   {"name": "send_slack_message", "desc": "Notify on-call channel"},
+                   {"name": "send_event", "desc": "Emit Dynatrace custom event"}]},
+        {"key": "scribe", "label": "Scribe", "role": "Record",
+         "blurb": "Writes the incident notebook -- timeline, exact DQL, root cause and "
+                  "remediation -- as a durable, shareable Dynatrace document.",
+         "tools": [{"name": "create_dynatrace_notebook", "desc": "Author incident notebook"},
+                   {"name": "send_event", "desc": "Emit Dynatrace custom event"}]},
+        {"key": "evaluator", "label": "Evaluator", "role": "Self-improvement",
+         "blurb": "Grades every agent on its own run from the traces and proposes "
+                  "lessons or definition edits for the next incident.",
+         "tools": [{"name": "get_agent_traces", "desc": "Per-agent tool calls + latency for the run"}]},
+    ]
+    out = []
+    for d in defs:
+        d = dict(d)
+        d["dql_template"] = cat.get(d["key"], "")
+        d["last_run"] = last_run(d["key"], d["label"])
+        d["total_runs"] = total_runs
+        out.append(d)
+    return out
+
+
+def _telemetry() -> dict:
+    """Metrics bundle + an SLO summary derived from the SAME active fault, plus the
+    real DQL catalog."""
+    import os
+    series = _live_metrics()
+    c = _store_chaos()
+    active = bool(c.get("active"))
+    service = c.get("service", "payment-svc") if active else "payment-svc"
+    scenario = (c.get("scenario") or c.get("fault", "")) if active else ""
+    added_latency = int(c.get("addedLatencyMs", 0) or 0)
+    is_error = scenario in ERROR_SCENARIOS
+    target_ms = 200
+    # current latency = last point of the latency series (coherent with charts).
+    lat_vals = [v for v in series.get("latency", {}).get("values", []) if v is not None]
+    current_ms = round(lat_vals[-1]) if lat_vals else 60
+    if active:
+        bad_rate = 0.06 if is_error else (0.04 if added_latency >= target_ms else 0.01)
+    else:
+        bad_rate = 0.001
+    budget = 0.005
+    burn_multiple = round(bad_rate / budget, 1)
+    error_budget_pct = round(max(0.0, 100.0 * (1 - bad_rate / budget)), 1) if bad_rate < budget else 0.0
+    if bad_rate <= budget:
+        breach_eta = None
+    else:
+        eta_h = 168 * budget / bad_rate
+        breach_eta = (f"~{max(1, int(eta_h*60))}m" if eta_h < 1
+                      else (f"~{eta_h:.1f}h" if eta_h < 48 else f"~{eta_h/24:.1f}d"))
+    return {
+        "series": series,
+        "slo": {
+            "service": service,
+            "target_ms": target_ms,
+            "current_ms": current_ms,
+            "error_budget_pct": error_budget_pct,
+            "burn_multiple": burn_multiple,
+            "breach_eta": breach_eta,
+        },
+        "dql_catalog": _dql_catalog(),
+    }
+
+
+def _config() -> dict:
+    import os
+
+    def truthy(name):
+        return os.environ.get(name, "false").lower() == "true"
+
+    use_live_dt = truthy("QUELL_USE_LIVE_DT")
+    slack_configured = any(k.startswith("SLACK_") and os.environ.get(k)
+                           for k in os.environ)
+    return {
+        "dynatrace_tenant": os.environ.get("DT_ENVIRONMENT", ""),
+        "model_worker": os.environ.get("QUELL_WORKER_MODEL", "gemini-2.5-pro"),
+        "model_evaluator": os.environ.get("QUELL_EVALUATOR_MODEL", "gemini-2.5-flash"),
+        "autonomous": truthy("QUELL_AUTONOMOUS"),
+        "use_live_dt": use_live_dt,
+        "use_live_llm": truthy("QUELL_USE_LIVE_LLM"),
+        "use_mcp": truthy("QUELL_USE_MCP"),
+        "backend_mode": "live" if use_live_dt else "mock",
+        "channels": {"slack": bool(slack_configured), "dynatrace": True},
+        "thresholds": {"apdex": 0.7, "burn_multiple": 10},
+        "services_monitored": ["catalog-svc", "cart-svc", "payment-svc", "razorpay.gateway"],
+        "gcp_project": os.environ.get("QUELL_GCP_PROJECT", ""),
+        "region": "us-central1",
     }
 
 
@@ -349,6 +646,23 @@ class Handler(BaseHTTPRequestHandler):
             self._json({"events": list(reversed(ACTIVITY))[:15]})
         elif self.path == "/api/history":
             self._json({"incidents": list(reversed(HISTORY))[:10]})
+        elif self.path == "/api/incidents":
+            self._json({"incidents": state_store.all_incidents()})
+        elif self.path.startswith("/api/incidents/"):
+            iid = self.path[len("/api/incidents/"):].split("?")[0].strip("/")
+            inc = state_store.get_incident(iid)
+            if inc:
+                self._json(inc)
+            else:
+                self._json({"error": "not found"}, code=404)
+        elif self.path == "/api/agents":
+            self._json({"agents": _agent_registry()})
+        elif self.path == "/api/telemetry":
+            self._json(_telemetry())
+        elif self.path == "/api/config":
+            self._json(_config())
+        elif self.path == "/api/audit":
+            self._json({"events": state_store.all_audit(limit=200)})
         elif self.path == "/api/monitor":
             import os
             c = _store_chaos()

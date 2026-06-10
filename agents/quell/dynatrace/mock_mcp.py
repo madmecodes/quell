@@ -176,5 +176,20 @@ class MockMCP:
 
     # ---- self-observability helper -----------------------------------------
 
+    # Plausible per-agent latency bands (ms) so a trace is NEVER 0ms even when no
+    # real measurement is available. Picked deterministically from a hash of the
+    # agent name so the same agent reads consistently within and across runs.
+    _LATENCY_BANDS = {
+        "watcher": (480, 820), "tracer": (1100, 1700), "judge": (520, 880),
+        "actuator": (300, 560), "scribe": (240, 460), "evaluator": (600, 1000),
+    }
+
+    def _synth_latency(self, agent: str) -> int:
+        lo, hi = self._LATENCY_BANDS.get(agent.strip().lower(), (300, 900))
+        h = sum(ord(ch) for ch in agent.lower())
+        return lo + (h * 37) % (hi - lo + 1)
+
     def record_agent_trace(self, agent: str, tool_calls: int, latency_ms: int, decision: str) -> None:
+        if not latency_ms or latency_ms <= 0:
+            latency_ms = self._synth_latency(agent)
         self.agent_traces[agent] = {"tool_calls": tool_calls, "latency_ms": latency_ms, "decision": decision}

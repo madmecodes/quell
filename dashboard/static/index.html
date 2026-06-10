@@ -20,29 +20,77 @@
     background-image:radial-gradient(120% 80% at 50% -10%, #f3ecda 0%, var(--paper) 60%); min-height:100vh}
   body::before{content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.5;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E")}
-  .wrap{position:relative; z-index:1; max-width:1140px; margin:0 auto; padding:0 26px 60px}
 
-  /* masthead */
-  .masthead{display:flex; align-items:center; justify-content:space-between; padding:20px 4px 16px; border-bottom:1px solid var(--rule)}
-  .brand{display:flex; align-items:center; gap:14px}
-  .mark{width:44px; height:44px; border-radius:12px; background:linear-gradient(150deg,var(--terra),var(--terra-dk));
-    display:grid; place-items:center; box-shadow:0 6px 16px rgba(138,61,31,.28); position:relative}
-  .mark::after{content:"Q"; color:#f7eede; font-family:var(--serif); font-size:25px; font-weight:700; line-height:1}
-  .brand h1{font-family:var(--serif); font-size:26px; margin:0; letter-spacing:.2px}
-  .brand .tagline{font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--muted); margin-top:2px}
-  .mhead-right{display:flex; align-items:center; gap:16px}
-  .statuspill{display:flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink2)}
+  /* ===== app shell: sidenav + content ===== */
+  .app{display:grid; grid-template-columns:236px 1fr; min-height:100vh; position:relative; z-index:1}
+  .sidenav{position:sticky; top:0; height:100vh; background:linear-gradient(180deg,#efe6d3,#e7dcc4);
+    border-right:1px solid var(--rule); padding:22px 15px 18px; display:flex; flex-direction:column; gap:3px; z-index:30}
+  .sidenav .brand{display:flex; align-items:center; gap:12px; padding:2px 8px 18px; margin-bottom:6px; border-bottom:1px solid var(--rule2)}
+  .mark{width:40px; height:40px; border-radius:11px; background:linear-gradient(150deg,var(--terra),var(--terra-dk));
+    display:grid; place-items:center; box-shadow:0 6px 16px rgba(138,61,31,.28); position:relative; flex:none}
+  .mark::after{content:"Q"; color:#f7eede; font-family:var(--serif); font-size:23px; font-weight:700; line-height:1}
+  .brand h1{font-family:var(--serif); font-size:23px; margin:0; letter-spacing:.2px}
+  .brand .tagline{font-size:9.5px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-top:1px}
+  .navsec{font-size:9.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin:14px 10px 5px}
+  .navitem{display:flex; align-items:center; gap:11px; padding:9px 12px; border-radius:10px; color:var(--ink2);
+    cursor:pointer; font-size:14px; font-weight:500; text-decoration:none; transition:.14s; position:relative}
+  .navitem:hover{background:rgba(176,81,44,.09); color:var(--ink)}
+  .navitem.active{background:var(--terra); color:#f8efe2; box-shadow:0 6px 16px rgba(138,61,31,.22)}
+  .navitem svg{width:18px; height:18px; stroke:var(--ink2); stroke-width:1.7; fill:none; flex:none; transition:.14s}
+  .navitem:hover svg{stroke:var(--terra-dk)}
+  .navitem.active svg{stroke:#f8efe2}
+  .navitem .badge{margin-left:auto; font-family:var(--mono); font-size:10px; background:#e7dcc2; color:var(--terra-dk);
+    padding:0 6px; border-radius:9px; line-height:17px; min-width:18px; text-align:center}
+  .navitem.active .badge{background:rgba(255,255,255,.22); color:#f8efe2}
+  .navitem .live-dot{margin-left:auto; width:8px; height:8px; border-radius:50%; background:var(--terra); animation:beat 1.3s infinite; display:none}
+  .navitem.has-live .live-dot{display:block}
+  .sidefoot{margin-top:auto; border-top:1px solid var(--rule2); padding-top:14px; padding-left:6px}
+  .sidefoot .sf-status{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--ink2); font-weight:500}
+  .sidefoot .sf-status i{width:9px; height:9px; border-radius:50%; background:var(--sage); animation:beat 2s infinite; flex:none}
+  .sidefoot .sf-status.warn i{background:var(--terra); animation:beat 1.3s infinite}
+  .sidefoot .sf-sub{font-size:10.5px; color:var(--muted); margin-top:6px; font-family:var(--mono); word-break:break-all; line-height:1.4}
+
+  .content{min-width:0; position:relative}
+  .topbar{position:sticky; top:0; z-index:25; display:flex; align-items:center; justify-content:space-between;
+    padding:13px 30px; background:rgba(237,228,209,.82); backdrop-filter:blur(9px); border-bottom:1px solid var(--rule)}
+  .topbar .tb-l{display:flex; align-items:center; gap:13px}
+  .topbar .tb-crumb{font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted)}
+  .topbar .tb-title{font-family:var(--serif); font-size:18px; line-height:1}
+  .mhead-right{display:flex; align-items:center; gap:15px}
+  .statuspill{display:flex; align-items:center; gap:8px; font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink2)}
   .beat{width:9px; height:9px; border-radius:50%; background:var(--sage); animation:beat 2s infinite}
+  .statuspill.warn .beat{background:var(--terra); animation:beat 1.3s infinite}
   @keyframes beat{0%{box-shadow:0 0 0 0 rgba(93,113,80,.45)}70%{box-shadow:0 0 0 8px rgba(93,113,80,0)}100%{box-shadow:0 0 0 0 rgba(93,113,80,0)}}
   .infob{width:32px; height:32px; border-radius:50%; border:1px solid var(--rule); background:var(--paper2);
     color:var(--terra); font-family:var(--serif); font-style:italic; font-size:17px; cursor:pointer; display:grid; place-items:center}
   .infob:hover{background:#efe4cd}
 
+  .view{display:none; padding:24px 30px 70px; max-width:1200px}
+  .view.active{display:block; animation:fade .25s}
+  @keyframes fade{from{opacity:0; transform:translateY(4px)}to{opacity:1; transform:none}}
+  .page-head{margin:2px 0 20px}
+  .page-head h2{font-family:var(--serif); font-size:29px; margin:0; letter-spacing:-.2px}
+  .page-head p{color:var(--ink2); margin:6px 0 0; font-size:14.5px; max-width:680px}
+  .page-head .ph-row{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap}
+
+  @media(max-width:880px){
+    .app{grid-template-columns:1fr}
+    .sidenav{position:sticky; height:auto; flex-direction:row; align-items:center; gap:4px; padding:10px 12px; overflow-x:auto; flex-wrap:nowrap}
+    .sidenav .brand{border:none; padding:0 10px 0 2px; margin:0; flex:none}
+    .sidenav .brand .tagline{display:none}
+    .navsec,.sidefoot{display:none}
+    .navitem{padding:8px 11px; flex:none}
+    .navitem .nlabel{display:none}
+    .navitem .badge,.navitem .live-dot{display:none}
+    .navitem.active .nlabel{display:inline}
+    .view{padding:20px 18px 60px}
+  }
+
   /* hero */
-  .hero{display:grid; grid-template-columns:1.15fr .85fr; gap:34px; align-items:center; padding:40px 0 26px}
-  @media(max-width:860px){.hero{grid-template-columns:1fr}.hero-art{display:none}}
+  .hero{display:grid; grid-template-columns:1.15fr .85fr; gap:34px; align-items:center; padding:6px 0 26px}
+  @media(max-width:980px){.hero{grid-template-columns:1fr}.hero-art{display:none}}
   .kicker{font-size:11px; letter-spacing:.32em; text-transform:uppercase; color:var(--terra); font-weight:600}
-  .hero h2{font-family:var(--serif); font-size:44px; line-height:1.05; margin:14px 0 12px; letter-spacing:-.4px}
+  .hero h2{font-family:var(--serif); font-size:42px; line-height:1.05; margin:14px 0 12px; letter-spacing:-.4px}
   .hero h2 em{font-style:italic; color:var(--terra-dk)}
   .hero p{font-size:16px; color:var(--ink2); margin:0 0 24px; max-width:540px}
   .cta-row{display:flex; align-items:center; gap:18px; flex-wrap:wrap}
@@ -51,6 +99,7 @@
   .btn.primary{background:var(--terra); border-color:var(--terra); color:#f8efe2; box-shadow:0 8px 22px rgba(138,61,31,.25)}
   .btn.primary:hover{background:var(--terra-dk)}
   .btn.go{background:#163020; border-color:#2c5a3b; color:#bfe6cb}
+  .btn.sm{padding:9px 15px; font-size:13px; border-radius:10px}
   .linklike{background:none; border:none; color:var(--terra-dk); font-weight:600; cursor:pointer; text-decoration:underline; text-underline-offset:3px; font-size:14px; padding:0}
   .hint{color:var(--muted); font-size:13.5px}
   .hero-art{border-radius:18px; overflow:hidden; box-shadow:0 16px 40px rgba(120,80,40,.2); border:1px solid var(--rule); aspect-ratio:3/2; background:#e3d4b6}
@@ -82,6 +131,7 @@
 
   /* live charts */
   .panel-head{display:flex; align-items:center; justify-content:space-between; margin:30px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--rule2)}
+  .panel-head:first-child{margin-top:6px}
   .panel-head h3{font-family:var(--serif); font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin:0}
   .panel-head .dtlink{font-size:12px; color:var(--terra-dk); text-decoration:none; font-weight:600}
   .panel-head .dtlink:hover{text-decoration:underline}
@@ -145,9 +195,10 @@
   .ticker .row .tx em{color:#e8a878; font-style:normal}
   .ticker .empty{padding:14px 16px; font-family:var(--mono); font-size:12px; color:#8a7c61}
 
-  /* incident history feed */
+  /* incident history feed (aside) */
   .history{display:flex; flex-direction:column; gap:0}
-  .hrow{display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--rule2)}
+  .hrow{display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--rule2); cursor:pointer; border-radius:8px; transition:.12s}
+  .hrow:hover{background:#f1e8d6}
   .hrow:last-child{border-bottom:none}
   .hrow .hic{width:26px; height:26px; border-radius:50%; background:#e9efe0; border:1.5px solid var(--sage);
     display:grid; place-items:center; color:var(--sage); font-size:13px; flex:none}
@@ -181,10 +232,13 @@
   .impact .row .vv{font-family:var(--serif); font-size:19px; color:var(--terra-dk)}
   .impact .svc{font-size:11px; color:var(--muted); margin-top:2px}
   .impact .svc b{color:var(--sage); font-family:var(--mono); font-weight:600}
+  .impact .inflight{display:flex; align-items:center; gap:9px; font-size:13px; color:var(--terra-dk); font-weight:500}
+  .impact .inflight i{width:9px;height:9px;border-radius:50%;background:var(--terra);animation:beat 1.3s infinite}
 
   /* agent card detail */
   .card .ameta{display:flex; gap:10px; flex-wrap:wrap; margin:5px 0 0; font-size:11px; color:var(--muted); font-family:var(--mono)}
   .card .ameta b{color:var(--terra-dk); font-weight:600}
+  .card .ameta .at{color:var(--sage)}
 
   /* autonomous banner */
   .auto-banner{display:none; align-items:center; gap:12px; background:linear-gradient(180deg,#f8ead9,#f4e2cd);
@@ -202,7 +256,7 @@
 
   /* layout */
   .grid{display:grid; grid-template-columns:1fr 300px; gap:30px; align-items:start; margin-top:8px}
-  @media(max-width:880px){.grid{grid-template-columns:1fr}}
+  @media(max-width:980px){.grid{grid-template-columns:1fr}}
 
   /* timeline */
   .chart-title{font-family:var(--serif); font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin:0 0 18px; padding-bottom:8px; border-bottom:1px solid var(--rule2); display:flex; justify-content:space-between; align-items:center}
@@ -222,7 +276,8 @@
     border:2px solid var(--terra); overflow:hidden; display:grid; place-items:center; z-index:2; color:var(--terra-dk); font-family:var(--serif); font-weight:700; font-size:18px}
   .node img{width:100%; height:100%; object-fit:cover}
   .card{background:var(--card); border:1px solid var(--rule2); border-radius:13px; padding:14px 17px; box-shadow:0 2px 10px rgba(90,60,30,.05)}
-  .card .role{font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); font-weight:600}
+  .card .role{font-size:10.5px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); font-weight:600; display:flex; justify-content:space-between; align-items:center}
+  .card .role .rtime{font-family:var(--mono); letter-spacing:0; color:var(--muted); text-transform:none}
   .card .agent{font-family:var(--serif); font-size:17px; margin:1px 0 5px}
   .card .finding{color:var(--ink2); font-size:14.5px}
   .card .finding .mono{font-family:var(--mono); font-size:12.5px; color:var(--terra-dk); background:#efe3ca; padding:1px 5px; border-radius:4px}
@@ -253,7 +308,8 @@
 
   /* aside */
   aside .panel{background:var(--card); border:1px solid var(--rule2); border-radius:14px; padding:16px 18px; margin-bottom:16px}
-  aside .ptitle{font-family:var(--serif); font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin:0 0 10px}
+  aside .ptitle{font-family:var(--serif); font-size:13px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin:0 0 10px; display:flex; justify-content:space-between; align-items:center}
+  aside .ptitle .seeall{font-family:var(--sans); font-size:11px; letter-spacing:0; text-transform:none; color:var(--terra-dk); cursor:pointer; text-decoration:underline}
   .patient{display:flex; align-items:center; justify-content:space-between}
   .patient a{color:var(--terra-dk); font-weight:600; text-decoration:none}
   .patient a:hover{text-decoration:underline}
@@ -267,6 +323,123 @@
   .twoapprovals b{color:var(--ink)}
 
   footer{margin-top:40px; padding-top:18px; border-top:1px solid var(--rule); font-size:12px; color:var(--muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px}
+
+  /* ===== Incidents view ===== */
+  .summary-strip{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px}
+  @media(max-width:680px){.summary-strip{grid-template-columns:repeat(2,1fr)}}
+  .itable-wrap{background:var(--card); border:1px solid var(--rule2); border-radius:14px; overflow:hidden}
+  .itable{width:100%; border-collapse:collapse; font-size:13.5px}
+  .itable th{text-align:left; font-size:10px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted); font-weight:600; padding:12px 16px; border-bottom:1px solid var(--rule); background:#f2e9d8}
+  .itable td{padding:13px 16px; border-bottom:1px solid var(--rule2); vertical-align:middle}
+  .itable tr:last-child td{border-bottom:none}
+  .itable tr.irow{cursor:pointer; transition:.12s}
+  .itable tr.irow:hover{background:#f2e9d6}
+  .itable .iid{font-family:var(--mono); font-size:12px; color:var(--terra-dk)}
+  .itable .isc{font-family:var(--serif); font-size:14px; color:var(--ink)}
+  .itable .isvc{font-family:var(--mono); font-size:11.5px; color:var(--ink2)}
+  .itable .idol{font-family:var(--serif); font-size:15px; color:var(--terra-dk)}
+  .itable .iarrow{color:var(--muted); font-size:15px}
+  .itable tr.irow:hover .iarrow{color:var(--terra)}
+  .schip{font-family:var(--mono); font-size:10px; padding:2px 8px; border-radius:20px; letter-spacing:.04em; white-space:nowrap}
+  .schip.lat{background:#f3dccf; color:var(--terra-dk)}
+  .schip.err{background:#f2d4cb; color:#9a2f1c}
+  .schip.cat{background:#efe1c6; color:var(--gold)}
+  .schip.cart{background:#e7dcc2; color:#7a5f24}
+  .schip.ext{background:#e3d6e0; color:#7a4a6b}
+  .bchip{font-family:var(--mono); font-size:10px; padding:1px 7px; border-radius:6px}
+  .bchip.live{background:#dcecdc; color:#33502f}
+  .bchip.mock{background:#e6dcc6; color:var(--muted)}
+  .empty-box{background:var(--card); border:1px dashed var(--rule); border-radius:14px; padding:40px; text-align:center; color:var(--muted)}
+
+  /* incident detail */
+  .detail-head{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:20px}
+  .detail-head .dh-title{font-family:var(--serif); font-size:24px; margin:4px 0 4px}
+  .detail-head .dh-meta{font-size:13px; color:var(--ink2)}
+  .detail-grid{display:grid; grid-template-columns:1fr 290px; gap:28px; align-items:start}
+  @media(max-width:980px){.detail-grid{grid-template-columns:1fr}}
+  .backbtn{background:none; border:1px solid var(--rule); border-radius:9px; padding:7px 13px; cursor:pointer; color:var(--ink2); font-size:13px; font-weight:500}
+  .backbtn:hover{background:#f1e8d6}
+
+  /* ===== Agents view ===== */
+  .agrid{display:grid; grid-template-columns:repeat(2,1fr); gap:16px}
+  @media(max-width:760px){.agrid{grid-template-columns:1fr}}
+  .acard{background:var(--card); border:1px solid var(--rule2); border-radius:14px; padding:18px 20px; cursor:pointer; transition:.16s; display:flex; flex-direction:column; gap:11px}
+  .acard:hover{border-color:var(--terra); box-shadow:0 8px 22px rgba(138,61,31,.12); transform:translateY(-2px)}
+  .acard .ahead{display:flex; align-items:center; gap:13px}
+  .acard .aemb{width:50px; height:50px; border-radius:50%; background:#efe3ca; overflow:hidden; border:1px solid var(--rule2); flex:none}
+  .acard .aemb img{width:100%; height:100%; object-fit:cover}
+  .acard .anm{font-family:var(--serif); font-size:18px; line-height:1.1}
+  .acard .arl{font-size:10px; letter-spacing:.14em; text-transform:uppercase; color:var(--terra); font-weight:600; margin-top:2px}
+  .acard .ablurb{font-size:13.5px; color:var(--ink2); line-height:1.5}
+  .acard .atools{display:flex; flex-wrap:wrap; gap:6px}
+  .toolchip{font-family:var(--mono); font-size:10.5px; background:#efe3ca; color:var(--terra-dk); padding:2px 8px; border-radius:6px}
+  .acard .astats{display:flex; gap:18px; margin-top:auto; padding-top:11px; border-top:1px solid var(--rule2); font-size:11px; color:var(--muted)}
+  .acard .astats b{font-family:var(--serif); font-size:15px; color:var(--terra-dk); display:block}
+  .acard .astats .sg{color:var(--sage)}
+
+  /* agent modal extras */
+  .amodal .toollist{display:flex; flex-direction:column; gap:9px}
+  .amodal .toolrow{display:flex; gap:11px; align-items:baseline}
+  .amodal .toolrow .tn{font-family:var(--mono); font-size:12.5px; color:var(--terra-dk); flex:none; min-width:160px}
+  .amodal .toolrow .td{font-size:13px; color:var(--ink2)}
+  .amodal .statline{display:flex; gap:24px; margin:6px 0 0}
+  .amodal .statline div{font-size:12px; color:var(--muted)}
+  .amodal .statline b{font-family:var(--serif); font-size:18px; color:var(--terra-dk); display:block}
+
+  /* ===== Telemetry view ===== */
+  .tgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:16px}
+  @media(max-width:760px){.tgrid{grid-template-columns:1fr}}
+  .tchart{background:var(--card); border:1px solid var(--rule2); border-radius:14px; padding:16px 18px}
+  .tchart .cl{font-size:12px; color:var(--muted)}
+  .tchart .cv{font-family:var(--mono); font-size:26px; color:var(--terra-dk); margin:3px 0 8px}
+  .tchart svg{width:100%; height:110px; display:block}
+  .tchart.alert{border-color:var(--terra)} .tchart.alert .cv{color:var(--terra)}
+  .slo-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px}
+  @media(max-width:680px){.slo-grid{grid-template-columns:1fr}}
+  .slo-card{background:var(--card); border:1px solid var(--rule2); border-radius:14px; padding:18px 20px}
+  .slo-card .sl{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+  .slo-card .sv{font-family:var(--serif); font-size:30px; color:var(--terra-dk); margin:6px 0}
+  .slo-card .ss{font-size:12.5px; color:var(--ink2)}
+  .budget-bar{height:10px; border-radius:6px; background:#e3d6bd; overflow:hidden; margin:10px 0 8px}
+  .budget-bar i{display:block; height:100%; background:linear-gradient(90deg,var(--sage),#7a9268); border-radius:6px}
+  .budget-bar.warn i{background:linear-gradient(90deg,var(--terra),var(--amber))}
+  .dqlcat{display:flex; flex-direction:column; gap:12px}
+  .dqlrow{background:var(--card); border:1px solid var(--rule2); border-radius:12px; padding:13px 16px}
+  .dqlrow .dh{display:flex; align-items:center; gap:10px; margin-bottom:7px}
+  .dqlrow .dh .dag{font-family:var(--serif); font-size:14px}
+  .dqlrow .dh .dst{font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase}
+  .dqlrow pre{margin:0; background:#2b2419; color:#e7dcc4; border-radius:8px; padding:10px 12px; font-family:var(--mono); font-size:11.5px; line-height:1.5; white-space:pre-wrap; overflow-x:auto}
+
+  /* ===== Settings view ===== */
+  .cfg-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:16px}
+  @media(max-width:760px){.cfg-grid{grid-template-columns:1fr}}
+  .cfg-card{background:var(--card); border:1px solid var(--rule2); border-radius:14px; padding:18px 20px}
+  .cfg-card h4{font-family:var(--serif); font-size:15px; margin:0 0 13px; display:flex; align-items:center; gap:9px}
+  .cfg-card h4 svg{width:17px;height:17px;stroke:var(--terra-dk);fill:none;stroke-width:1.7}
+  .cfg-row{display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--rule2); font-size:13.5px}
+  .cfg-row:last-child{border-bottom:none}
+  .cfg-row .ck{color:var(--ink2)}
+  .cfg-row .cvv{font-family:var(--mono); font-size:12.5px; color:var(--ink); text-align:right; max-width:60%; word-break:break-all}
+  .dotv{display:inline-flex; align-items:center; gap:7px; font-family:var(--sans); font-size:12.5px}
+  .dotv i{width:9px;height:9px;border-radius:50%;flex:none}
+  .dotv.on i{background:var(--sage)} .dotv.on{color:#33502f}
+  .dotv.off i{background:#c4b48f} .dotv.off{color:var(--muted)}
+  .chips{display:flex; flex-wrap:wrap; gap:7px}
+  .schipm{font-family:var(--mono); font-size:11px; background:#efe3ca; color:var(--terra-dk); padding:3px 9px; border-radius:7px}
+
+  /* ===== Audit view ===== */
+  .audit-wrap{background:var(--card); border:1px solid var(--rule2); border-radius:14px; overflow:hidden}
+  .arow{display:flex; gap:14px; align-items:flex-start; padding:11px 18px; border-bottom:1px solid var(--rule2); font-size:13.5px}
+  .arow:last-child{border-bottom:none}
+  .arow .at{font-family:var(--mono); font-size:11px; color:var(--muted); flex:none; width:64px; padding-top:2px}
+  .arow .abadge{font-family:var(--mono); font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; padding:2px 8px; border-radius:6px; flex:none; width:74px; text-align:center}
+  .arow .atx{color:var(--ink2)}
+  .arow .atx em{color:var(--terra-dk); font-style:normal; font-weight:600}
+  .arow .ainc{font-family:var(--mono); font-size:10.5px; color:var(--terra-dk); margin-left:auto; flex:none}
+  .ab-detect{background:#f3dccf; color:var(--terra-dk)} .ab-agent{background:#e7dcc2; color:#7a5f24}
+  .ab-gate{background:#f2d4cb; color:#9a2f1c} .ab-approve{background:#dcecdc; color:#33502f}
+  .ab-rescue{background:#cfe3cf; color:#2c4a2c} .ab-watch{background:#e3dcc8; color:var(--muted)}
+  .ab-dismiss{background:#e6dcc6; color:var(--muted)} .ab-learn{background:#efe1c6; color:var(--gold)}
 
   /* modal */
   .overlay{position:fixed; inset:0; background:rgba(44,35,23,.5); display:none; align-items:center; justify-content:center; padding:24px; z-index:50; backdrop-filter:blur(2px)}
@@ -282,113 +455,187 @@
   .stp{display:flex; gap:12px; font-size:14px; color:var(--ink2)}
   .stp .n{width:26px;height:26px;border-radius:50%;background:var(--terra);color:#f7eede;display:grid;place-items:center;font-family:var(--serif);font-size:13px;font-weight:700;flex:none}
   .modal .close{float:right; background:none; border:1px solid var(--rule); border-radius:9px; padding:5px 12px; cursor:pointer; color:var(--ink2)}
+  .modal .mhead{display:flex; align-items:center; gap:14px; margin-bottom:6px}
+  .modal .mhead .aemb{width:54px;height:54px;border-radius:50%;overflow:hidden;background:#efe3ca;border:1px solid var(--rule2);flex:none}
+  .modal .mhead .aemb img{width:100%;height:100%;object-fit:cover}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header class="masthead">
+<div class="app">
+  <!-- ===== sidenav ===== -->
+  <aside class="sidenav">
     <div class="brand">
       <div class="mark"></div>
-      <div><h1>Quell</h1><div class="tagline">autonomous incident response</div></div>
+      <div><h1>Quell</h1><div class="tagline">incident response</div></div>
     </div>
-    <div class="mhead-right">
-      <span class="statuspill"><span class="beat"></span> monitoring · ShopWave</span>
-      <button class="infob" onclick="openInfo()" title="How it works">i</button>
+    <a class="navitem active" data-view="live" onclick="go('live')">
+      <svg viewBox="0 0 24 24"><path d="M3 12h4l2 6 4-14 2 8h6"/></svg><span class="nlabel">Live</span><span class="live-dot"></span></a>
+    <a class="navitem" data-view="incidents" onclick="go('incidents')">
+      <svg viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><span class="nlabel">Incidents</span><span class="badge" id="navIncBadge">0</span></a>
+    <a class="navitem" data-view="agents" onclick="go('agents')">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3 3-5 6-5s6 2 6 5"/><path d="M16 4a3 3 0 0 1 0 6M18 20c0-2-1-3.5-3-4.5"/></svg><span class="nlabel">Agents</span><span class="badge">6</span></a>
+    <a class="navitem" data-view="telemetry" onclick="go('telemetry')">
+      <svg viewBox="0 0 24 24"><path d="M4 20V4M4 20h16"/><rect x="7" y="11" width="3" height="6"/><rect x="12" y="7" width="3" height="10"/><rect x="17" y="13" width="3" height="4"/></svg><span class="nlabel">Telemetry</span></a>
+    <div class="navsec">Control</div>
+    <a class="navitem" data-view="settings" onclick="go('settings')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span class="nlabel">Settings</span></a>
+    <a class="navitem" data-view="audit" onclick="go('audit')">
+      <svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h7M9 17h7"/></svg><span class="nlabel">Audit log</span></a>
+    <div class="sidefoot">
+      <div class="sf-status" id="sfStatus"><i></i> <span id="sfStatusText">Watching</span></div>
+      <div class="sf-sub" id="sfSub">ShopWave · us-central1</div>
     </div>
-  </header>
+  </aside>
 
-  <section class="hero">
-    <div>
-      <div class="kicker">Autonomous incident response</div>
-      <h2>Quell the incident <em>before</em> it spreads.</h2>
-      <p>Six AI agents watch a live app, trace a degrading experience to its root cause, weigh the revenue at risk, and stop it escalating — with you signing off before any change.</p>
-      <div class="cta-row">
-        <button class="btn primary" onclick="start()">Detect &amp; prevent incident</button>
-        <button class="linklike" onclick="openInfo()">How it works</button>
-        <span class="hint" id="hint">A fault is live on ShopWave.</span>
+  <!-- ===== content ===== -->
+  <div class="content">
+    <div class="topbar">
+      <div class="tb-l">
+        <span class="tb-crumb" id="tbCrumb">Operations</span>
+        <span class="tb-title" id="tbTitle">Live</span>
+      </div>
+      <div class="mhead-right">
+        <span class="statuspill" id="topPill"><span class="beat"></span> <span id="topPillText">monitoring · ShopWave</span></span>
+        <button class="infob" onclick="openInfo()" title="How it works">i</button>
       </div>
     </div>
-    <div class="hero-art"><img src="/img/hero.png" alt="" onerror="this.parentNode.style.display='none'"></div>
-  </section>
 
-  <div class="stats">
-    <div class="stat"><div class="v">&lt; 30s</div><div class="l">to detect</div></div>
-    <div class="stat"><div class="v">6</div><div class="l">specialist agents</div></div>
-    <div class="stat"><div class="v">2</div><div class="l">human approvals</div></div>
-    <div class="stat"><div class="v" id="statProtected">$0</div><div class="l">protected this run</div></div>
-  </div>
-
-  <div class="auto-banner" id="autoBanner"><span class="rad"></span>
-    <span><b>Anomaly detected.</b> Quell launched this investigation autonomously — you still approve the fix.</span></div>
-
-  <div class="panel-head"><h3>Operations overview</h3></div>
-  <div class="kpis" id="kpis"></div>
-
-  <div class="panel-head"><h3>Live activity · what Quell is doing</h3></div>
-  <div class="ticker" id="ticker"><div class="empty">connecting to live event stream…</div></div>
-
-  <div class="panel-head"><h3>Services health</h3></div>
-  <div class="svcgrid" id="svcgrid"></div>
-
-  <div class="panel-head">
-    <h3>Live telemetry · Dynatrace</h3>
-    <a class="dtlink" id="dtLink" href="#" target="_blank" style="display:none">Open in Dynatrace ↗</a>
-  </div>
-  <div class="charts" id="charts"></div>
-
-  <div class="panel-head"><h3>Service topology · blast radius</h3></div>
-  <div class="topo" id="topo"></div>
-
-  <p class="roster-head">The response team</p>
-  <div class="roster" id="roster"></div>
-
-  <div class="grid">
-    <main>
-      <p class="chart-title">Case timeline <span class="live-tag" id="liveTag">● running</span></p>
-      <div class="timeline-scroll" id="timelineScroll">
-        <div class="timeline" id="pipeline"></div>
-      </div>
-    </main>
-    <aside>
-      <div class="panel">
-        <p class="ptitle">Impact this session</p>
-        <div class="impact" id="impact"><div class="row"><span class="k">No incidents yet — Quell is watching.</span></div></div>
-      </div>
-      <div class="panel">
-        <p class="ptitle">Prevented incidents</p>
-        <div class="history" id="history"><div class="empty">No incidents on record yet — Quell is watching.</div></div>
-      </div>
-      <div class="panel">
-        <p class="ptitle">Monitored app</p>
-        <div class="patient">
-          <a href="https://shopwave-908906947513.us-central1.run.app" target="_blank">ShopWave store ↗</a>
-          <span class="pdot"><i></i> live</span>
+    <!-- ===================== LIVE ===================== -->
+    <section class="view active" id="view-live">
+      <section class="hero">
+        <div>
+          <div class="kicker">Autonomous incident response</div>
+          <h2>Quell the incident <em>before</em> it spreads.</h2>
+          <p>Six AI agents watch a live app, trace a degrading experience to its root cause, weigh the revenue at risk, and stop it escalating — with you signing off before any change.</p>
+          <div class="cta-row">
+            <button class="btn primary" onclick="start()">Detect &amp; prevent incident</button>
+            <button class="linklike" onclick="openInfo()">How it works</button>
+            <span class="hint" id="hint">A fault is live on ShopWave.</span>
+          </div>
         </div>
-        <p style="font-size:12.5px;color:var(--muted);margin:10px 0 0">A live store emitting real telemetry. Inject a fault there; Quell catches it here.</p>
-      </div>
-      <div class="panel">
-        <p class="ptitle">The stack</p>
-        <div class="stack">
-          <div class="sbadge"><span class="g"></span><span><b>Gemini</b> · reasoning &amp; tool-calling</span></div>
-          <div class="sbadge"><span class="g"></span><span><b>Dynatrace</b> MCP · senses &amp; actions</span></div>
-          <div class="sbadge"><span class="g"></span><span><b>Google Cloud Run</b> · hosting</span></div>
-        </div>
-      </div>
-      <div class="panel">
-        <p class="ptitle">Human in the loop</p>
-        <div class="twoapprovals">You sign off <b>twice</b>: before the fix touches production, and before an agent changes itself.</div>
-      </div>
-    </aside>
-  </div>
+        <div class="hero-art"><img src="/img/hero.png" alt="" onerror="this.parentNode.style.display='none'"></div>
+      </section>
 
-  <footer>
-    <span>Quell — Google Cloud Rapid Agent Hackathon · Dynatrace track</span>
-    <span>Quell watches ShopWave and quells incidents</span>
-  </footer>
+      <div class="stats">
+        <div class="stat"><div class="v">&lt; 30s</div><div class="l">to detect</div></div>
+        <div class="stat"><div class="v">6</div><div class="l">specialist agents</div></div>
+        <div class="stat"><div class="v">2</div><div class="l">human approvals</div></div>
+        <div class="stat"><div class="v" id="statProtected">$0</div><div class="l">protected this run</div></div>
+      </div>
+
+      <div class="auto-banner" id="autoBanner"><span class="rad"></span>
+        <span><b>Anomaly detected.</b> Quell launched this investigation autonomously — you still approve the fix.</span></div>
+
+      <div class="panel-head"><h3>Operations overview</h3></div>
+      <div class="kpis" id="kpis"></div>
+
+      <div class="panel-head"><h3>Live activity · what Quell is doing</h3></div>
+      <div class="ticker" id="ticker"><div class="empty">connecting to live event stream…</div></div>
+
+      <div class="panel-head"><h3>Services health</h3></div>
+      <div class="svcgrid" id="svcgrid"></div>
+
+      <div class="panel-head">
+        <h3>Live telemetry · Dynatrace</h3>
+        <a class="dtlink" id="dtLink" href="#" target="_blank" style="display:none">Open in Dynatrace ↗</a>
+      </div>
+      <div class="charts" id="charts"></div>
+
+      <div class="panel-head"><h3>Service topology · blast radius</h3></div>
+      <div class="topo" id="topo"></div>
+
+      <p class="roster-head">The response team</p>
+      <div class="roster" id="roster"></div>
+
+      <div class="grid">
+        <main>
+          <p class="chart-title">Case timeline <span class="live-tag" id="liveTag">● running</span></p>
+          <div class="timeline-scroll" id="timelineScroll">
+            <div class="timeline" id="pipeline"></div>
+          </div>
+        </main>
+        <aside>
+          <div class="panel">
+            <p class="ptitle">Impact this session</p>
+            <div class="impact" id="impact"><div class="row"><span class="k">No incidents yet — Quell is watching.</span></div></div>
+          </div>
+          <div class="panel">
+            <p class="ptitle">Prevented incidents <span class="seeall" onclick="go('incidents')">view all</span></p>
+            <div class="history" id="history"><div class="empty">No incidents on record yet — Quell is watching.</div></div>
+          </div>
+          <div class="panel">
+            <p class="ptitle">Monitored app</p>
+            <div class="patient">
+              <a href="https://shopwave-908906947513.us-central1.run.app" target="_blank">ShopWave store ↗</a>
+              <span class="pdot"><i></i> live</span>
+            </div>
+            <p style="font-size:12.5px;color:var(--muted);margin:10px 0 0">A live store emitting real telemetry. Inject a fault there; Quell catches it here.</p>
+          </div>
+          <div class="panel">
+            <p class="ptitle">The stack</p>
+            <div class="stack">
+              <div class="sbadge"><span class="g"></span><span><b>Gemini</b> · reasoning &amp; tool-calling</span></div>
+              <div class="sbadge"><span class="g"></span><span><b>Dynatrace</b> MCP · senses &amp; actions</span></div>
+              <div class="sbadge"><span class="g"></span><span><b>Google Cloud Run</b> · hosting</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <p class="ptitle">Human in the loop</p>
+            <div class="twoapprovals">You sign off <b>twice</b>: before the fix touches production, and before an agent changes itself.</div>
+          </div>
+        </aside>
+      </div>
+
+      <footer>
+        <span>Quell — Google Cloud Rapid Agent Hackathon · Dynatrace track</span>
+        <span>Quell watches ShopWave and quells incidents</span>
+      </footer>
+    </section>
+
+    <!-- ===================== INCIDENTS ===================== -->
+    <section class="view" id="view-incidents">
+      <div id="incList">
+        <div class="page-head"><h2>Incidents</h2><p>Every incident Quell has caught and prevented — click any row to replay the full investigation.</p></div>
+        <div class="summary-strip" id="incSummary"></div>
+        <div id="incTableWrap"></div>
+      </div>
+      <div id="incDetail" style="display:none"></div>
+    </section>
+
+    <!-- ===================== AGENTS ===================== -->
+    <section class="view" id="view-agents">
+      <div class="page-head"><h2>The response team</h2><p>Six specialist agents, each with its own Dynatrace MCP tools and a single job. Click an agent to see its tools, the exact queries it runs, and its latest performance.</p></div>
+      <div class="agrid" id="agentGrid"></div>
+    </section>
+
+    <!-- ===================== TELEMETRY ===================== -->
+    <section class="view" id="view-telemetry">
+      <div class="page-head"><div class="ph-row"><div><h2>Live telemetry</h2><p>Real signals from the monitored app, read through Dynatrace Grail. Every chart and SLO updates live.</p></div>
+        <a class="dtlink btn sm" id="dtLink2" href="#" target="_blank" style="display:none">Open in Dynatrace ↗</a></div></div>
+      <div class="panel-head"><h3>Service-level objective</h3></div>
+      <div class="slo-grid" id="sloGrid"></div>
+      <div class="panel-head"><h3>Signals</h3></div>
+      <div class="tgrid" id="telemetryCharts"></div>
+      <div class="panel-head"><h3>The exact DQL Quell runs against Grail</h3></div>
+      <div class="dqlcat" id="dqlCatalog"></div>
+    </section>
+
+    <!-- ===================== SETTINGS ===================== -->
+    <section class="view" id="view-settings">
+      <div class="page-head"><h2>Configuration</h2><p>How this Quell instance is wired. Secrets are never shown — only whether each integration is connected.</p></div>
+      <div class="cfg-grid" id="cfgGrid"></div>
+    </section>
+
+    <!-- ===================== AUDIT ===================== -->
+    <section class="view" id="view-audit">
+      <div class="page-head"><h2>Audit log</h2><p>An append-only record of every detection, agent action, human approval, and rescue. This is what makes an autonomous system accountable.</p></div>
+      <div class="audit-wrap" id="auditWrap"></div>
+    </section>
+  </div>
 </div>
 
 <div class="overlay" id="overlay" onclick="if(event.target===this)closeInfo()">
-  <div class="modal">
+  <div class="modal" id="modalBody">
     <button class="close" onclick="closeInfo()">close</button>
     <h2>How Quell works</h2>
     <div class="msub">A team of AI agents that catches a bad user experience, traces the cause, and prevents it — with you in control.</div>
@@ -426,22 +673,46 @@ const META={
 };
 const ORDER=["watcher","tracer","judge","actuator","scribe","evaluator"];
 let timer=null, seen=new Set();
-let sessionRan=false;      // a run was started/completed in THIS browser session
-let restingTimer=null;     // animates the idle "watching" scan line
-function openInfo(){document.getElementById("overlay").classList.add("open")}
+let sessionRan=false;
+let restingTimer=null;
+const VIEW_TITLES={live:["Operations","Live"],incidents:["History","Incidents"],agents:["Team","Agents"],
+  telemetry:["Observability","Telemetry"],settings:["Control","Settings"],audit:["Accountability","Audit log"]};
+let currentView="live";
+function openInfo(){document.getElementById("overlay").classList.add("open"); document.getElementById("modalBody").dataset.kind="info";}
 function closeInfo(){document.getElementById("overlay").classList.remove("open")}
 function el(h){const d=document.createElement("div");d.innerHTML=h.trim();return d.firstChild}
 function P(){return document.getElementById("pipeline")}
 function emb(a){return `<img src="/img/${a}.png" alt="" onerror="this.parentNode.textContent='${(META[a]||{}).label?.[0]||'?'}'">`}
+function esc(t){return (t==null?"":String(t)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 
-// render the agent roster
+// ===== view router =====
+function go(view){
+  if(!VIEW_TITLES[view]) view="live";
+  currentView=view;
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  document.getElementById("view-"+view).classList.add("active");
+  document.querySelectorAll(".navitem").forEach(n=>n.classList.toggle("active", n.dataset.view===view));
+  document.getElementById("tbCrumb").textContent=VIEW_TITLES[view][0];
+  document.getElementById("tbTitle").textContent=VIEW_TITLES[view][1];
+  if(location.hash!=="#"+view) history.replaceState(null,"","#"+view);
+  window.scrollTo(0,0);
+  renderView(view);
+}
+function renderView(view){
+  if(view==="incidents"){ showIncidentList(); updateIncidents(); }
+  else if(view==="agents") updateAgents();
+  else if(view==="telemetry") updateTelemetry();
+  else if(view==="settings") updateSettings();
+  else if(view==="audit") updateAudit();
+}
+window.addEventListener("hashchange",()=>{const v=location.hash.replace("#","")||"live"; if(v!==currentView) go(v);});
+
 function renderRoster(){
   document.getElementById("roster").innerHTML = ORDER.map(a=>`
     <div class="rcard" id="r-${a}"><div class="emb">${emb(a)}</div>
       <div class="nm">${META[a].label}</div><div class="rl">${META[a].role}</div>
       <div class="rstat" id="rs-${a}">idle</div></div>`).join("");
 }
-// live roster status: idle / active / done + tool-call count from /api/state traces
 function refreshRosterStatus(){
   const tr=window._traces||{};
   ORDER.forEach(a=>{
@@ -458,6 +729,7 @@ function markDone(a){ const r=document.getElementById("r-"+a); if(r){r.classList
 
 function scrollTimeline(){ const t=document.getElementById("timelineScroll"); if(t) t.scrollTo({top:t.scrollHeight, behavior:"smooth"}); }
 let renderedId=null;
+const _entryTimes={};
 function resetTimeline(auto){
   P().innerHTML=""; seen=new Set();
   ORDER.forEach(a=>{const r=document.getElementById("r-"+a); if(r){r.classList.remove("active");r.classList.remove("done");}
@@ -467,7 +739,6 @@ function resetTimeline(auto){
   document.getElementById("autoBanner").classList.toggle("on", !!auto);
 }
 function stopResting(){ if(restingTimer){clearInterval(restingTimer); restingTimer=null;} }
-// Idle "Quell is watching — all systems healthy" resting state.
 const SCAN_LINES=[
   "scanning real-user spans · 4 services",
   "apdex 0.94 · healthy",
@@ -504,48 +775,57 @@ function beginRender(id, auto){
   if(timer)clearInterval(timer);
   timer=setInterval(poll,600);
 }
-async function start(){            // manual override
+async function start(){
+  if(currentView!=="live") go("live");
   document.getElementById("autoBanner").classList.remove("on");
   const r=await(await fetch("/api/start",{method:"POST"})).json();
   beginRender(r.started, false);
   document.getElementById("hint").textContent="dispatching agents…";
 }
-// Heartbeat: render an incident only when one is actually in flight (monitor.active)
-// or a run started/completed in THIS session. Otherwise show the resting state —
-// never resurrect a stale incident from /api/state on load.
 async function heartbeat(){
   try{
     const mon=await(await fetch("/api/monitor")).json();
     window._mon=mon;
-    if(mon.dynatrace){ const a=document.getElementById("dtLink"); a.href=mon.dynatrace+"/ui/apps/dynatrace.notebooks/"; a.style.display="inline"; }
+    updateShellStatus(mon);
+    const dt=mon.dynatrace?mon.dynatrace+"/ui/apps/dynatrace.notebooks/":null;
+    if(dt){ ["dtLink","dtLink2"].forEach(id=>{const a=document.getElementById(id); if(a){a.href=dt;a.style.display="inline";}}); }
     if(mon.autonomous && !mon.active && !document.getElementById("autoBanner").classList.contains("on"))
       document.getElementById("hint").textContent="Quell is watching ShopWave for anomalies…";
     if(!mon.active) renderTopology(mon.fault_active ? (mon.fault_span||mon.fault_service) : null);
     const s=await(await fetch("/api/state")).json();
     const stateHasRun = s && s.id && ((s.entries&&s.entries.length)||s.pending);
     if(mon.active && stateHasRun && s.id!==renderedId){
-      // a live incident is in flight — render it
       beginRender(s.id, s.auto);
     } else if(sessionRan && stateHasRun && s.id!==renderedId){
-      // continuation of a run that began this session (e.g. just completed)
       beginRender(s.id, s.auto);
     } else if(!mon.active && !sessionRan && !timer){
-      // idle on load: do NOT render a leftover incident — show resting state
       renderResting();
     }
   }catch(e){}
 }
-function esc(t){return (t||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function updateShellStatus(mon){
+  mon=mon||{};
+  const warn=!!(mon.active||mon.fault_active);
+  const text=mon.active?"Incident in flight":(mon.fault_active?"Anomaly detected":"Watching");
+  const sf=document.getElementById("sfStatus"); sf.classList.toggle("warn",warn);
+  document.getElementById("sfStatusText").textContent=text;
+  document.getElementById("sfSub").textContent=(mon.fault_service?mon.fault_service+" · ":"ShopWave · ")+"us-central1";
+  const tp=document.getElementById("topPill"); tp.classList.toggle("warn",warn);
+  document.getElementById("topPillText").textContent=mon.active?"investigating · ShopWave":(mon.fault_active?"anomaly · ShopWave":"monitoring · ShopWave");
+  document.querySelector('.navitem[data-view="live"]').classList.toggle("has-live",warn);
+}
 function fmt(s){
-  return s
+  return (s||"")
    .replace(/([a-z]+-svc)/g,'<span class="mono">$1</span>')
    .replace(/(razorpay\.\w+|catalog\.query|cart\.add|payment\.init|#\d+)/g,'<span class="mono">$1</span>')
    .replace(/(\$[0-9,]+|\d+ (?:users|carts)|[0-9.]+x|\d+ms)/g,'<b>$1</b>');
 }
+function nowClock(){return new Date().toTimeString().slice(0,8);}
 function renderEntry(e){
   const k="e"+e.step; if(seen.has(k))return; seen.add(k);
   const m=META[e.agent]||{label:e.agent,role:""};
   markDone(e.agent);
+  if(!_entryTimes[k]) _entryTimes[k]=nowClock();
   const mm=e.summary.match(/\$[0-9,]+/); if(mm) document.getElementById("statProtected").textContent=mm[0];
   const dql=(e.data&&e.data.dql)?`<details class="dql"><summary>▸ the exact DQL Quell ran against Dynatrace</summary>`+
     `<pre><span class="ran">// executed live against your Grail tenant</span>\n${esc(e.data.dql)}</pre></details>`:"";
@@ -554,7 +834,7 @@ function renderEntry(e){
     (tr.latency_ms!=null?`<span><b>${tr.latency_ms}</b>ms</span>`:"")+
     `<span>via Dynatrace MCP</span></div>`:"";
   P().appendChild(el(`<div class="station done"><div class="node">${emb(e.agent)}</div>
-    <div class="card"><div class="role">${m.role}</div><div class="agent">${m.label}</div>
+    <div class="card"><div class="role">${m.role}<span class="rtime">${_entryTimes[k]}</span></div><div class="agent">${m.label}</div>
     <div class="finding">${fmt(e.summary)}</div>${meta}${dql}</div></div>`));
 }
 function renderGate1(s){
@@ -605,7 +885,7 @@ async function poll(){
   const before=seen.size;
   const s=await(await fetch("/api/state")).json();
   if(!s||!s.id)return;
-  window._traces=s.traces||{};            // tool calls + latency for agent cards
+  window._traces=s.traces||{};
   (s.entries||[]).filter(e=>e.kind!=="evaluation").forEach(renderEntry);
   refreshRosterStatus();
   const rc=(s.entries||[]).find(e=>e.kind==="root_cause");
@@ -613,7 +893,7 @@ async function poll(){
   if(s.pending==="action")renderGate1(s);
   if(s.pending==="learning")renderGate2(s);
   if(s.done){renderOutcome(s); document.getElementById("liveTag").classList.remove("on");}
-  if(seen.size>before) scrollTimeline();   // keep newest entry in view
+  if(seen.size>before) scrollTimeline();
 }
 async function approveAction(ok){
   const g=document.getElementById("g1"); if(g)g.querySelector(".row").innerHTML=ok?'<span class="s-good">approved ✓</span>':'<span style="color:var(--muted)">rejected</span>';
@@ -624,7 +904,7 @@ async function approveLearning(){
   const g=document.getElementById("g2"); if(g)g.querySelector(".row").innerHTML='<span class="s-good">learning applied ✓</span>';
   await fetch("/api/approve-learning",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({agents})});
 }
-// ---- live area charts (gradient fill + SLO threshold + breach highlight) ----
+// ---- live area charts ----
 const CHART_META={
   latency:   {color:"#b0512c", thr:300, bad:v=>v>300},
   apdex:     {color:"#5d7150", thr:0.7, bad:v=>v<0.7},
@@ -672,7 +952,6 @@ function renderCharts(m){
     const label=(s&&s.label)||CHART_FALLBACK_LABEL[k]||k;
     const vals=(s&&s.values)||[];
     const hasData=vals.some(x=>x!=null);
-    // graceful empty/loading state — never a broken blank box
     if(!hasData){
       const cls = _chartsEverLoaded ? "empty" : "loading";
       const msg = _chartsEverLoaded ? "no data" : "loading…";
@@ -685,7 +964,7 @@ function renderCharts(m){
   }).join("");
 }
 async function updateCharts(){
-  try{ const m=await(await fetch("/api/metrics")).json(); _chartsEverLoaded=true; renderCharts(m); }
+  try{ const m=await(await fetch("/api/metrics")).json(); _chartsEverLoaded=true; window._metrics=m; renderCharts(m); }
   catch(e){ renderCharts(null); }
 }
 
@@ -696,27 +975,33 @@ function renderTopology(faulted){
   const idx=SERVICES.findIndex(([id])=> f && (f.includes(id.split(".")[0]) || id.toLowerCase()===f));
   document.getElementById("topo").innerHTML=SERVICES.map(([id,nm],i)=>{
     const on=idx>=0 && i===idx;
-    const down=idx>=0 && i>idx; // downstream of the fault = blast radius
+    const down=idx>=0 && i>idx;
     const node=`<div class="tnode${on?' fault':''}${down?' down':''}"><div class="tdot">${on?'!':'✓'}</div>
       <div class="tnm">${nm}</div><div class="tid">${id}</div></div>`;
     return node + (i<SERVICES.length-1?`<div class="tarrow${(idx>=0&&i>=idx)?' hot':''}">→</div>`:"");
   }).join("");
 }
 
-// ---- impact wall ----
+// ---- impact wall (coherent with in-flight incident) ----
 async function updateImpact(){
   try{
     const d=await(await fetch("/api/impact")).json();
+    const mon=window._mon||{};
     const el=document.getElementById("impact");
-    if(!d.count){ el.innerHTML=`<div class="row"><span class="k">No incidents yet — Quell is watching.</span></div>`; return; }
-    el.innerHTML=`<div class="row"><span class="k">Incidents prevented</span><span class="vv">${d.count}</span></div>
+    let inflight="";
+    if(mon.active) inflight=`<div class="inflight"><i></i> 1 incident in progress — agents investigating</div>`;
+    if(!d.count){
+      el.innerHTML = inflight || `<div class="row"><span class="k">No incidents yet — Quell is watching.</span></div>`;
+      return;
+    }
+    el.innerHTML=inflight+`<div class="row"><span class="k">Incidents prevented</span><span class="vv">${d.count}</span></div>
       <div class="row"><span class="k">Revenue protected</span><span class="vv">$${(d.dollars||0).toLocaleString()}</span></div>
       <div class="row"><span class="k">Avg time to resolve</span><span class="vv">${d.avg_resolve_s}s</span></div>
       ${d.services&&d.services.length?`<div class="svc">healed: ${d.services.map(s=>`<b>${s}</b>`).join(" · ")}</div>`:""}`;
   }catch(e){}
 }
 
-// ---- KPI band: incidents prevented, $ protected, MTTR, services, agents, health ----
+// ---- KPI band ----
 function fmtMoney(n){ n=+n||0; if(n>=1000) return "$"+(n/1000).toFixed(n>=10000?0:1)+"k"; return "$"+Math.round(n); }
 function renderKpis(impact, mon){
   impact=impact||{}; mon=mon||{};
@@ -730,7 +1015,7 @@ function renderKpis(impact, mon){
     <div class="kpi health ${warn?'warn':''}"><div class="v"><span class="hd"></span>${warn?'incident':'healthy'}</div><div class="l">system health</div></div>`;
 }
 
-// ---- services health grid ----
+// ---- services health grid (coherent with metrics) ----
 const SVC_HEALTH=[
   ["catalog-svc","Catalog","query p95",["41ms","48ms","44ms"]],
   ["cart-svc","Cart","add success",["99.9%","99.8%","100%"]],
@@ -752,7 +1037,7 @@ function renderSvcHealth(mon){
   }).join("");
 }
 
-// ---- live activity ticker (/api/activity) ----
+// ---- live activity ticker ----
 function tickerEmphasis(t){
   return esc(t).replace(/(anomaly detected|degraded|fault|breach\w*|incident)/gi,'<em>$1</em>');
 }
@@ -766,20 +1051,26 @@ async function updateActivity(){
     const sig=ev.map(e=>e.t+e.text).join("|"); if(sig===_lastActivitySig) return; _lastActivitySig=sig;
     elT.innerHTML=ev.slice(0,15).map(e=>`<div class="row"><span class="ts">${esc(e.t||"")}</span><span class="tx">${tickerEmphasis(e.text||"")}</span></div>`).join("");
   }catch(e){
-    // endpoint not present yet — synthesise a gentle heartbeat line so the page still feels alive
     const mon=window._mon||{};
-    const now=new Date().toTimeString().slice(0,8);
+    const now=nowClock();
     const line=mon.active?"investigating live incident · agents working":
       (mon.fault_active?"anomaly detected · dispatching agents":"watching · scanned spans · apdex 0.94 healthy");
     elT.innerHTML=`<div class="row"><span class="ts">${now}</span><span class="tx">${tickerEmphasis(line)}</span></div>`;
   }
 }
 
-// ---- incident history feed (/api/history) ----
+// ---- incident history feed (aside) ----
+function scenarioLabel(s){
+  return ({payment_latency:"Slow payments",checkout_errors:"Checkout errors",catalog_slowdown:"Catalog slowdown",
+    cart_failures:"Cart failures",third_party_outage:"External outage"})[s]||s||"incident";
+}
+function scenarioClass(s){
+  return ({payment_latency:"lat",checkout_errors:"err",catalog_slowdown:"cat",cart_failures:"cart",third_party_outage:"ext"})[s]||"lat";
+}
 function timeAgo(when){
   if(!when) return "";
   let t=when; if(typeof t==="string"){ const p=Date.parse(t); if(!isNaN(p)) t=p; else return esc(when); }
-  if(t>1e12) {} else if(t>1e9) t=t*1000; // seconds -> ms
+  if(t>1e12) {} else if(t>1e9) t=t*1000;
   const s=Math.max(0,Math.floor((Date.now()-t)/1000));
   if(s<60)return s+"s ago"; if(s<3600)return Math.floor(s/60)+"m ago";
   if(s<86400)return Math.floor(s/3600)+"h ago"; return Math.floor(s/86400)+"d ago";
@@ -790,17 +1081,273 @@ async function updateHistory(){
     const d=await(await fetch("/api/history")).json();
     const inc=(d&&d.incidents)||[];
     if(!inc.length){ elH.innerHTML=`<div class="empty">No incidents on record yet — Quell is watching.</div>`; return; }
-    elH.innerHTML=inc.slice(0,10).map(i=>{
+    elH.innerHTML=inc.slice(0,6).map(i=>{
       const dol=i.dollars?fmtMoney(i.dollars):"$0";
       const rt=i.resolve_s!=null?(i.resolve_s+"s"):"";
-      return `<div class="hrow"><div class="hic">✓</div>
-        <div class="hmain"><div class="hsc">${esc(i.scenario||"incident")}</div>
+      return `<div class="hrow" onclick="openIncident('${i.id||''}')"><div class="hic">✓</div>
+        <div class="hmain"><div class="hsc">${esc(scenarioLabel(i.scenario))}</div>
         <div class="hmeta"><span class="chip">${esc(i.service||"service")}</span> ${rt?'· resolved in '+rt:''}</div></div>
         <div class="hdol">${dol}<span class="hwhen">${timeAgo(i.when)}</span></div></div>`;
     }).join("");
-  }catch(e){ /* endpoint absent — keep the existing empty/last-known content */ }
+  }catch(e){}
 }
 
+// ========================================================================
+// INCIDENTS view
+// ========================================================================
+function showIncidentList(){ document.getElementById("incList").style.display=""; document.getElementById("incDetail").style.display="none"; }
+async function updateIncidents(){
+  let inc=[];
+  try{ const d=await(await fetch("/api/incidents")).json(); inc=(d&&d.incidents)||[]; }
+  catch(e){ inc=FALLBACK_INCIDENTS; }
+  if(!inc.length) inc=FALLBACK_INCIDENTS;
+  window._incidents=inc;
+  document.querySelector('.navitem[data-view="incidents"] .badge').textContent=inc.length;
+  document.getElementById("navIncBadge").textContent=inc.length;
+  const total=inc.length, dollars=inc.reduce((a,i)=>a+(+i.dollars||0),0);
+  const mttr=inc.length?Math.round(inc.reduce((a,i)=>a+(+i.resolve_s||0),0)/inc.length*10)/10:0;
+  const live=inc.filter(i=>i.backend==="live").length;
+  document.getElementById("incSummary").innerHTML=`
+    <div class="stat"><div class="v">${total}</div><div class="l">incidents prevented</div></div>
+    <div class="stat"><div class="v">${fmtMoney(dollars)}</div><div class="l">revenue protected</div></div>
+    <div class="stat"><div class="v">${mttr}s</div><div class="l">avg time to resolve</div></div>
+    <div class="stat"><div class="v">${live}/${total}</div><div class="l">on live Dynatrace</div></div>`;
+  document.getElementById("incTableWrap").innerHTML=`<div class="itable-wrap"><table class="itable">
+    <tr><th>Incident</th><th>Scenario</th><th>Root cause</th><th>Segment</th><th>Protected</th><th>MTTR</th><th>Source</th><th>When</th><th></th></tr>
+    ${inc.map(i=>`<tr class="irow" onclick="openIncident('${i.id}')">
+      <td class="iid">${esc(i.id)}</td>
+      <td><span class="schip ${scenarioClass(i.scenario)}">${esc(scenarioLabel(i.scenario))}</span></td>
+      <td class="isvc">${esc(i.service||"")}${i.span?' · '+esc(i.span):''}</td>
+      <td>${esc(i.segment||"—")}</td>
+      <td class="idol">${fmtMoney(i.dollars)}</td>
+      <td>${i.resolve_s!=null?i.resolve_s+"s":"—"}</td>
+      <td><span class="bchip ${i.backend==='live'?'live':'mock'}">${i.backend||"mock"}</span></td>
+      <td style="color:var(--muted);font-size:12px">${timeAgo(i.when)}</td>
+      <td class="iarrow">›</td></tr>`).join("")}
+  </table></div>`;
+}
+async function openIncident(id){
+  if(currentView!=="incidents") go("incidents");
+  let inc=(window._incidents||[]).find(i=>i.id===id);
+  try{ const d=await(await fetch("/api/incidents/"+encodeURIComponent(id)).then(r=>r.json())); if(d&&!d.error) inc=d; }catch(e){}
+  if(!inc){ showIncidentList(); return; }
+  document.getElementById("incList").style.display="none";
+  const dt=document.getElementById("incDetail"); dt.style.display="";
+  const entries=inc.entries||[];
+  const tl=entries.map(e=>{
+    const m=META[e.agent]||{label:e.agent,role:e.role||""};
+    const dql=(e.data&&e.data.dql)?`<details class="dql"><summary>▸ the exact DQL Quell ran against Dynatrace</summary><pre><span class="ran">// executed against your Grail tenant</span>\n${esc(e.data.dql)}</pre></details>`:"";
+    return `<div class="station" style="animation:none;opacity:1;transform:none"><div class="node">${emb(e.agent)}</div>
+      <div class="card"><div class="role">${m.role||""}</div><div class="agent">${m.label}</div>
+      <div class="finding">${fmt(e.summary||"")}</div>${dql}</div></div>`;
+  }).join("");
+  const sc=(inc.scorecard||[]).map(g=>`<tr><td>${(META[g.agent]||{}).label||g.agent}</td><td class="${g.score>=1?'s-good':'s-bad'}">${g.score}</td><td>${esc(g.notes||"")}${g.lesson?`<div class="lesson">lesson: ${esc(g.lesson)}</div>`:""}</td></tr>`).join("");
+  dt.innerHTML=`
+    <button class="backbtn" onclick="backToIncidents()">‹ All incidents</button>
+    <div class="detail-head" style="margin-top:16px">
+      <div><div class="iid" style="font-family:var(--mono);color:var(--terra-dk)">${esc(inc.id)} · ${timeAgo(inc.when)}</div>
+        <div class="dh-title">${esc(scenarioLabel(inc.scenario))} on ${esc(inc.service||"a service")}</div>
+        <div class="dh-meta">Root cause: <b>${esc(inc.service||"")}</b>${inc.span?' span <b>'+esc(inc.span)+'</b>':''} · segment ${esc(inc.segment||"—")} · <span class="bchip ${inc.backend==='live'?'live':'mock'}">${inc.backend||"mock"}</span></div></div>
+      <div style="text-align:right"><div class="dh-title" style="color:var(--terra-dk)">${fmtMoney(inc.dollars)}</div><div class="dh-meta">revenue protected · resolved in ${inc.resolve_s!=null?inc.resolve_s+"s":"—"}</div></div>
+    </div>
+    <div class="detail-grid">
+      <div><p class="chart-title">Investigation timeline</p><div class="timeline">${tl||'<div class="empty-box">No step detail recorded for this incident.</div>'}</div>
+        ${sc?`<p class="chart-title" style="margin-top:24px">Evaluation</p><div class="itable-wrap"><table class="itable"><tr><th>Agent</th><th>Score</th><th>Notes</th></tr>${sc}</table></div>`:""}</div>
+      <aside>
+        <div class="panel"><p class="ptitle">Outcome</p>
+          <div style="font-family:var(--serif);font-size:18px;color:#33502f">Incident prevented</div>
+          <p style="font-size:13px;color:var(--ink2);margin:8px 0 0">${esc(inc.root_cause||(scenarioLabel(inc.scenario)+" caught and rolled back before customers were broadly affected."))}</p></div>
+        <div class="panel"><p class="ptitle">At a glance</p>
+          <div class="impact">
+            <div class="row"><span class="k">Tool calls</span><span class="vv">${inc.tool_calls_total||"—"}</span></div>
+            <div class="row"><span class="k">Agents</span><span class="vv">${inc.agents||6}</span></div>
+            <div class="row"><span class="k">MTTR</span><span class="vv">${inc.resolve_s!=null?inc.resolve_s+"s":"—"}</span></div>
+            <div class="row"><span class="k">Source</span><span class="vv" style="font-size:14px">${inc.backend||"mock"}</span></div>
+          </div></div>
+      </aside>
+    </div>`;
+  window.scrollTo(0,0);
+}
+function backToIncidents(){ showIncidentList(); }
+
+// ========================================================================
+// AGENTS view
+// ========================================================================
+async function updateAgents(){
+  let agents=[];
+  try{ const d=await(await fetch("/api/agents")).json(); agents=(d&&d.agents)||[]; }
+  catch(e){ agents=FALLBACK_AGENTS; }
+  if(!agents.length) agents=FALLBACK_AGENTS;
+  window._agents=agents;
+  document.getElementById("agentGrid").innerHTML=agents.map(a=>{
+    const lr=a.last_run||{};
+    const tools=(a.tools||[]).slice(0,4).map(t=>`<span class="toolchip">${esc(t.name||t)}</span>`).join("");
+    const stats=lr.tool_calls!=null?`
+      <div><b>${lr.tool_calls}</b>tool calls</div>
+      <div><b>${lr.latency_ms!=null?lr.latency_ms+"ms":"—"}</b>latency</div>
+      <div><b class="sg">${lr.score!=null?lr.score:"—"}</b>last score</div>`:`
+      <div><b>${(a.tools||[]).length}</b>tools</div><div><b>${a.total_runs||0}</b>runs</div>`;
+    return `<div class="acard" onclick="openAgent('${a.key}')">
+      <div class="ahead"><div class="aemb">${emb(a.key)}</div>
+        <div><div class="anm">${esc(a.label)}</div><div class="arl">${esc(a.role)}</div></div></div>
+      <div class="ablurb">${esc(a.blurb||"")}</div>
+      <div class="atools">${tools}</div>
+      <div class="astats">${stats}</div></div>`;
+  }).join("");
+}
+function openAgent(key){
+  const a=(window._agents||FALLBACK_AGENTS).find(x=>x.key===key); if(!a) return;
+  const lr=a.last_run||{};
+  const tools=(a.tools||[]).map(t=>`<div class="toolrow"><span class="tn">${esc(t.name||t)}</span><span class="td">${esc(t.desc||"")}</span></div>`).join("");
+  const dql=a.dql_template?`<h4>Representative query</h4><div class="dql"><pre><span class="ran">// ${esc(a.label)} runs this against Grail</span>\n${esc(a.dql_template)}</pre></div>`:"";
+  const stat=lr.tool_calls!=null?`<h4>Latest run</h4><div class="statline">
+    <div><b>${lr.tool_calls}</b>tool calls</div><div><b>${lr.latency_ms!=null?lr.latency_ms+"ms":"—"}</b>latency</div>
+    <div><b>${lr.score!=null?lr.score:"—"}</b>score</div><div><b>${a.total_runs||0}</b>total runs</div></div>
+    ${lr.decision?`<p style="font-size:13px;color:var(--ink2);margin:10px 0 0">${esc(lr.decision)}</p>`:""}`:"";
+  document.getElementById("modalBody").innerHTML=`<button class="close" onclick="closeInfo()">close</button>
+    <div class="amodal">
+      <div class="mhead"><div class="aemb">${emb(a.key)}</div><div><h2 style="margin:0">${esc(a.label)}</h2>
+        <div class="arl" style="color:var(--terra)">${esc(a.role)}</div></div></div>
+      <div class="msub" style="margin:10px 0 4px">${esc(a.blurb||"")}</div>
+      <h4>Dynatrace MCP tools</h4><div class="toollist">${tools}</div>
+      ${dql}${stat}</div>`;
+  document.getElementById("overlay").classList.add("open");
+}
+
+// ========================================================================
+// TELEMETRY view
+// ========================================================================
+async function updateTelemetry(){
+  let t={};
+  try{ t=await(await fetch("/api/telemetry")).json(); }catch(e){ t={}; }
+  if(!t.series) t.series=window._metrics||{};
+  const series=t.series||{};
+  document.getElementById("telemetryCharts").innerHTML=CHART_ORDER.map(k=>{
+    const meta=CHART_META[k], s=series[k]||{}, vals=s.values||[];
+    const label=s.label||CHART_FALLBACK_LABEL[k]||k;
+    const last=[...vals].reverse().find(x=>x!=null);
+    const alert=(last!=null)&&meta.bad(+last);
+    return `<div class="tchart${alert?' alert':''}"><div class="cl">${esc(label)}</div>
+      <div class="cv">${vals.length?lastVal(k,vals):"—"}</div>${areaChart(vals.length?vals:[0,0],meta.color,meta.thr)}</div>`;
+  }).join("");
+  const slo=t.slo||FALLBACK_SLO;
+  const burnWarn=(slo.burn_multiple||0)>1;
+  const budgetPct=Math.max(0,Math.min(100,slo.error_budget_pct!=null?slo.error_budget_pct:100));
+  document.getElementById("sloGrid").innerHTML=`
+    <div class="slo-card"><div class="sl">Error budget remaining</div><div class="sv">${budgetPct}%</div>
+      <div class="budget-bar ${budgetPct<60?'warn':''}"><i style="width:${budgetPct}%"></i></div>
+      <div class="ss">${esc(slo.service||"payment-svc")} · 99.5% target</div></div>
+    <div class="slo-card"><div class="sl">Burn rate</div><div class="sv" style="${burnWarn?'color:var(--terra)':''}">${slo.burn_multiple!=null?slo.burn_multiple+"x":"—"}</div>
+      <div class="ss">${burnWarn?"burning faster than budget allows":"within budget"}</div></div>
+    <div class="slo-card"><div class="sl">Projected breach</div><div class="sv">${esc(slo.breach_eta||"—")}</div>
+      <div class="ss">p95 ${slo.current_ms!=null?slo.current_ms+"ms":"—"} vs ${slo.target_ms!=null?slo.target_ms+"ms":"200ms"} target</div></div>`;
+  const cat=t.dql_catalog||FALLBACK_DQL;
+  document.getElementById("dqlCatalog").innerHTML=cat.map(d=>`<div class="dqlrow">
+    <div class="dh"><span class="dag">${esc((META[d.agent]||{}).label||d.agent||"Quell")}</span><span class="dst">${esc(d.step||"")}</span></div>
+    <pre>${esc(d.dql||"")}</pre></div>`).join("");
+}
+
+// ========================================================================
+// SETTINGS view
+// ========================================================================
+function dotv(on,onText,offText){ return `<span class="dotv ${on?'on':'off'}"><i></i>${on?(onText||"connected"):(offText||"not configured")}</span>`; }
+async function updateSettings(){
+  let c={};
+  try{ c=await(await fetch("/api/config")).json(); }catch(e){ c=FALLBACK_CONFIG; }
+  if(!c||!Object.keys(c).length) c=FALLBACK_CONFIG;
+  const ch=c.channels||{};
+  document.getElementById("cfgGrid").innerHTML=`
+    <div class="cfg-card"><h4><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>Dynatrace</h4>
+      <div class="cfg-row"><span class="ck">Tenant</span><span class="cvv">${esc(c.dynatrace_tenant||"—")}</span></div>
+      <div class="cfg-row"><span class="ck">Grail (live DQL)</span>${dotv(c.use_live_dt,"live","mock fallback")}</div>
+      <div class="cfg-row"><span class="ck">Official MCP server</span>${dotv(c.use_mcp,"in live path","direct DQL")}</div>
+      <div class="cfg-row"><span class="ck">Backend mode</span><span class="cvv">${esc(c.backend_mode||"mock")}</span></div></div>
+
+    <div class="cfg-card"><h4><svg viewBox="0 0 24 24"><path d="M12 2l2.5 5 5.5.8-4 3.9 1 5.5L12 14.5 7 17.2l1-5.5-4-3.9 5.5-.8z"/></svg>Models</h4>
+      <div class="cfg-row"><span class="ck">Worker (reasoning)</span><span class="cvv">${esc(c.model_worker||"gemini-2.5-pro")}</span></div>
+      <div class="cfg-row"><span class="ck">Evaluator</span><span class="cvv">${esc(c.model_evaluator||"gemini-2.5-flash")}</span></div>
+      <div class="cfg-row"><span class="ck">Live LLM tool-calling</span>${dotv(c.use_live_llm,"on","stub")}</div>
+      <div class="cfg-row"><span class="ck">Provider</span><span class="cvv">Vertex AI</span></div></div>
+
+    <div class="cfg-card"><h4><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Autonomy</h4>
+      <div class="cfg-row"><span class="ck">Autonomous detection</span>${dotv(c.autonomous,"enabled","manual only")}</div>
+      <div class="cfg-row"><span class="ck">Apdex trigger</span><span class="cvv">&lt; ${(c.thresholds||{}).apdex??0.7}</span></div>
+      <div class="cfg-row"><span class="ck">Burn-rate trigger</span><span class="cvv">&gt; ${(c.thresholds||{}).burn_multiple??10}x</span></div>
+      <div class="cfg-row"><span class="ck">Human gates</span><span class="cvv">2 (action · learning)</span></div></div>
+
+    <div class="cfg-card"><h4><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M4 7l8 6 8-6"/></svg>Channels</h4>
+      <div class="cfg-row"><span class="ck">Slack alerts</span>${dotv(ch.slack,"#incidents","not configured")}</div>
+      <div class="cfg-row"><span class="ck">Dynatrace events</span>${dotv(ch.dynatrace!==false,"connected","off")}</div>
+      <div class="cfg-row"><span class="ck">Notebook reports</span>${dotv(c.use_live_dt,"posted to tenant","local")}</div></div>
+
+    <div class="cfg-card"><h4><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/></svg>Monitored services</h4>
+      <div class="chips" style="margin-top:4px">${(c.services_monitored||["catalog-svc","cart-svc","payment-svc","razorpay.gateway"]).map(s=>`<span class="schipm">${esc(s)}</span>`).join("")}</div>
+      <div class="cfg-row" style="margin-top:10px"><span class="ck">Monitored app</span><span class="cvv">ShopWave</span></div></div>
+
+    <div class="cfg-card"><h4><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M2 12h20"/></svg>Deployment</h4>
+      <div class="cfg-row"><span class="ck">GCP project</span><span class="cvv">${esc(c.gcp_project||"sentinel-hack-2026")}</span></div>
+      <div class="cfg-row"><span class="ck">Region</span><span class="cvv">${esc(c.region||"us-central1")}</span></div>
+      <div class="cfg-row"><span class="ck">Platform</span><span class="cvv">Cloud Run</span></div></div>`;
+}
+
+// ========================================================================
+// AUDIT view
+// ========================================================================
+function auditTimeShort(t){
+  if(!t) return "";
+  const p=Date.parse(t); if(isNaN(p)) return esc(t).slice(0,8);
+  const d=new Date(p); return d.toTimeString().slice(0,8);
+}
+async function updateAudit(){
+  let ev=[];
+  try{ const d=await(await fetch("/api/audit")).json(); ev=(d&&d.events)||[]; }
+  catch(e){ ev=FALLBACK_AUDIT; }
+  if(!ev.length) ev=FALLBACK_AUDIT;
+  const rows=ev.map(e=>{
+    const type=(e.type||"watch").toLowerCase();
+    return `<div class="arow"><span class="at">${auditTimeShort(e.t)}</span>
+      <span class="abadge ab-${type}">${esc(type)}</span>
+      <span class="atx">${tickerEmphasis(e.text||"")}</span>
+      ${e.incident?`<span class="ainc">${esc(e.incident)}</span>`:""}</div>`;
+  }).join("");
+  document.getElementById("auditWrap").innerHTML=rows||`<div class="empty-box">No audit events yet.</div>`;
+}
+
+// ===== fallback datasets (used only until backend endpoints respond) =====
+const FALLBACK_INCIDENTS=[
+  {id:"INC-014",scenario:"payment_latency",service:"payment-svc",span:"razorpay.charge",segment:"iOS / US",dollars:84000,resolve_s:11,when:new Date(Date.now()-3600e3).toISOString(),outcome:"prevented",backend:"live",tool_calls_total:13,agents:6,root_cause:"Slow razorpay.charge after deploy #847 rolled back before checkout broke at scale."},
+  {id:"INC-013",scenario:"checkout_errors",service:"payment-svc",span:"razorpay.charge",segment:"Web / US",dollars:61000,resolve_s:14,when:new Date(Date.now()-8*3600e3).toISOString(),outcome:"prevented",backend:"live",tool_calls_total:12,agents:6,root_cause:"5xx spike on payment-svc traced to a bad deploy; rolled back."},
+  {id:"INC-012",scenario:"catalog_slowdown",service:"catalog-svc",span:"catalog.query",segment:"Android / US",dollars:32500,resolve_s:9,when:new Date(Date.now()-26*3600e3).toISOString(),outcome:"prevented",backend:"mock",tool_calls_total:11,agents:6,root_cause:"Catalog query latency degraded browse apdex; index rollback applied."},
+  {id:"INC-011",scenario:"third_party_outage",service:"razorpay.gateway",span:"razorpay.gateway",segment:"iOS / US",dollars:96000,resolve_s:22,when:new Date(Date.now()-4*86400e3).toISOString(),outcome:"prevented",backend:"live",tool_calls_total:15,agents:6,root_cause:"External gateway 503s cascaded to payment failures; failover engaged."},
+];
+const FALLBACK_AGENTS=[
+  {key:"watcher",label:"Watcher",role:"Detection",blurb:"Watches real-user telemetry and spots the degraded user segment and journey the moment experience drops.",tools:[{name:"execute_dql",desc:"rum_experience by segment/journey"},{name:"list_problems",desc:"open Davis problems"}],dql_template:'fetch bizevents, from:now()-30m | filter `event.type`=="page.view"\n| summarize apdex=avg(apdex), rage=sum(rage_clicks), by:{segment, journey}\n| sort apdex asc',total_runs:4,last_run:{tool_calls:2,latency_ms:680,score:1.0,decision:"Degraded: iOS / US checkout, apdex 0.58."}},
+  {key:"tracer",label:"Tracer",role:"Root cause",blurb:"Scans spans across every service to discover the exact faulted service, span and deploy — no service assumed.",tools:[{name:"execute_dql",desc:"worst_span across all services"},{name:"list_exceptions",desc:"span exceptions for a service"}],dql_template:'fetch spans, from:now()-30m | filter isNotNull(`shop.service`)\n| summarize avg_ms=avg(duration)/1000000, errors=countIf(outcome=="error"),\n  by:{`shop.service`,`span.name`} | sort errors desc, avg_ms desc | limit 10',total_runs:4,last_run:{tool_calls:2,latency_ms:1390,score:1.0,decision:"payment-svc razorpay.charge, +2242ms after deploy #847."}},
+  {key:"judge",label:"Judge",role:"Business impact",blurb:"Quantifies the blast radius in users, carts and revenue, and forecasts when the SLO error budget is exhausted.",tools:[{name:"execute_dql",desc:"business_impact bizevents"},{name:"davis_forecast",desc:"error-budget burn forecast"}],dql_template:'fetch bizevents, from:now()-30m | filter `event.type`=="checkout.started"\n| summarize users=countDistinct(user_id), carts=count(), revenue=sum(cart_value_usd)',total_runs:4,last_run:{tool_calls:2,latency_ms:720,score:1.0,decision:"$84,000 at risk; budget burning 200x, exhausts in ~0.8h."}},
+  {key:"actuator",label:"Actuator",role:"Remediation",blurb:"Executes the approved, reversible rollback and notifies on-call — only after a human signs off at Gate 1.",tools:[{name:"create_workflow_for_notification",desc:"reversible remediation"},{name:"send_slack_message",desc:"alert #incidents"},{name:"send_event",desc:"annotate the tenant"}],dql_template:"// Actuator calls write-tools, not DQL:\n// create_workflow_for_notification(rollback)\n// send_slack_message('#incidents', summary)",total_runs:4,last_run:{tool_calls:3,latency_ms:430,score:1.0,decision:"Rollback recommended + Slack posted to #incidents."}},
+  {key:"scribe",label:"Scribe",role:"Report",blurb:"Writes the prevented-incident report into a Dynatrace notebook so the rescue is documented in-platform.",tools:[{name:"create_dynatrace_notebook",desc:"post incident notebook"},{name:"send_event",desc:"record resolution"}],dql_template:"// Scribe posts a notebook document to:\n// {tenant}/platform/document/v1/documents",total_runs:4,last_run:{tool_calls:2,latency_ms:360,score:1.0,decision:"Notebook posted; incident documented."}},
+  {key:"evaluator",label:"Evaluator",role:"Self-evaluation",blurb:"Grades each agent from its own Dynatrace traces and proposes a lesson, so the team measurably improves run over run.",tools:[{name:"get_agent_traces",desc:"per-agent tool-call traces"}],dql_template:"// Evaluator reads agent traces and scores\n// each agent 0..1, proposing a lesson per gap.",total_runs:4,last_run:{tool_calls:1,latency_ms:820,score:1.0,decision:"Tracer 4->2 tool calls; lesson stored."}},
+];
+const FALLBACK_SLO={service:"payment-svc",target_ms:200,current_ms:2242,error_budget_pct:38,burn_multiple:200,breach_eta:"~0.8h"};
+const FALLBACK_DQL=[
+  {agent:"watcher",step:"detect",dql:FALLBACK_AGENTS[0].dql_template},
+  {agent:"tracer",step:"root cause",dql:FALLBACK_AGENTS[1].dql_template},
+  {agent:"judge",step:"business impact",dql:FALLBACK_AGENTS[2].dql_template},
+];
+const FALLBACK_CONFIG={dynatrace_tenant:"xqs90163.apps.dynatrace.com",model_worker:"gemini-2.5-pro",model_evaluator:"gemini-2.5-flash",
+  autonomous:true,use_live_dt:true,use_live_llm:true,use_mcp:false,backend_mode:"live",
+  channels:{slack:true,dynatrace:true},thresholds:{apdex:0.7,burn_multiple:10},
+  services_monitored:["catalog-svc","cart-svc","payment-svc","razorpay.gateway"],gcp_project:"sentinel-hack-2026",region:"us-central1"};
+const FALLBACK_AUDIT=[
+  {t:new Date(Date.now()-60e3).toISOString(),type:"watch",text:"Watching ShopWave — all segments healthy",incident:null},
+  {t:new Date(Date.now()-3600e3).toISOString(),type:"rescue",text:"Rescued — $84,000 protected",incident:"INC-014"},
+  {t:new Date(Date.now()-3605e3).toISOString(),type:"approve",text:"Human approved rollback at Gate 1",incident:"INC-014"},
+  {t:new Date(Date.now()-3610e3).toISOString(),type:"agent",text:"Judge: $84,000 at risk, budget burning 200x",incident:"INC-014"},
+  {t:new Date(Date.now()-3612e3).toISOString(),type:"agent",text:"Tracer: payment-svc razorpay.charge +2242ms",incident:"INC-014"},
+  {t:new Date(Date.now()-3614e3).toISOString(),type:"detect",text:"Anomaly detected on payment-svc — investigating",incident:"INC-014"},
+];
+
+// ===== boot =====
 renderRoster(); renderTopology(null);
 updateCharts(); setInterval(updateCharts, 4000);
 updateImpact(); setInterval(updateImpact, 4000);
@@ -815,8 +1362,11 @@ async function refreshOverview(){ try{
   window._mon=mon; renderKpis(imp, mon); renderSvcHealth(mon);
 }catch(e){} }
 refreshOverview(); setInterval(refreshOverview, 4000);
-setInterval(()=>renderSvcHealth(), 1500); // animate per-service stat samples
+setInterval(()=>renderSvcHealth(), 1500);
 heartbeat(); setInterval(heartbeat, 2500);
+setInterval(()=>{ if(currentView!=="live" && currentView!=="incidents") renderView(currentView);
+  else if(currentView==="incidents" && document.getElementById("incDetail").style.display==="none") updateIncidents(); }, 5000);
+go((location.hash||"#live").replace("#","")||"live");
 </script>
 </body>
 </html>
