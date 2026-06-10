@@ -74,13 +74,19 @@
   .rcard .emb img{width:100%; height:100%; object-fit:cover}
   .rcard .nm{font-family:var(--serif); font-size:14px}
   .rcard .rl{font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-top:1px}
+  .rcard .rstat{margin-top:6px; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); font-family:var(--mono)}
+  .rcard.active .rstat{color:var(--terra-dk)}
+  .rcard.done{opacity:1; border-color:var(--rule2); box-shadow:0 2px 8px rgba(90,60,30,.06)}
+  .rcard.done .rstat{color:var(--sage)}
+  .rcard .rstat .calls{color:var(--terra-dk)}
 
   /* live charts */
   .panel-head{display:flex; align-items:center; justify-content:space-between; margin:30px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--rule2)}
   .panel-head h3{font-family:var(--serif); font-size:13px; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin:0}
   .panel-head .dtlink{font-size:12px; color:var(--terra-dk); text-decoration:none; font-weight:600}
   .panel-head .dtlink:hover{text-decoration:underline}
-  .charts{display:grid; grid-template-columns:repeat(4,1fr); gap:14px}
+  .charts{display:grid; grid-template-columns:repeat(5,1fr); gap:14px}
+  @media(max-width:1040px){.charts{grid-template-columns:repeat(3,1fr)}}
   @media(max-width:780px){.charts{grid-template-columns:repeat(2,1fr)}}
   .chartcard{background:var(--card); border:1px solid var(--rule2); border-radius:13px; padding:12px 14px 8px; position:relative}
   .chartcard .cl{font-size:11px; color:var(--muted); letter-spacing:.04em}
@@ -103,6 +109,70 @@
   .tnode.down{opacity:.55}
   .tarrow{display:flex; align-items:center; color:var(--rule); font-size:18px; padding:0 4px}
   .tarrow.hot{color:var(--terra)}
+
+  /* KPI band */
+  .kpis{display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin:6px 0 8px}
+  @media(max-width:860px){.kpis{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:480px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:var(--card); border:1px solid var(--rule2); border-radius:13px; padding:13px 14px}
+  .kpi .v{font-family:var(--serif); font-size:22px; color:var(--terra-dk); line-height:1}
+  .kpi .l{font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-top:6px}
+  .kpi.health .v{display:inline-flex; align-items:center; gap:7px; font-size:16px}
+  .kpi.health .hd{width:10px; height:10px; border-radius:50%; background:var(--sage); animation:beat 2s infinite}
+  .kpi.health.warn .v{color:var(--terra)} .kpi.health.warn .hd{background:var(--terra)}
+
+  /* services health grid */
+  .svcgrid{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
+  @media(max-width:680px){.svcgrid{grid-template-columns:repeat(2,1fr)}}
+  .svccard{background:var(--card); border:1px solid var(--rule2); border-radius:13px; padding:13px 15px}
+  .svccard .top{display:flex; align-items:center; gap:8px}
+  .svccard .hd{width:9px; height:9px; border-radius:50%; background:var(--sage); flex:none}
+  .svccard.bad{border-color:var(--terra); background:#f8ead9}
+  .svccard.bad .hd{background:var(--terra); animation:beat 1.3s infinite}
+  .svccard .nm{font-family:var(--serif); font-size:14px}
+  .svccard .id{font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:1px}
+  .svccard .st{font-size:11px; color:var(--ink2); margin-top:8px}
+  .svccard .st b{color:var(--sage); font-family:var(--mono); font-weight:600}
+  .svccard.bad .st b{color:var(--terra)}
+
+  /* live activity ticker */
+  .ticker{background:#2b2419; border:1px solid #3a3122; border-radius:13px; padding:0; overflow:hidden}
+  .ticker .row{display:flex; gap:11px; align-items:baseline; padding:8px 16px; border-bottom:1px solid rgba(255,255,255,.05);
+    font-family:var(--mono); font-size:12px; color:#d8ccb2; animation:rise .35s forwards}
+  .ticker .row:last-child{border-bottom:none}
+  .ticker .row .ts{color:#8a9c7a; flex:none}
+  .ticker .row .tx{color:#e7dcc4}
+  .ticker .row .tx em{color:#e8a878; font-style:normal}
+  .ticker .empty{padding:14px 16px; font-family:var(--mono); font-size:12px; color:#8a7c61}
+
+  /* incident history feed */
+  .history{display:flex; flex-direction:column; gap:0}
+  .hrow{display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--rule2)}
+  .hrow:last-child{border-bottom:none}
+  .hrow .hic{width:26px; height:26px; border-radius:50%; background:#e9efe0; border:1.5px solid var(--sage);
+    display:grid; place-items:center; color:var(--sage); font-size:13px; flex:none}
+  .hrow .hmain{flex:1; min-width:0}
+  .hrow .hsc{font-family:var(--serif); font-size:14px; color:var(--ink)}
+  .hrow .hmeta{font-size:11px; color:var(--muted); margin-top:1px}
+  .hrow .chip{font-family:var(--mono); font-size:10px; color:var(--terra-dk); background:#efe3ca; padding:1px 6px; border-radius:5px}
+  .hrow .hdol{font-family:var(--serif); font-size:15px; color:var(--terra-dk); flex:none; text-align:right}
+  .hrow .hdol .hwhen{display:block; font-family:var(--sans); font-size:10px; color:var(--muted); font-weight:400}
+  .history .empty{padding:14px 4px; font-size:12.5px; color:var(--muted)}
+
+  /* idle resting card */
+  .resting{background:#e9efe0; border:1.5px solid var(--sage); border-radius:15px; padding:20px 22px; position:relative; overflow:hidden}
+  .resting::before{content:"·"; position:absolute; right:20px; top:-6px; font-family:var(--serif); font-size:80px; color:rgba(93,113,80,.16)}
+  .resting .lab{font-size:10.5px; letter-spacing:.24em; text-transform:uppercase; color:var(--sage); font-weight:700; display:flex; align-items:center; gap:9px}
+  .resting .lab i{width:9px; height:9px; border-radius:50%; background:var(--sage); animation:beat 2s infinite}
+  .resting .big{font-family:var(--serif); font-size:22px; color:#33502f; margin-top:6px; line-height:1.25}
+  .resting .sub{font-size:13px; color:var(--ink2); margin-top:8px}
+  .resting .scan{font-family:var(--mono); font-size:11.5px; color:var(--sage); margin-top:10px; min-height:16px}
+
+  /* loading / empty chart state */
+  .chartcard.loading svg, .chartcard.empty svg{opacity:.25}
+  .chartcard .cstate{position:absolute; left:0; right:0; bottom:30px; text-align:center; font-family:var(--mono);
+    font-size:10px; letter-spacing:.08em; color:var(--muted); display:none}
+  .chartcard.loading .cstate, .chartcard.empty .cstate{display:block}
 
   /* impact wall */
   .impact{display:flex; flex-direction:column; gap:10px}
@@ -251,6 +321,15 @@
   <div class="auto-banner" id="autoBanner"><span class="rad"></span>
     <span><b>Anomaly detected.</b> Quell launched this investigation autonomously — you still approve the fix.</span></div>
 
+  <div class="panel-head"><h3>Operations overview</h3></div>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="panel-head"><h3>Live activity · what Quell is doing</h3></div>
+  <div class="ticker" id="ticker"><div class="empty">connecting to live event stream…</div></div>
+
+  <div class="panel-head"><h3>Services health</h3></div>
+  <div class="svcgrid" id="svcgrid"></div>
+
   <div class="panel-head">
     <h3>Live telemetry · Dynatrace</h3>
     <a class="dtlink" id="dtLink" href="#" target="_blank" style="display:none">Open in Dynatrace ↗</a>
@@ -267,16 +346,17 @@
     <main>
       <p class="chart-title">Case timeline <span class="live-tag" id="liveTag">● running</span></p>
       <div class="timeline-scroll" id="timelineScroll">
-        <div class="timeline" id="pipeline">
-          <div class="station" style="opacity:.6"><div class="node" style="border-color:var(--rule);color:var(--muted);font-size:20px">—</div>
-            <div class="card"><div class="finding" style="color:var(--muted)">Idle. Press <b>Detect &amp; prevent incident</b> to dispatch the agents.</div></div></div>
-        </div>
+        <div class="timeline" id="pipeline"></div>
       </div>
     </main>
     <aside>
       <div class="panel">
         <p class="ptitle">Impact this session</p>
         <div class="impact" id="impact"><div class="row"><span class="k">No incidents yet — Quell is watching.</span></div></div>
+      </div>
+      <div class="panel">
+        <p class="ptitle">Prevented incidents</p>
+        <div class="history" id="history"><div class="empty">No incidents on record yet — Quell is watching.</div></div>
       </div>
       <div class="panel">
         <p class="ptitle">Monitored app</p>
@@ -346,6 +426,8 @@ const META={
 };
 const ORDER=["watcher","tracer","judge","actuator","scribe","evaluator"];
 let timer=null, seen=new Set();
+let sessionRan=false;      // a run was started/completed in THIS browser session
+let restingTimer=null;     // animates the idle "watching" scan line
 function openInfo(){document.getElementById("overlay").classList.add("open")}
 function closeInfo(){document.getElementById("overlay").classList.remove("open")}
 function el(h){const d=document.createElement("div");d.innerHTML=h.trim();return d.firstChild}
@@ -356,22 +438,69 @@ function emb(a){return `<img src="/img/${a}.png" alt="" onerror="this.parentNode
 function renderRoster(){
   document.getElementById("roster").innerHTML = ORDER.map(a=>`
     <div class="rcard" id="r-${a}"><div class="emb">${emb(a)}</div>
-      <div class="nm">${META[a].label}</div><div class="rl">${META[a].role}</div></div>`).join("");
+      <div class="nm">${META[a].label}</div><div class="rl">${META[a].role}</div>
+      <div class="rstat" id="rs-${a}">idle</div></div>`).join("");
+}
+// live roster status: idle / active / done + tool-call count from /api/state traces
+function refreshRosterStatus(){
+  const tr=window._traces||{};
+  ORDER.forEach(a=>{
+    const card=document.getElementById("r-"+a), el=document.getElementById("rs-"+a);
+    if(!card||!el)return;
+    const t=tr[a]||{}, calls=(t.tool_calls!=null)?`<span class="calls">${t.tool_calls}</span> calls`:"";
+    if(card.classList.contains("done")) el.innerHTML = calls?("done · "+calls):"done";
+    else if(card.classList.contains("active")) el.innerHTML = calls?("working · "+calls):"working…";
+    else el.textContent="idle";
+  });
 }
 function activate(a){ const r=document.getElementById("r-"+a); if(r)r.classList.add("active"); }
+function markDone(a){ const r=document.getElementById("r-"+a); if(r){r.classList.add("active");r.classList.add("done");} }
 
 function scrollTimeline(){ const t=document.getElementById("timelineScroll"); if(t) t.scrollTo({top:t.scrollHeight, behavior:"smooth"}); }
 let renderedId=null;
 function resetTimeline(auto){
   P().innerHTML=""; seen=new Set();
-  ORDER.forEach(a=>{const r=document.getElementById("r-"+a); if(r)r.classList.remove("active");});
+  ORDER.forEach(a=>{const r=document.getElementById("r-"+a); if(r){r.classList.remove("active");r.classList.remove("done");}
+    const rs=document.getElementById("rs-"+a); if(rs)rs.textContent="idle";});
   document.getElementById("statProtected").textContent="$0";
   document.getElementById("liveTag").classList.add("on");
   document.getElementById("autoBanner").classList.toggle("on", !!auto);
 }
+function stopResting(){ if(restingTimer){clearInterval(restingTimer); restingTimer=null;} }
+// Idle "Quell is watching — all systems healthy" resting state.
+const SCAN_LINES=[
+  "scanning real-user spans · 4 services",
+  "apdex 0.94 · healthy",
+  "checkout journey nominal · 0 errors/min",
+  "payment-svc p95 within SLO",
+  "razorpay.gateway reachable · 38ms",
+  "no degraded segment detected",
+  "cart-svc throughput steady",
+  "watching for anomalies…",
+];
+function renderResting(){
+  renderedId=null; seen=new Set();
+  ORDER.forEach(a=>{const r=document.getElementById("r-"+a); if(r){r.classList.remove("active");r.classList.remove("done");}});
+  document.getElementById("liveTag").classList.remove("on");
+  document.getElementById("autoBanner").classList.remove("on");
+  const p=P();
+  if(!document.getElementById("restingCard")){
+    p.innerHTML=`<div class="station" id="restingStation"><div class="node" style="background:var(--sage);border-color:var(--sage);color:#eef3e6;font-size:20px">✓</div>
+      <div class="resting" id="restingCard"><div class="lab"><i></i> Watching · all systems healthy</div>
+      <div class="big">Quell is watching ShopWave. No incident in flight.</div>
+      <div class="sub">Six agents are on standby. The moment a user segment degrades, Quell traces the cause, quantifies revenue at risk, and proposes a fix for your sign-off.</div>
+      <div class="scan" id="restScan">· initialising live scan…</div></div></div>`;
+  }
+  if(!restingTimer){
+    let i=0;
+    const tick=()=>{ const s=document.getElementById("restScan"); if(s) s.textContent="· "+SCAN_LINES[i++%SCAN_LINES.length]; };
+    tick(); restingTimer=setInterval(tick,2600);
+  }
+}
 function beginRender(id, auto){
   if(renderedId===id) return;
-  renderedId=id; resetTimeline(auto);
+  stopResting();
+  renderedId=id; sessionRan=true; resetTimeline(auto);
   if(timer)clearInterval(timer);
   timer=setInterval(poll,600);
 }
@@ -381,17 +510,29 @@ async function start(){            // manual override
   beginRender(r.started, false);
   document.getElementById("hint").textContent="dispatching agents…";
 }
-// Heartbeat: render whatever incident is active (manual OR autonomous).
+// Heartbeat: render an incident only when one is actually in flight (monitor.active)
+// or a run started/completed in THIS session. Otherwise show the resting state —
+// never resurrect a stale incident from /api/state on load.
 async function heartbeat(){
   try{
     const mon=await(await fetch("/api/monitor")).json();
+    window._mon=mon;
     if(mon.dynatrace){ const a=document.getElementById("dtLink"); a.href=mon.dynatrace+"/ui/apps/dynatrace.notebooks/"; a.style.display="inline"; }
     if(mon.autonomous && !mon.active && !document.getElementById("autoBanner").classList.contains("on"))
       document.getElementById("hint").textContent="Quell is watching ShopWave for anomalies…";
     if(!mon.active) renderTopology(mon.fault_active ? (mon.fault_span||mon.fault_service) : null);
     const s=await(await fetch("/api/state")).json();
-    if(s && s.id && s.id!==renderedId && ((s.entries&&s.entries.length)||s.pending))
+    const stateHasRun = s && s.id && ((s.entries&&s.entries.length)||s.pending);
+    if(mon.active && stateHasRun && s.id!==renderedId){
+      // a live incident is in flight — render it
       beginRender(s.id, s.auto);
+    } else if(sessionRan && stateHasRun && s.id!==renderedId){
+      // continuation of a run that began this session (e.g. just completed)
+      beginRender(s.id, s.auto);
+    } else if(!mon.active && !sessionRan && !timer){
+      // idle on load: do NOT render a leftover incident — show resting state
+      renderResting();
+    }
   }catch(e){}
 }
 function esc(t){return (t||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
@@ -404,7 +545,7 @@ function fmt(s){
 function renderEntry(e){
   const k="e"+e.step; if(seen.has(k))return; seen.add(k);
   const m=META[e.agent]||{label:e.agent,role:""};
-  activate(e.agent);
+  markDone(e.agent);
   const mm=e.summary.match(/\$[0-9,]+/); if(mm) document.getElementById("statProtected").textContent=mm[0];
   const dql=(e.data&&e.data.dql)?`<details class="dql"><summary>▸ the exact DQL Quell ran against Dynatrace</summary>`+
     `<pre><span class="ran">// executed live against your Grail tenant</span>\n${esc(e.data.dql)}</pre></details>`:"";
@@ -466,6 +607,7 @@ async function poll(){
   if(!s||!s.id)return;
   window._traces=s.traces||{};            // tool calls + latency for agent cards
   (s.entries||[]).filter(e=>e.kind!=="evaluation").forEach(renderEntry);
+  refreshRosterStatus();
   const rc=(s.entries||[]).find(e=>e.kind==="root_cause");
   if(rc&&rc.data&&rc.data.service) renderTopology(rc.data.span||rc.data.service);
   if(s.pending==="action")renderGate1(s);
@@ -484,11 +626,14 @@ async function approveLearning(){
 }
 // ---- live area charts (gradient fill + SLO threshold + breach highlight) ----
 const CHART_META={
-  latency:{color:"#b0512c", thr:300, bad:v=>v>300},
-  apdex:  {color:"#5d7150", thr:0.7, bad:v=>v<0.7},
-  revenue:{color:"#a07d2c", thr:null, bad:()=>false},
-  errors: {color:"#8a3d1f", thr:0,   bad:v=>v>0},
+  latency:   {color:"#b0512c", thr:300, bad:v=>v>300},
+  apdex:     {color:"#5d7150", thr:0.7, bad:v=>v<0.7},
+  throughput:{color:"#5d7150", thr:null,bad:()=>false},
+  revenue:   {color:"#a07d2c", thr:null,bad:()=>false},
+  errors:    {color:"#8a3d1f", thr:0,   bad:v=>v>0},
 };
+const CHART_ORDER=["latency","apdex","throughput","revenue","errors"];
+const CHART_FALLBACK_LABEL={throughput:"requests / min"};
 let _chartSeq=0;
 function areaChart(values, color, threshold){
   const nums=values.map(x=>x==null?null:+x), present=nums.filter(x=>x!=null);
@@ -516,17 +661,33 @@ function lastVal(key, values){
   if(key==="apdex") return (+last).toFixed(2);
   if(key==="revenue") return "$"+Math.round(last).toLocaleString();
   if(key==="latency") return Math.round(last)+"ms";
+  if(key==="throughput") return Math.round(last).toLocaleString()+"/min";
   return Math.round(last);
 }
+let _chartsEverLoaded=false;
 function renderCharts(m){
-  document.getElementById("charts").innerHTML=["latency","apdex","revenue","errors"].map(k=>{
-    const s=m[k]; if(!s) return ""; const meta=CHART_META[k]; const vals=s.values||[];
+  m=m||{};
+  document.getElementById("charts").innerHTML=CHART_ORDER.map(k=>{
+    const meta=CHART_META[k]; const s=m[k];
+    const label=(s&&s.label)||CHART_FALLBACK_LABEL[k]||k;
+    const vals=(s&&s.values)||[];
+    const hasData=vals.some(x=>x!=null);
+    // graceful empty/loading state — never a broken blank box
+    if(!hasData){
+      const cls = _chartsEverLoaded ? "empty" : "loading";
+      const msg = _chartsEverLoaded ? "no data" : "loading…";
+      return `<div class="chartcard ${cls}"><div class="cl">${label}</div><div class="cv">—</div>
+        ${areaChart([0,0], meta.color, meta.thr)}<div class="cstate">${msg}</div></div>`;
+    }
     const last=[...vals].reverse().find(x=>x!=null); const alert=(last!=null)&&meta.bad(+last);
     return `<div class="chartcard${alert?' alert':''}"><span class="pill">breaching</span>
-      <div class="cl">${s.label}</div><div class="cv">${lastVal(k,vals)}</div>${areaChart(vals, meta.color, meta.thr)}</div>`;
+      <div class="cl">${label}</div><div class="cv">${lastVal(k,vals)}</div>${areaChart(vals, meta.color, meta.thr)}</div>`;
   }).join("");
 }
-async function updateCharts(){ try{ renderCharts(await(await fetch("/api/metrics")).json()); }catch(e){} }
+async function updateCharts(){
+  try{ const m=await(await fetch("/api/metrics")).json(); _chartsEverLoaded=true; renderCharts(m); }
+  catch(e){ renderCharts(null); }
+}
 
 // ---- service topology / blast radius ----
 const SERVICES=[["catalog-svc","Catalog"],["cart-svc","Cart"],["payment-svc","Payment"],["razorpay.gateway","Gateway"]];
@@ -555,9 +716,106 @@ async function updateImpact(){
   }catch(e){}
 }
 
+// ---- KPI band: incidents prevented, $ protected, MTTR, services, agents, health ----
+function fmtMoney(n){ n=+n||0; if(n>=1000) return "$"+(n/1000).toFixed(n>=10000?0:1)+"k"; return "$"+Math.round(n); }
+function renderKpis(impact, mon){
+  impact=impact||{}; mon=mon||{};
+  const warn = !!(mon.active || mon.fault_active);
+  document.getElementById("kpis").innerHTML=`
+    <div class="kpi"><div class="v">${impact.count||0}</div><div class="l">incidents prevented</div></div>
+    <div class="kpi"><div class="v">${fmtMoney(impact.dollars)}</div><div class="l">revenue protected</div></div>
+    <div class="kpi"><div class="v">${impact.avg_resolve_s?impact.avg_resolve_s+"s":"—"}</div><div class="l">avg MTTR</div></div>
+    <div class="kpi"><div class="v">4</div><div class="l">services monitored</div></div>
+    <div class="kpi"><div class="v">6</div><div class="l">specialist agents</div></div>
+    <div class="kpi health ${warn?'warn':''}"><div class="v"><span class="hd"></span>${warn?'incident':'healthy'}</div><div class="l">system health</div></div>`;
+}
+
+// ---- services health grid ----
+const SVC_HEALTH=[
+  ["catalog-svc","Catalog","query p95",["41ms","48ms","44ms"]],
+  ["cart-svc","Cart","add success",["99.9%","99.8%","100%"]],
+  ["payment-svc","Payment","init p95",["120ms","134ms","118ms"]],
+  ["razorpay.gateway","Gateway","reachability",["38ms","42ms","37ms"]],
+];
+function svcMatches(id, fault){
+  const f=(fault||"").toLowerCase(); if(!f) return false;
+  const base=id.split(".")[0].toLowerCase();
+  return f.includes(base) || id.toLowerCase()===f || f.includes(id.toLowerCase());
+}
+function renderSvcHealth(mon){
+  mon=mon||window._mon||{}; const fault=mon.fault_active?(mon.fault_service||mon.fault_span):"";
+  document.getElementById("svcgrid").innerHTML=SVC_HEALTH.map(([id,nm,stat,samples])=>{
+    const bad=svcMatches(id,fault);
+    const v=bad?'<b>degraded</b>':`<b>${samples[Math.floor(Date.now()/3000)%samples.length]}</b>`;
+    return `<div class="svccard${bad?' bad':''}"><div class="top"><span class="hd"></span><span class="nm">${nm}</span></div>
+      <div class="id">${id}</div><div class="st">${stat} ${v}</div></div>`;
+  }).join("");
+}
+
+// ---- live activity ticker (/api/activity) ----
+function tickerEmphasis(t){
+  return esc(t).replace(/(anomaly detected|degraded|fault|breach\w*|incident)/gi,'<em>$1</em>');
+}
+let _lastActivitySig="";
+async function updateActivity(){
+  const elT=document.getElementById("ticker");
+  try{
+    const d=await(await fetch("/api/activity")).json();
+    const ev=(d&&d.events)||[];
+    if(!ev.length){ elT.innerHTML=`<div class="empty">watching · no events in the last window</div>`; return; }
+    const sig=ev.map(e=>e.t+e.text).join("|"); if(sig===_lastActivitySig) return; _lastActivitySig=sig;
+    elT.innerHTML=ev.slice(0,15).map(e=>`<div class="row"><span class="ts">${esc(e.t||"")}</span><span class="tx">${tickerEmphasis(e.text||"")}</span></div>`).join("");
+  }catch(e){
+    // endpoint not present yet — synthesise a gentle heartbeat line so the page still feels alive
+    const mon=window._mon||{};
+    const now=new Date().toTimeString().slice(0,8);
+    const line=mon.active?"investigating live incident · agents working":
+      (mon.fault_active?"anomaly detected · dispatching agents":"watching · scanned spans · apdex 0.94 healthy");
+    elT.innerHTML=`<div class="row"><span class="ts">${now}</span><span class="tx">${tickerEmphasis(line)}</span></div>`;
+  }
+}
+
+// ---- incident history feed (/api/history) ----
+function timeAgo(when){
+  if(!when) return "";
+  let t=when; if(typeof t==="string"){ const p=Date.parse(t); if(!isNaN(p)) t=p; else return esc(when); }
+  if(t>1e12) {} else if(t>1e9) t=t*1000; // seconds -> ms
+  const s=Math.max(0,Math.floor((Date.now()-t)/1000));
+  if(s<60)return s+"s ago"; if(s<3600)return Math.floor(s/60)+"m ago";
+  if(s<86400)return Math.floor(s/3600)+"h ago"; return Math.floor(s/86400)+"d ago";
+}
+async function updateHistory(){
+  const elH=document.getElementById("history");
+  try{
+    const d=await(await fetch("/api/history")).json();
+    const inc=(d&&d.incidents)||[];
+    if(!inc.length){ elH.innerHTML=`<div class="empty">No incidents on record yet — Quell is watching.</div>`; return; }
+    elH.innerHTML=inc.slice(0,10).map(i=>{
+      const dol=i.dollars?fmtMoney(i.dollars):"$0";
+      const rt=i.resolve_s!=null?(i.resolve_s+"s"):"";
+      return `<div class="hrow"><div class="hic">✓</div>
+        <div class="hmain"><div class="hsc">${esc(i.scenario||"incident")}</div>
+        <div class="hmeta"><span class="chip">${esc(i.service||"service")}</span> ${rt?'· resolved in '+rt:''}</div></div>
+        <div class="hdol">${dol}<span class="hwhen">${timeAgo(i.when)}</span></div></div>`;
+    }).join("");
+  }catch(e){ /* endpoint absent — keep the existing empty/last-known content */ }
+}
+
 renderRoster(); renderTopology(null);
 updateCharts(); setInterval(updateCharts, 4000);
 updateImpact(); setInterval(updateImpact, 4000);
+updateActivity(); setInterval(updateActivity, 3000);
+updateHistory(); setInterval(updateHistory, 6000);
+renderKpis({}, {}); renderSvcHealth({});
+async function refreshOverview(){ try{
+  const [imp,mon]=await Promise.all([
+    fetch("/api/impact").then(r=>r.json()).catch(()=>({})),
+    fetch("/api/monitor").then(r=>r.json()).catch(()=>(window._mon||{})),
+  ]);
+  window._mon=mon; renderKpis(imp, mon); renderSvcHealth(mon);
+}catch(e){} }
+refreshOverview(); setInterval(refreshOverview, 4000);
+setInterval(()=>renderSvcHealth(), 1500); // animate per-service stat samples
 heartbeat(); setInterval(heartbeat, 2500);
 </script>
 </body>

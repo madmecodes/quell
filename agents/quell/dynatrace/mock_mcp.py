@@ -145,9 +145,15 @@ class MockMCP:
     # ---- write tools --------------------------------------------------------
 
     def create_workflow_for_notification(self, name: str, action: str) -> dict[str, Any]:
-        rec = {"tool": "create_workflow", "name": name, "action": action}
+        # Mirrors the live path: this is a RECOMMENDED reversible action, not a real
+        # auto-created Automation workflow -- so no fake workflow id is claimed.
+        rec = {"tool": "recommend_workflow", "name": name, "action": action,
+               "recommended_action": action,
+               "description": f"Recommended reversible action (not auto-created): {action}",
+               "created": False}
         self.actions_taken.append(rec)
-        return {"ok": True, "workflow_id": "wf-101", **rec}
+        return {"ok": True, "workflow_id": None, "created": False,
+                "recommended_action": action, **rec}
 
     def send_event(self, title: str, properties: dict[str, Any]) -> dict[str, Any]:
         rec = {"tool": "send_event", "title": title, "properties": properties}
@@ -163,9 +169,10 @@ class MockMCP:
         return {"ok": True, **rec}
 
     def create_dynatrace_notebook(self, title: str, markdown: str) -> dict[str, Any]:
-        rec = {"tool": "create_notebook", "title": title}
+        # Mock path: no real API call, so posted:false mirrors the live fallback shape.
+        rec = {"tool": "create_notebook", "title": title, "posted": False}
         self.actions_taken.append(rec)
-        return {"ok": True, "notebook_id": "nb-77", "notebook_url": "", **rec}
+        return {"ok": True, "notebook_id": "nb-77", "notebook_url": "", "posted": False, **rec}
 
     # ---- self-observability helper -----------------------------------------
 

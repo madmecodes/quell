@@ -14,6 +14,9 @@ from __future__ import annotations
 import json
 import sys
 import threading
+import time as _time
+from collections import deque
+from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -36,12 +39,15 @@ class RunSession:
     _counter = 0
 
     def __init__(self, store: LessonStore, auto: bool = False):
-        RunSession._counter += 1
-        self.id = f"INC-{RunSession._counter:03d}"
+        with RUN_LOCK:
+            RunSession._counter += 1
+            self.id = f"INC-{RunSession._counter:03d}"
         self.auto = auto                       # was this self-launched by the monitor?
         self.case: CaseFile | None = None
         self.scorecard: Scorecard | None = None
         self.pending: str | None = None       # "action" | "learning" | None
+        self._pending_since: float | None = None  # monotonic ts a gate became pending
+        self._gate_wait_s = 0.0                # cumulative human think-time at gates
         self.done = False
         self.applied_lessons: list[str] = []
         self.applied_defs: list[str] = []
@@ -58,6 +64,7 @@ class RunSession:
         self._started = _t.monotonic()
         self.resolve_s = None
         chaos = self._read_shopwave_chaos()
+        self._scenario = chaos.scenario        # captured for the incident history row
         mcp = self._choose_backend(chaos)
         self._mcp = mcp                        # for per-agent traces in the snapshot
         self._orch = Orchestrator(mcp, store)
@@ -110,6 +117,7 @@ class RunSession:
 
     def _run(self):
         import time as _t
+        log_activity(f"Investigation {self.id} started")
         try:
             result = self._orch.handle(self.id, self._gate_action, self._gate_learning)
             # Expose the case file even on the healthy path (no gate reached), so the
@@ -117,17 +125,35 @@ class RunSession:
             self.case = result.case_file
             self.applied_lessons = result.applied_lessons
             self.applied_defs = result.applied_definition_edits
+            # Log each agent entry as the run lands (we can't stream, so replay here).
+            if self.case:
+                for e in self.case.entries():
+                    summary = (e.summary or "")[:60]
+                    log_activity(f"{e.agent}: {summary}")
             # Tally cumulative impact when an incident was actually rescued.
             rep = self.case.latest("report") if self.case else None
             if rep and not getattr(self, "_dismissed", False):
-                self.resolve_s = round(_t.monotonic() - self._started, 1)
+                # Corrected MTTR: agent time only, with human think-time subtracted.
+                self.resolve_s = max(0.1, round(
+                    (_t.monotonic() - self._started) - self._gate_wait_s, 1))
                 rc = self.case.latest("root_cause")
+                dollars = int(rep.data.get("revenue_protected_usd",
+                                           rep.data.get("revenue_protected_inr", 0)) or 0)
                 IMPACT["count"] += 1
-                IMPACT["dollars"] += int(rep.data.get("revenue_protected_usd",
-                                          rep.data.get("revenue_protected_inr", 0)) or 0)
+                IMPACT["dollars"] += dollars
                 IMPACT["resolve_total"] += self.resolve_s
                 if rc and rc.data.get("service"):
                     IMPACT["services"].add(rc.data["service"])
+                HISTORY.append({
+                    "id": self.id,
+                    "scenario": self._scenario,
+                    "service": rc.data.get("service", "") if rc else "",
+                    "dollars": dollars,
+                    "resolve_s": self.resolve_s,
+                    "when": datetime.now().strftime("%H:%M:%S"),
+                    "outcome": "prevented",
+                })
+                log_activity(f"Rescued - ${dollars} protected")
         except Exception:
             import traceback
             self.error = traceback.format_exc()
@@ -136,17 +162,27 @@ class RunSession:
         self.pending = None
 
     def _gate_action(self, case: CaseFile) -> bool:
+        import time as _t
         self.case = case
         self.pending = "action"
+        self._pending_since = _t.monotonic()
+        _w0 = _t.monotonic()
         self._action_event.wait()
+        self._gate_wait_s += _t.monotonic() - _w0
         self.pending = None
+        self._pending_since = None
         return self._action_ok
 
     def _gate_learning(self, card: Scorecard) -> set[str]:
+        import time as _t
         self.scorecard = card
         self.pending = "learning"
+        self._pending_since = _t.monotonic()
+        _w0 = _t.monotonic()
         self._learning_event.wait()
+        self._gate_wait_s += _t.monotonic() - _w0
         self.pending = None
+        self._pending_since = None
         return self._learning_approved
 
     def approve_action(self, ok: bool):
@@ -165,6 +201,7 @@ class RunSession:
         self._action_event.set()
         self._learning_approved = set()
         self._learning_event.set()
+        log_activity(f"{self.id} dismissed - anomaly cleared")
 
     def snapshot(self) -> dict:
         entries = []
@@ -190,6 +227,18 @@ class RunSession:
 STORE = LessonStore()
 CURRENT: RunSession | None = None
 IMPACT = {"count": 0, "dollars": 0, "resolve_total": 0.0, "services": set()}
+
+# Serializes RunSession._counter increments and CURRENT assignments so the
+# autonomous monitor thread and the HTTP /api/start handler can't race.
+RUN_LOCK = threading.Lock()
+
+# Rolling activity feed + incident history for the console.
+ACTIVITY: deque = deque(maxlen=40)
+HISTORY: deque = deque(maxlen=20)
+
+
+def log_activity(text: str) -> None:
+    ACTIVITY.append({"t": datetime.now().strftime("%H:%M:%S"), "text": text})
 
 # ---- live metrics for the console charts (cached briefly) -------------------
 _METRICS_CACHE = {"at": 0.0, "data": None}
@@ -294,6 +343,10 @@ class Handler(BaseHTTPRequestHandler):
             avg = round(IMPACT["resolve_total"] / IMPACT["count"], 1) if IMPACT["count"] else 0
             self._json({"count": IMPACT["count"], "dollars": IMPACT["dollars"],
                         "avg_resolve_s": avg, "services": sorted(IMPACT["services"])})
+        elif self.path == "/api/activity":
+            self._json({"events": list(reversed(ACTIVITY))[:15]})
+        elif self.path == "/api/history":
+            self._json({"incidents": list(reversed(HISTORY))[:10]})
         elif self.path == "/api/monitor":
             import os
             c = _store_chaos()
@@ -323,7 +376,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         global CURRENT
         if self.path == "/api/start":
-            CURRENT = RunSession(STORE)
+            with RUN_LOCK:
+                CURRENT = RunSession(STORE)
             self._json({"started": CURRENT.id})
         elif self.path == "/api/approve-action":
             if CURRENT:
@@ -366,14 +420,27 @@ def _monitor_loop():
     global CURRENT
     MONITOR["watching"] = True
     cooldown_until = 0.0
+    last_idle_log = 0.0
     while True:
         _t.sleep(12)
         try:
             anomalous = _is_anomalous()
+            fault = _store_chaos()
+            fault_active = bool(fault.get("active"))
             if CURRENT and not CURRENT.done:
-                # If an auto-incident is waiting for approval but the anomaly has
-                # already cleared, dismiss it so no phantom lingers (false positive).
-                if CURRENT.auto and CURRENT.pending and not anomalous:
+                # Phantom-incident guard: a run stuck waiting at a gate while the
+                # ShopWave fault is NOT active is a false positive -- dismiss it so
+                # the console returns to a clean idle state. Applies to manual and
+                # auto incidents alike.
+                if CURRENT.pending and not fault_active:
+                    CURRENT.dismiss()
+                    CURRENT = None
+                    cooldown_until = _t.monotonic() + 30
+                    continue
+                # Hard timeout: a gate pending for too long (no human ever acted)
+                # is dismissed regardless of fault state, so it can't linger forever.
+                if (CURRENT.pending and CURRENT._pending_since is not None
+                        and _t.monotonic() - CURRENT._pending_since > 240):
                     CURRENT.dismiss()
                     CURRENT = None
                     cooldown_until = _t.monotonic() + 30
@@ -381,8 +448,16 @@ def _monitor_loop():
             if _t.monotonic() < cooldown_until:
                 continue
             if anomalous:
-                CURRENT = RunSession(STORE, auto=True)   # Quell launches itself
+                log_activity(
+                    f"Anomaly detected on {fault.get('service','service')} - investigating")
+                with RUN_LOCK:
+                    CURRENT = RunSession(STORE, auto=True)   # Quell launches itself
                 cooldown_until = _t.monotonic() + 45
+            else:
+                # Throttled idle heartbeat: at most once per ~60s.
+                if _t.monotonic() - last_idle_log > 60:
+                    log_activity("Watching ShopWave - all segments healthy")
+                    last_idle_log = _t.monotonic()
         except Exception:
             pass
 

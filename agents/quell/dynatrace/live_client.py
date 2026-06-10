@@ -13,12 +13,32 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass, field
 
 SSO_TOKEN_URL = "https://sso.dynatrace.com/sso/oauth2/token"
+
+# DQL identifier sanitizer. Externally-controlled strings (service / span / segment /
+# scenario / incident_id) get interpolated into Grail DQL. To stop DQL injection we
+# allow ONLY a safe identifier charset and strip everything else (double-quotes,
+# backticks, pipes, newlines, braces, parens) BEFORE interpolation. The charset keeps
+# every real value working -- "iOS / US", "payment-svc", "razorpay.charge", "#847".
+_DQL_SAFE = re.compile(r"[^A-Za-z0-9 ._/:#-]+")
+
+
+def _safe_dql(value: object, *, max_len: int = 128) -> str:
+    """Return ``value`` reduced to the safe DQL identifier charset.
+
+    Anything outside ``[A-Za-z0-9 ._/:#-]`` (quotes, backticks, pipes, newlines,
+    braces, parens, backslashes, ...) is removed so it can never break out of the
+    surrounding double-quoted DQL literal. Result is length-capped and trimmed.
+    """
+    s = "" if value is None else str(value)
+    s = _DQL_SAFE.sub("", s).strip()
+    return s[:max_len]
 
 # Scopes the read path needs; the token is minted once and reused until expiry.
 READ_SCOPES = (
@@ -139,6 +159,9 @@ class DynatraceClient:
         handful of genuinely bad events is an unambiguous, fast signal that no
         cold-start or averaging dilution can hide or fake. Clears within ~2 min of a
         fault being removed (the bad events age out of the window)."""
+        # Coerce the interpolated numerics so a crafted value can't reach the DQL.
+        window_min = int(window_min)
+        apdex_bad = float(apdex_bad)
         try:
             recs = self.execute_dql(
                 f"fetch bizevents, from:now()-{window_min}m "
@@ -168,6 +191,7 @@ class DynatraceClient:
                 "total": int(r.get("total") or 0), "deploy": r.get("deploy") or "n/a"}
 
     def span_breakdown(self, service: str) -> dict:
+        service = _safe_dql(service)
         q = (f"fetch spans, from: now()-30m | filter `shop.service` == \"{service}\" "
              "| summarize ms = avg(duration)/1000000, deploy = takeAny(`deploy.version`), "
              "by:{`span.name`} | sort ms desc | limit 10")
@@ -179,6 +203,7 @@ class DynatraceClient:
 
     def list_exceptions(self, service: str) -> list[dict]:
         # Count FAILED spans (outcome==error) and slow spans for a service.
+        service = _safe_dql(service)
         recs = self.execute_dql(
             f"fetch spans, from: now()-30m | filter `shop.service` == \"{service}\" "
             "and (outcome == \"error\" or duration > 200ms) "
@@ -187,6 +212,7 @@ class DynatraceClient:
                 for r in recs if int(r.get("c") or 0) > 0]
 
     def business_impact(self, segment: str) -> dict:
+        segment = _safe_dql(segment)
         q = ("fetch bizevents, from: now()-30m | filter `event.type` == \"checkout.started\" "
              "| summarize users = countDistinct(user_id), carts = count(), revenue = sum(cart_value_usd)")
         self.queries["impact"] = q
@@ -204,8 +230,8 @@ class DynatraceClient:
         """Real error-budget forecast from live data on the FAULTED span (slow OR
         failing), projecting when the budget is exhausted at the current burn rate.
         Computed from real Grail spans -- no hardcoded ETA."""
-        svc = service or "payment-svc"
-        spn = span or "razorpay.charge"
+        svc = _safe_dql(service or "payment-svc")
+        spn = _safe_dql(span or "razorpay.charge")
         q = (f"fetch spans, from: now()-30m | filter `shop.service` == \"{svc}\" and `span.name` == \"{spn}\" "
              f"| summarize total = count(), bad = countIf(duration > {self.SLO_MS}ms or outcome == \"error\")")
         self.queries["forecast"] = q
@@ -233,6 +259,17 @@ class DynatraceClient:
 
     # ---- live time-series for the console charts ----------------------------
 
+    @staticmethod
+    def _drop_trailing_null(values: list):
+        """makeTimeseries' final bucket is the still-open (incomplete) minute and is
+        frequently null. The UI reads the LAST element as the "current" figure, so a
+        trailing null/0 reads as a misleading drop to nothing. Drop a single trailing
+        null so the displayed current value is the last real (non-null) bucket. If the
+        whole series is null we leave it untouched."""
+        if len(values) > 1 and values[-1] is None and any(v is not None for v in values):
+            return values[:-1]
+        return values
+
     def metrics_series(self) -> dict:
         """Time-bucketed series for the console charts, straight from Grail via
         makeTimeseries. Values are per-1m bucket over the last 20m."""
@@ -251,7 +288,8 @@ class DynatraceClient:
                     bestavg, best = a, r
             if best is not None:
                 out["latency"] = {"label": f"{best.get('shop.service','service')} latency (ms)",
-                                  "values": [None if v is None else round(v/1_000_000, 1) for v in arr(best, "ms")]}
+                                  "values": self._drop_trailing_null(
+                                      [None if v is None else round(v/1_000_000, 1) for v in arr(best, "ms")])}
         except Exception:
             pass
         try:  # apdex across all page views
@@ -260,7 +298,8 @@ class DynatraceClient:
                 "| makeTimeseries apdex = avg(apdex), interval:1m")
             if recs:
                 out["apdex"] = {"label": "apdex (all users)",
-                                "values": [None if v is None else round(v, 2) for v in arr(recs[0], "apdex")]}
+                                "values": self._drop_trailing_null(
+                                    [None if v is None else round(v, 2) for v in arr(recs[0], "apdex")])}
         except Exception:
             pass
         try:  # checkout revenue per minute
@@ -269,7 +308,8 @@ class DynatraceClient:
                 "| makeTimeseries rev = sum(cart_value_usd), interval:1m")
             if recs:
                 out["revenue"] = {"label": "checkout revenue ($/min)",
-                                  "values": [0 if v is None else round(v) for v in arr(recs[0], "rev")]}
+                                  "values": self._drop_trailing_null(
+                                      [None if v is None else round(v) for v in arr(recs[0], "rev")])}
         except Exception:
             pass
         try:  # failed requests per minute
@@ -278,7 +318,18 @@ class DynatraceClient:
                 "| makeTimeseries errs = countIf(outcome == \"error\"), interval:1m")
             if recs:
                 out["errors"] = {"label": "failed requests / min",
-                                 "values": [0 if v is None else int(v) for v in arr(recs[0], "errs")]}
+                                 "values": self._drop_trailing_null(
+                                     [None if v is None else int(v) for v in arr(recs[0], "errs")])}
+        except Exception:
+            pass
+        try:  # throughput: requests / min from span counts
+            recs = self.execute_dql(
+                "fetch spans, from:now()-20m | filter isNotNull(`shop.service`) "
+                "| makeTimeseries reqs = count(), interval:1m")
+            if recs:
+                out["throughput"] = {"label": "requests / min",
+                                     "values": self._drop_trailing_null(
+                                         [None if v is None else int(v) for v in arr(recs[0], "reqs")])}
         except Exception:
             pass
         return out
@@ -296,6 +347,7 @@ class DynatraceClient:
         # the Evaluator can grade immediately (Grail ingestion has a short lag).
         if self.agent_traces:
             return self.agent_traces
+        incident_id = _safe_dql(incident_id)
         recs = self.execute_dql(
             f"fetch spans, from: now()-30m | filter incident_id == \"{incident_id}\" "
             "| summarize tool_calls = count(), latency_ms = sum(duration)/1000000, by:{agent}")
@@ -315,10 +367,18 @@ class DynatraceClient:
         return {"ok": code in (200, 201, 202, 204), **rec}
 
     def create_workflow_for_notification(self, name: str, action: str) -> dict:
-        # Workflow creation via Automation API; recorded for the demo dashboard.
-        rec = {"tool": "create_workflow", "name": name, "action": action}
+        # HONESTY: we do NOT create a real Automation workflow here (Automation
+        # workflow create is not reliable in this environment, and faking a
+        # workflow_id would be dishonest). Instead we return a *recommended*,
+        # reversible action so the operator can apply it deliberately. No fake id.
+        rec = {"tool": "recommend_workflow", "name": name, "action": action,
+               "recommended_action": action,
+               "description": f"Recommended reversible action (not auto-created): {action}",
+               "created": False}
         self.actions_taken.append(rec)
-        return {"ok": True, "workflow_id": "wf-live", **rec}
+        # workflow_id kept for the typed surface but explicitly null (no fake id).
+        return {"ok": True, "workflow_id": None, "created": False,
+                "recommended_action": action, **rec}
 
     def send_slack_message(self, channel: str, text: str) -> dict:
         from .. import slack
@@ -329,9 +389,67 @@ class DynatraceClient:
         return {"ok": True, **rec}
 
     def create_dynatrace_notebook(self, title: str, markdown: str) -> dict:
-        rec = {"tool": "create_notebook", "title": title}
-        self.actions_taken.append(rec)
-        return {"ok": True, "notebook_id": "nb-live", **rec}
+        """Create a REAL Dynatrace notebook document via the Documents API
+        (POST /platform/document/v1/documents, document:documents:write scope).
+
+        The notebook body is a minimal valid notebook JSON whose single section
+        renders the supplied markdown. On success we return the real document id and
+        a real deep link. On any failure we fall back to the stub id but mark
+        posted:false so callers can tell it never landed."""
+        notebook_doc = {
+            "version": 8,
+            "defaultTimeframe": {"from": "now()-30m", "to": "now()"},
+            "sections": [
+                {"id": "s1", "type": "markdown", "markdown": markdown},
+            ],
+        }
+        content = json.dumps(notebook_doc).encode()
+        boundary = f"----quell{int(time.time()*1000)}"
+        url = f"{self.environment}/platform/document/v1/documents"
+        try:
+            bearer = self._bearer(WRITE_SCOPES)
+            body = self._multipart(boundary, [
+                ("name", None, None, title.encode()),
+                ("type", None, None, b"notebook"),
+                ("content", "content.json", "application/json", content),
+            ])
+            code, raw = _http("POST", url, {
+                "Authorization": f"Bearer {bearer}",
+                "Content-Type": f"multipart/form-data; boundary={boundary}",
+            }, body)
+            if code in (200, 201):
+                doc = json.loads(raw or b"{}")
+                doc_id = doc.get("id") or doc.get("documentMetadata", {}).get("id")
+                if doc_id:
+                    nb_url = f"{self.environment}/ui/apps/dynatrace.notebooks/#/notebooks/{doc_id}"
+                    rec = {"tool": "create_notebook", "title": title, "http": code, "posted": True}
+                    self.actions_taken.append(rec)
+                    return {"ok": True, "notebook_id": doc_id, "notebook_url": nb_url,
+                            "posted": True, **rec}
+            # fall through to stub on non-2xx / missing id
+            stub = {"tool": "create_notebook", "title": title, "http": code, "posted": False}
+        except Exception as e:  # network/auth failure -> honest stub
+            stub = {"tool": "create_notebook", "title": title, "error": str(e)[:120], "posted": False}
+        self.actions_taken.append(stub)
+        return {"ok": False, "notebook_id": "nb-live", "notebook_url": self.notebook_url,
+                "posted": False, **stub}
+
+    @staticmethod
+    def _multipart(boundary: str, parts: list[tuple]) -> bytes:
+        """Build a multipart/form-data body. Each part is
+        (field_name, filename_or_None, content_type_or_None, bytes_value)."""
+        out = bytearray()
+        for name, filename, ctype, value in parts:
+            out += f"--{boundary}\r\n".encode()
+            disp = f'form-data; name="{name}"'
+            if filename:
+                disp += f'; filename="{filename}"'
+            out += f"Content-Disposition: {disp}\r\n".encode()
+            if ctype:
+                out += f"Content-Type: {ctype}\r\n".encode()
+            out += b"\r\n" + value + b"\r\n"
+        out += f"--{boundary}--\r\n".encode()
+        return bytes(out)
 
     def record_agent_trace(self, agent: str, tool_calls: int, latency_ms: int, decision: str) -> None:
         # The agent span is emitted to Dynatrace via OTel (real); we also keep it
