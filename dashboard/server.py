@@ -230,7 +230,9 @@ IMPACT = {"count": 0, "dollars": 0, "resolve_total": 0.0, "services": set()}
 
 # Serializes RunSession._counter increments and CURRENT assignments so the
 # autonomous monitor thread and the HTTP /api/start handler can't race.
-RUN_LOCK = threading.Lock()
+# RLock (reentrant): callers hold it while constructing RunSession, whose
+# __init__ re-acquires it for the counter bump -- a plain Lock would deadlock.
+RUN_LOCK = threading.RLock()
 
 # Rolling activity feed + incident history for the console.
 ACTIVITY: deque = deque(maxlen=40)
