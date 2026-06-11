@@ -165,6 +165,51 @@ When live LLM is off, the same agents run a deterministic path so the demo alway
 works. The deployable `quell_adk/` app expresses the same agents on Google ADK
 with the official Dynatrace MCP server as the tool source.
 
+## Built on Google's Agent Development Kit (ADK)
+
+New to ADK? It is Google's open-source framework (`pip install google-adk`) for
+building agents on Gemini. The mental model: **you declare _what_ each agent is;
+ADK runs the _how_** — the tool-calling loop, the orchestration, the deployment.
+That is why the whole `quell_adk/agent.py` is ~140 lines yet is a complete,
+deployable multi-agent app:
+
+```python
+watcher = LlmAgent(model="gemini-3.1-pro-preview", instruction="...", tools=[dynatrace_mcp])
+tracer  = LlmAgent(...)
+judge   = LlmAgent(...)
+root_agent = SequentialAgent(sub_agents=[watcher, tracer, judge])
+```
+
+```mermaid
+flowchart TB
+    classDef you fill:#e9efe0,stroke:#5d7150,color:#33502f;
+    classDef adk fill:#f8f2e6,stroke:#8a3d1f,color:#2c2317;
+    classDef out fill:#f8ead9,stroke:#b0512c,color:#8a3d1f;
+
+    YOU["<b>You write</b> — a few lines<br/>LlmAgent(model, instructions, tools)<br/>SequentialAgent(sub_agents=[...])"]:::you
+    YOU --> ADK
+    subgraph ADK["What ADK provides — the runtime"]
+        A1["1 · Agent loop<br/>prompt → tool call → result → repeat → answer"]:::adk
+        A2["2 · Agent primitives<br/>LlmAgent = model + instructions + tools"]:::adk
+        A3["3 · Tool integration<br/>Python functions or MCP servers"]:::adk
+        A4["4 · Multi-agent orchestration<br/>Sequential · Parallel · Loop · sub-agents"]:::adk
+        A5["5 · Sessions, state &amp; memory<br/>history + event streaming"]:::adk
+        A6["6 · Runner + dev tools<br/>adk run · adk web · adk eval"]:::adk
+        A7["7 · Deployment<br/>adk deploy → Vertex AI Agent Engine"]:::adk
+    end
+    ADK --> OUT["<b>Deployable multi-agent app</b><br/>Quell: Watcher → Tracer → Judge"]:::out
+```
+
+What ADK gives you (the plumbing you would otherwise hand-write):
+
+1. **Agent loop** — you call one function; ADK runs the whole loop: prompt → model says "call tool X" → ADK executes the tool → feeds the result back → repeats → returns the final answer.
+2. **Agent primitives** — `LlmAgent` = model + instructions + tools. That is the entire definition of an agent.
+3. **Tool integration** — wrap a Python function or an MCP server (`MCPToolset`) as tools; ADK auto-generates the schemas, calls them, and parses the results.
+4. **Multi-agent orchestration** — `SequentialAgent`, `ParallelAgent`, `LoopAgent`, and sub-agents compose agents into workflows without writing the coordination.
+5. **Sessions, state & memory** — conversation history, session state, and event streaming are managed for you.
+6. **Runner + dev tools** — `adk run` (CLI), `adk web` (a local chat UI to test the agent), `adk eval` (evaluation harness).
+7. **Deployment** — `adk deploy agent_engine` ships it to **Vertex AI Agent Engine** (managed, autoscaled). This is the "Agent Builder" runtime the hackathon asks for.
+
 ## Run the demo (no credentials needed)
 
 The pipeline runs end-to-end in mock mode against a simulated ShopWave store, so
