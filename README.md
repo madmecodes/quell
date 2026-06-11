@@ -167,6 +167,10 @@ with the official Dynatrace MCP server as the tool source.
 
 ## Built on Google's Agent Development Kit (ADK)
 
+<p align="center">
+  <img src="docs/adk_banner.png" alt="Google Agent Development Kit" width="760">
+</p>
+
 New to ADK? It is Google's open-source framework (`pip install google-adk`) for
 building agents on Gemini. The mental model: **you declare _what_ each agent is;
 ADK runs the _how_** — the tool-calling loop, the orchestration, the deployment.
