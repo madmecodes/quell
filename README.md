@@ -1,5 +1,11 @@
 # Quell
 
+<p align="center">
+  <img src="dashboard/static/img/hero.png" alt="Quell — autonomous incident response" width="860">
+</p>
+
+<p align="center"><i>Quell the incident before it spreads — six Gemini agents that watch a live store through Dynatrace, trace a failure, price it, and stop it.</i></p>
+
 **Live**
 - Quell console (hosted project): https://quell-dashboard-908906947513.us-central1.run.app
 - ShopWave demo store: https://shopwave-908906947513.us-central1.run.app
@@ -100,6 +106,15 @@ flowchart TB
 ```
 
 ## The agents
+
+<p align="center">
+  <img src="dashboard/static/img/watcher.png" width="76" title="Watcher">
+  <img src="dashboard/static/img/tracer.png" width="76" title="Tracer">
+  <img src="dashboard/static/img/judge.png" width="76" title="Judge">
+  <img src="dashboard/static/img/actuator.png" width="76" title="Actuator">
+  <img src="dashboard/static/img/scribe.png" width="76" title="Scribe">
+  <img src="dashboard/static/img/evaluator.png" width="76" title="Evaluator">
+</p>
 
 | Agent | Job | Dynatrace tools | Access |
 |-------|-----|-----------------|--------|
