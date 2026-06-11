@@ -38,6 +38,67 @@ one region after this morning's deploy cannot be found by a unit test, a code
 read, or a simulation -- only by Dynatrace. Remove Dynatrace and the agents are
 blind. That is the bar the idea is built to clear.
 
+## Architecture
+
+### 1 · Whole system — ShopWave, Dynatrace (via MCP), and the six agents
+
+A fault is injected on the live ShopWave store, which streams OpenTelemetry to
+Dynatrace Grail. Quell's monitor detects it; the agents read Grail **through the
+official Dynatrace MCP server** (`execute_dql`), reason with Gemini, and act
+behind two human gates. Every action is written back to Dynatrace and Slack.
+
+```mermaid
+flowchart TB
+    subgraph APP["ShopWave store · Cloud Run"]
+        CHAOS["Operations panel<br/>inject a fault"] --> SW["Live e-commerce store"]
+    end
+    subgraph DT["Dynatrace"]
+        MCP["Official Dynatrace MCP server<br/>execute_dql"]
+        GRAIL[("Grail<br/>spans · RUM · bizevents")]
+    end
+    subgraph QUELL["Quell · Cloud Run · reasons with Gemini 3"]
+        MON["Autonomous monitor"]
+        W["1 Watcher"] --> TR["2 Tracer"] --> JU["3 Judge"]
+        JU --> G1{"GATE 1<br/>human approves action"}
+        G1 --> AC["4 Actuator"] --> SC["5 Scribe"] --> EV["6 Evaluator"]
+        EV --> G2{"GATE 2<br/>human approves lesson"}
+    end
+    SW -- "OpenTelemetry" --> GRAIL
+    SW -. "fault signal" .-> MON
+    MON --> W
+    W -- "reads" --> MCP
+    TR -- "reads" --> MCP
+    JU -- "reads" --> MCP
+    MCP --> GRAIL
+    AC -- "rollback + event" --> GRAIL
+    AC -- "alert" --> SLACK["Slack #incidents"]
+    SC -- "notebook" --> GRAIL
+    G2 --> MEM[("Lesson memory")]
+    MEM -. "faster next run" .-> W
+```
+
+### 2 · What each agent does
+
+```mermaid
+flowchart TB
+    classDef agent fill:#f8f2e6,stroke:#8a3d1f,color:#2c2317;
+    classDef gate fill:#f8ead9,stroke:#b0512c,color:#8a3d1f;
+    classDef mem fill:#e9efe0,stroke:#5d7150,color:#33502f;
+
+    W["<b>1 · WATCHER</b> — Detection<br/>reads RUM apdex &amp; rage-clicks by segment<br/>➜ finds the degraded segment &amp; journey"]:::agent
+    TR["<b>2 · TRACER</b> — Root cause<br/>scans spans across ALL services<br/>➜ pinpoints service · span · deploy"]:::agent
+    JU["<b>3 · JUDGE</b> — Business impact<br/>reads checkout bizevents + Davis forecast<br/>➜ users · carts · $ at risk · breach ETA"]:::agent
+    G1{"GATE 1 — human approves the action"}:::gate
+    AC["<b>4 · ACTUATOR</b> — Remediation<br/>creates a reversible rollback workflow + Slack alert<br/>➜ reverses the bad deploy"]:::agent
+    SC["<b>5 · SCRIBE</b> — Report<br/>writes a Dynatrace notebook<br/>➜ documents the prevented incident"]:::agent
+    EV["<b>6 · EVALUATOR</b> — Self-evaluation<br/>reads Quell's OWN agent traces<br/>➜ grades each agent, proposes a lesson"]:::agent
+    G2{"GATE 2 — human approves the lesson"}:::gate
+    MEM[("Lesson memory<br/>next run uses fewer tool calls")]:::mem
+
+    W --> TR --> JU --> G1 --> AC --> SC --> EV --> G2 --> MEM
+    MEM -. "read before next run" .-> W
+```
+
 ## The agents
 
 | Agent | Job | Dynatrace tools | Access |
